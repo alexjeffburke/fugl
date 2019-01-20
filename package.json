@@ -21,6 +21,7 @@
     "lazy-ass": "1.6.0",
     "lodash": "4.17.11",
     "mkdirp": "^0.5.1",
+    "mocha": "3.5.3",
     "npm-registry": "0.1.13",
     "npm-utils": "1.14.1",
     "os-tmpdir": "1.0.2",
@@ -40,7 +41,6 @@
     "github-post-release": "1.13.1",
     "if-node-version": "^1.1.1",
     "matchdep": "1.0.1",
-    "mocha": "3.5.3",
     "prettier": "~1.15.3",
     "standard": "10.0.3"
   },
