@@ -9,20 +9,6 @@
   "bugs": {
     "url": "https://github.com/bahmutov/dont-break/issues"
   },
-  "config": {
-    "pre-git": {
-      "commit-msg": "simple",
-      "pre-commit": [
-        "npm run mocha",
-        "npm test"
-      ],
-      "pre-push": [
-        "npm run e2e",
-        "npm run size"
-      ],
-      "post-merge": []
-    }
-  },
   "contributors": [],
   "dependencies": {
     "chdir-promise": "0.6.2",
@@ -52,7 +38,6 @@
     "matchdep": "1.0.1",
     "mocha": "3.5.3",
     "next-update-travis": "^1.7.1",
-    "pre-git": "3.17.1",
     "semantic-release": "^6.3.6",
     "simple-commit-message": "3.3.2",
     "standard": "10.0.3"
