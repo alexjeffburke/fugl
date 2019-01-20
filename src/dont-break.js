@@ -13,9 +13,6 @@ var isRepoUrl = require('./is-repo-url')
 
 var _ = require('lodash')
 
-var npmTest = require('npm-utils').test
-la(check.fn(npmTest), 'npm test should be a function', npmTest)
-
 var fs = require('fs-extra')
 var read = fs.readFileSync
 var exists = fs.existsSync
