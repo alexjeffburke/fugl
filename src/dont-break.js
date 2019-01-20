@@ -328,7 +328,7 @@ function testDependents(options, config) {
   emitter.on('fail', () => (stats.failures += 1));
 
   let reporter;
-  if (options.reporter) {
+  if (options.reporter !== 'console') {
     try {
       const Reporter = require(`mocha/lib/reporters/${options.reporter}`);
       reporter = new Reporter(emitter);
@@ -338,7 +338,9 @@ function testDependents(options, config) {
   }
 
   if (!reporter) {
-    // XXX bind to banner
+    emitter.once('start', () => console.log());
+    emitter.on('pass', test => console.log(`  ${test.title} PASSED`));
+    emitter.on('fail', test => console.log(`  ${test.title} FAILED`));
   }
 
   emitter.emit('start');
@@ -387,7 +389,7 @@ function dontBreak(options) {
   }
   options = options || {};
   options.folder = options.folder || process.cwd();
-  options.reporter = options.reporter || 'dot';
+  options.reporter = options.reporter || 'console';
 
   debug('working in folder %s', options.folder);
   var start = chdir.to(options.folder);
