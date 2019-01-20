@@ -165,22 +165,20 @@ function getDependents(options, name) {
 }
 
 function testInFolder(emitter, dependent, testCommand, folder) {
+  const test = {
+    title: dependent,
+    body: '',
+    duration: 0,
+    fullTitle: () => dependent,
+    slow: () => 0
+  };
+
   return runInFolder(folder, testCommand, {
     missing: 'missing test command',
     success: () =>
-      emitter.emit('pass', {
-        title: dependent,
-        body: '',
-        duration: 0,
-        fullTitle: () => dependent,
-        slow: () => 0
-      }),
+      emitter.emit('pass', test),
     failure: err => {
-      emitter.emit('fail', {
-        title: dependent,
-        fullTitle: () => dependent,
-        err
-      });
+      emitter.emit('fail', test, err);
     }
   });
 }
