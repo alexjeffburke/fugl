@@ -20,6 +20,15 @@ var stripComments = require('strip-json-comments');
 // write found dependencies into a hidden file
 var dontBreakFilename = './.dont-break.json';
 
+var MOCHA_HTML_DOCUMENT = `<html>
+  <head>
+    <link href="index.css" rel="stylesheet">
+  <head>
+  <body>
+    <div id="mocha"></div>
+  </body>
+</html>
+`;
 var NAME_COMMAND_SEPARATOR = ':';
 var DEFAULT_TEST_COMMAND = 'npm test';
 var INSTALL_TIMEOUT_SECONDS = 3 * 60;
@@ -161,12 +170,15 @@ function testInFolder(emitter, dependent, testCommand, folder) {
     success: () =>
       emitter.emit('pass', {
         title: dependent,
+        body: '',
         duration: 0,
+        fullTitle: () => dependent,
         slow: () => 0
       }),
     failure: err => {
       emitter.emit('fail', {
         title: dependent,
+        fullTitle: () => dependent,
         err
       });
     }
@@ -330,6 +342,15 @@ function testDependents(options, config) {
   let reporter;
   if (options.reporter !== 'console') {
     try {
+      if (options.reporter === 'html') {
+        const jsdom = require('jsdom');
+        const dom = new jsdom.JSDOM(MOCHA_HTML_DOCUMENT);
+        // disable canvas
+        dom.window.HTMLCanvasElement.prototype.getContext = null;
+        global.window = dom.window;
+        global.document = dom.window.document;
+        global.fragment = html => new dom.window.DocumentFragment(html);
+      }
       const Reporter = require(`mocha/lib/reporters/${options.reporter}`);
       reporter = new Reporter(emitter);
     } catch (e) {
@@ -354,6 +375,19 @@ function testDependents(options, config) {
     }, Promise.resolve(true))
     .then(() => {
       emitter.emit('end');
+    })
+    .then(() => {
+      if (options.reporter === 'html') {
+        fs.ensureDirSync(options.reportDir);
+        fs.copyFileSync(
+          path.join(__dirname, '../node_modules/mocha/mocha.css'),
+          path.join(options.reportDir, 'index.css')
+        )
+        fs.writeFileSync(
+          path.join(options.reportDir, 'index.html'),
+          document.documentElement.outerHTML
+        );
+      }
     });
 }
 
@@ -390,6 +424,7 @@ function dontBreak(options) {
   options = options || {};
   options.folder = options.folder || process.cwd();
   options.reporter = options.reporter || 'console';
+  options.reportDir = options.reportDir || path.resolve(options.folder, 'breakage');
 
   debug('working in folder %s', options.folder);
   var start = chdir.to(options.folder);
