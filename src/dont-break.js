@@ -8,14 +8,12 @@ var osTmpdir = require('os-tmpdir');
 var join = path.join;
 var quote = require('quote');
 var chdir = require('chdir-promise');
-var banner = require('./banner');
 var debug = require('debug')('dont-break');
 var isRepoUrl = require('./is-repo-url');
 
 var _ = require('lodash');
 
 var fs = require('fs-extra');
-var read = fs.readFileSync;
 var exists = fs.existsSync;
 
 var stripComments = require('strip-json-comments');
@@ -28,11 +26,6 @@ var INSTALL_TIMEOUT_SECONDS = 3 * 60;
 
 var install = require('./install-dependency');
 var runInFolder = require('./run-in-folder');
-
-function readJSON(filename) {
-  la(exists(filename), 'cannot find JSON file to load', filename);
-  return JSON.parse(read(filename));
-}
 
 var npm = require('top-dependents');
 la(
@@ -191,15 +184,6 @@ function getDependencyName(dependent) {
   return moduleName;
 }
 
-function getDependentVersion(pkg, name) {
-  if (check.object(pkg.dependencies) && pkg.dependencies[name]) {
-    return pkg.dependencies[name];
-  }
-  if (check.object(pkg.devDependencies) && pkg.devDependencies[name]) {
-    return pkg.devDependencies[name];
-  }
-}
-
 function testDependent(emitter, options, dependent, config) {
   var moduleTestCommand;
   var modulePostinstallCommand;
@@ -300,21 +284,6 @@ function testDependent(emitter, options, dependent, config) {
     .then(function checkInstalledFolder(folder) {
       la(check.unemptyString(folder), 'expected folder', folder);
       la(exists(folder), 'expected folder to exist', folder);
-      return folder;
-    })
-    .then(function printMessage(folder) {
-      var installedPackage = readJSON(join(folder, 'package.json'));
-      var moduleVersion = installedPackage.version;
-      var currentVersion = getDependentVersion(installedPackage, pkg.name);
-      var usageMessage = currentVersion
-        ? '\ncurrently uses ' + pkg.name + '@' + currentVersion
-        : '\ncurrently not (directly) using ' + pkg.name;
-      /*
-      banner('installed', moduleName + '@' + moduleVersion,
-        '\ninto', folder,
-        usageMessage,
-        '\nwill test', pkg.name + '@' + pkg.version)
-        */
       return folder;
     });
 
