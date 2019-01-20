@@ -380,7 +380,7 @@ function testDependents(options, config) {
       if (options.reporter === 'html') {
         fs.ensureDirSync(options.reportDir);
         fs.copyFileSync(
-          path.join(__dirname, '../node_modules/mocha/mocha.css'),
+          require.resolve('mocha/mocha.css'),
           path.join(options.reportDir, 'index.css')
         )
         fs.writeFileSync(
