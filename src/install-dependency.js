@@ -30,10 +30,9 @@ function install (options) {
       url: options.name,
       folder: options.prefix
     })).then(function () {
-      console.log('cloned %s', options.name)
+      debug('cloned %s', options.name)
     })
     .catch(function (err) {
-      console.error('smth went wrong', err)
       throw err
     })
   } else {
