@@ -124,13 +124,6 @@ function testInFolder (testCommand, folder) {
   })
 }
 
-var linkCurrentModule = _.memoize(function (thisFolder, linkCmd) {
-  return runInFolder(thisFolder, linkCmd, {
-    success: 'linking current module succeeded',
-    failure: 'linking current module failed'
-  })
-})
-
 function getDependencyName (dependent) {
   if (isRepoUrl(dependent)) {
     debug('dependent is git repo url %s', dependent)
@@ -155,7 +148,6 @@ function testDependent (options, dependent, config) {
   var moduleTestCommand
   var modulePostinstallCommand
   var testWithPreviousVersion
-  var currentModuleInstallMethod
   if (check.string(dependent)) {
     dependent = {name: dependent.trim()}
   }
@@ -164,7 +156,6 @@ function testDependent (options, dependent, config) {
   moduleTestCommand = dependent.test
   modulePostinstallCommand = dependent.postinstall || 'npm install'
   testWithPreviousVersion = dependent.pretest
-  currentModuleInstallMethod = dependent.currentModuleInstall
   var dependentInstall = dependent.install
 
   dependent = dependent.name
@@ -217,35 +208,6 @@ function testDependent (options, dependent, config) {
       })
     } else {
       return dependentFolder
-    }
-  }
-
-  function installCurrentModuleToDependent (sourceFolder, dependentFolder, currentModuleInstallMethod) {
-    la(check.unemptyString(dependentFolder), 'expected dependent folder', dependentFolder)
-
-    debug('testing the current module in %s', dependentFolder)
-    debug('current module folder %s', sourceFolder)
-
-    var pkgName = currentPackageName()
-    if (_.includes(['yarn-link', 'npm-link'], currentModuleInstallMethod)) {
-      var linkCmd = currentModuleInstallMethod.replace('-', ' ')
-      return linkCurrentModule(sourceFolder, linkCmd)
-        .then(function () {
-          return runInFolder(dependentFolder, `${linkCmd} ${pkgName}`, {
-            success: `linked ${pkgName}`,
-            failure: `linking ${pkgName} failed`
-          })
-        })
-        .finally(chdir.from)
-        .then(function () {
-          return dependentFolder
-        })
-    } else {
-      currentModuleInstallMethod = expandCommandVars(currentModuleInstallMethod)
-      return runInFolder(dependentFolder, `${currentModuleInstallMethod}`, {
-        success: `installed ${pkgName}`,
-        failure: `installing ${pkgName} failed`
-      })
     }
   }
 
@@ -302,7 +264,6 @@ function testDependent (options, dependent, config) {
   }
 
   return res
-    .then(function (folder) { return installCurrentModuleToDependent(cwd, folder, currentModuleInstallMethod) })
     .then(postInstallModuleInFolder)
     .then(testModuleInFolder)
     .finally(function () {
