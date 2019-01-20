@@ -21,7 +21,9 @@ var argv = require('yargs')
     type: 'number',
     describe: 'Wait for N seconds when installing a package'
   })
-  .argv;
+  .option('reporter', {
+    alias: 'reporter'
+  }).argv;
 
 debug('command line options');
 debug(argv);

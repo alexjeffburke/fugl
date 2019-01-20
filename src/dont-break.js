@@ -387,7 +387,7 @@ function dontBreak(options) {
   }
   options = options || {};
   options.folder = options.folder || process.cwd();
-  options.reporter = 'dot';
+  options.reporter = options.reporter || 'dot';
 
   debug('working in folder %s', options.folder);
   var start = chdir.to(options.folder);
