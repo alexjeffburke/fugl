@@ -1,6 +1,7 @@
 'use strict';
 
 var la = require('lazy-ass');
+var debug = require('debug')('dont-break');
 var check = require('check-more-types');
 var chdir = require('chdir-promise');
 var spawn = require('child_process').spawn;
@@ -50,14 +51,14 @@ function runInFolder(folder, command, options) {
   return chdir
     .to(folder)
     .then(function() {
-      // console.log(`running "${command}" from ${folder}`)
+      debug(`running "${command}" from ${folder}`);
       return npmTest(command);
     })
     .then(function() {
       if (typeof options.success === 'function') {
         options.success();
       } else {
-        console.log(`${options.success} in ${folder}`);
+        debug(`${options.success} in ${folder}`);
       }
       return folder;
     })
@@ -65,8 +66,8 @@ function runInFolder(folder, command, options) {
       if (typeof options.failure === 'function') {
         options.failure(errors);
       } else {
-        console.error(`${options.failure} in ${folder}`);
-        console.error('code', errors.code);
+        debug(`${options.failure} in ${folder}`);
+        debug('code', errors.code);
         throw errors;
       }
     })
