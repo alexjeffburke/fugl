@@ -1,3 +1,4 @@
+/*global cp*/
 require('shelljs/global');
 
 cp('-r', './foo/*', './foo-copy');
