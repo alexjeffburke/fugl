@@ -2,6 +2,7 @@
 
 var la = require('lazy-ass')
 var check = require('check-more-types')
+var EventEmitter = require('events')
 var path = require('path')
 var osTmpdir = require('os-tmpdir')
 var join = path.join
@@ -116,11 +117,20 @@ function getDependents (options, name) {
   return firstStep.then(getDependentsFromFile)
 }
 
-function testInFolder (testCommand, folder) {
+function testInFolder (emitter, dependent, testCommand, folder) {
   return runInFolder(folder, testCommand, {
     missing: 'missing test command',
-    success: 'tests work',
-    failure: 'tests did not work'
+    success: () => emitter.emit('pass', {
+      title: dependent,
+      duration: 0,
+      slow: () => 0
+    }),
+    failure: err => {
+      emitter.emit('fail', {
+        title: dependent,
+        err
+      })
+    }
   })
 }
 
@@ -144,7 +154,7 @@ function getDependentVersion (pkg, name) {
   }
 }
 
-function testDependent (options, dependent, config) {
+function testDependent (emitter, options, dependent, config) {
   var moduleTestCommand
   var modulePostinstallCommand
   var testWithPreviousVersion
@@ -161,7 +171,6 @@ function testDependent (options, dependent, config) {
   dependent = dependent.name
 
   la(check.unemptyString(dependent), 'invalid dependent', dependent)
-  banner('  testing', quote(dependent))
 
   const moduleName = getDependencyName(dependent)
 
@@ -183,7 +192,6 @@ function testDependent (options, dependent, config) {
   // var moduleName = nameParts[0].trim()
   // var moduleTestCommand = nameParts[1] || DEFAULT_TEST_COMMAND
   moduleTestCommand = moduleTestCommand || DEFAULT_TEST_COMMAND
-  var testModuleInFolder = _.partial(testInFolder, moduleTestCommand)
 
   var cwd = process.cwd()
   var pkg = require(join(cwd, 'package.json'))
@@ -215,7 +223,7 @@ function testDependent (options, dependent, config) {
   var safeName = _.kebabCase(_.deburr(depName))
   debug('original name "%s", safe "%s"', depName, safeName)
   var toFolder = join(osTmpdir(), safeName)
-  console.log('testing folder %s', quote(toFolder))
+  debug('testing folder %s', quote(toFolder))
 
   var timeoutSeconds = options.timeout || INSTALL_TIMEOUT_SECONDS
   la(check.positiveNumber(timeoutSeconds), 'wrong timeout', timeoutSeconds, options)
@@ -243,10 +251,12 @@ function testDependent (options, dependent, config) {
       var usageMessage = currentVersion
         ? '\ncurrently uses ' + pkg.name + '@' + currentVersion
         : '\ncurrently not (directly) using ' + pkg.name
+      /*
       banner('installed', moduleName + '@' + moduleVersion,
         '\ninto', folder,
         usageMessage,
         '\nwill test', pkg.name + '@' + pkg.version)
+        */
       return folder
     })
 
@@ -265,22 +275,53 @@ function testDependent (options, dependent, config) {
 
   return res
     .then(postInstallModuleInFolder)
-    .then(testModuleInFolder)
+    .then(folder => {
+      return testInFolder(emitter, dependent, moduleTestCommand, folder);
+    }).catch(err => {
+      emitter.emit('fail', {
+        title: dependent,
+        err
+      });
+    })
     .finally(function () {
-      console.log('restoring original directory', cwd)
+      debug('restoring original directory', cwd)
       process.chdir(cwd)
     })
 }
 
 function testDependents (options, config) {
+  var stats = {
+    passes: 0,
+    failures: 0
+  };
+
   la(check.array(config.projects), 'expected dependents', config.projects)
+
+  const emitter = new EventEmitter()
+  emitter.on('pass', () => stats.passes += 1);
+  emitter.on('fail', () => stats.failures += 1);
+
+  if (options.reporter) {
+    try {
+      const Reporter = require(`mocha/lib/reporters/${options.reporter}`);
+      const reporter = new Reporter(emitter);
+    } catch (e) {
+      // ignore
+    }
+  } else {
+    // XXX bind to banner
+  }
+
+  emitter.emit('start');
 
   // TODO switch to parallel testing!
   return config.projects.reduce(function (prev, dependent) {
     return prev.then(function () {
-      return testDependent(options, dependent, config)
+      return testDependent(emitter, options, dependent, config)
     })
-  }, Promise.resolve(true))
+  }, Promise.resolve(true)).then(() => {
+    emitter.emit('end');
+  });
 }
 
 function dontBreakDependents (options, dependents) {
@@ -292,19 +333,12 @@ function dontBreakDependents (options, dependents) {
   la(check.arrayOf(function (item) {
     return check.object(item) || check.string(item)
   }, dependents.projects), 'invalid dependents', dependents.projects)
-  debug('dependents', dependents)
+  debug('testing the following dependents', JSON.stringify(dependents))
   if (check.empty(dependents)) {
     return Promise.resolve()
   }
 
-  banner('  testing the following dependents\n  ' + JSON.stringify(dependents))
-
-  var logSuccess = function logSuccess () {
-    console.log('all dependents tested')
-  }
-
-  return testDependents(options, dependents)
-    .then(logSuccess)
+  return testDependents(options, dependents);
 }
 
 function dontBreak (options) {
@@ -315,6 +349,7 @@ function dontBreak (options) {
   }
   options = options || {}
   options.folder = options.folder || process.cwd()
+  options.reporter = 'dot';
 
   debug('working in folder %s', options.folder)
   var start = chdir.to(options.folder)
@@ -330,26 +365,16 @@ function dontBreak (options) {
     })
   }
 
-  var logPass = function logPass () {
-    console.log('PASS: Current version does not break dependents')
-    return true
-  }
-
-  var logFail = function logFail (err) {
-    console.log('FAIL: Current version breaks dependents')
-    if (err && err.message) {
-      console.error('REPORTED ERROR:', err.message)
-      if (err.stack) {
-        console.error(err.stack)
-      }
-    }
-    return false
-  }
-
   return start
     .then(_.partial(dontBreakDependents, options))
-    .then(logPass, logFail)
-    .finally(chdir.from)
+    .then(chdir.from)
+    .then(() => {
+      if (stats.fail > 0) {
+        throw new Error('failed');
+      }
+    }).catch(() => {
+      process.exit(1);
+    })
 }
 
 module.exports = dontBreak
