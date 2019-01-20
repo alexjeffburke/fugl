@@ -358,14 +358,17 @@ function testDependents(options, config) {
   emitter.on('pass', () => (stats.passes += 1));
   emitter.on('fail', () => (stats.failures += 1));
 
+  let reporter;
   if (options.reporter) {
     try {
       const Reporter = require(`mocha/lib/reporters/${options.reporter}`);
-      const reporter = new Reporter(emitter);
+      reporter = new Reporter(emitter);
     } catch (e) {
       // ignore
     }
-  } else {
+  }
+  
+  if (!reporter) {
     // XXX bind to banner
   }
 
