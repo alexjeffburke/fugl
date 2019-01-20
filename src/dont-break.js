@@ -336,7 +336,7 @@ function testDependents(options, config) {
       // ignore
     }
   }
-  
+
   if (!reporter) {
     // XXX bind to banner
   }
@@ -404,9 +404,13 @@ function dontBreak(options) {
   }
 
   return start
-    .then(_.partial(dontBreakDependents, options))
-    .then(chdir.from)
-    .then(() => {
+    .then(dependents => {
+      return dontBreakDependents(options, dependents);
+    })
+    .then(stats => {
+      return chdir.back().then(() => stats);
+    })
+    .then(stats => {
       if (stats.fail > 0) {
         throw new Error('failed');
       }
