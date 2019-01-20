@@ -1,189 +1,239 @@
-'use strict'
+'use strict';
 
-var la = require('lazy-ass')
-var check = require('check-more-types')
-var EventEmitter = require('events')
-var path = require('path')
-var osTmpdir = require('os-tmpdir')
-var join = path.join
-var quote = require('quote')
-var chdir = require('chdir-promise')
-var banner = require('./banner')
-var debug = require('debug')('dont-break')
-var isRepoUrl = require('./is-repo-url')
+var la = require('lazy-ass');
+var check = require('check-more-types');
+var EventEmitter = require('events');
+var path = require('path');
+var osTmpdir = require('os-tmpdir');
+var join = path.join;
+var quote = require('quote');
+var chdir = require('chdir-promise');
+var banner = require('./banner');
+var debug = require('debug')('dont-break');
+var isRepoUrl = require('./is-repo-url');
 
-var _ = require('lodash')
+var _ = require('lodash');
 
-var fs = require('fs-extra')
-var read = fs.readFileSync
-var exists = fs.existsSync
+var fs = require('fs-extra');
+var read = fs.readFileSync;
+var exists = fs.existsSync;
 
-var stripComments = require('strip-json-comments')
+var stripComments = require('strip-json-comments');
 // write found dependencies into a hidden file
-var dontBreakFilename = './.dont-break.json'
+var dontBreakFilename = './.dont-break.json';
 
-var NAME_COMMAND_SEPARATOR = ':'
-var DEFAULT_TEST_COMMAND = 'npm test'
-var INSTALL_TIMEOUT_SECONDS = 3 * 60
+var NAME_COMMAND_SEPARATOR = ':';
+var DEFAULT_TEST_COMMAND = 'npm test';
+var INSTALL_TIMEOUT_SECONDS = 3 * 60;
 
-var install = require('./install-dependency')
-var runInFolder = require('./run-in-folder')
+var install = require('./install-dependency');
+var runInFolder = require('./run-in-folder');
 
-function readJSON (filename) {
-  la(exists(filename), 'cannot find JSON file to load', filename)
-  return JSON.parse(read(filename))
+function readJSON(filename) {
+  la(exists(filename), 'cannot find JSON file to load', filename);
+  return JSON.parse(read(filename));
 }
 
-var npm = require('top-dependents')
-la(check.schema({
-  downloads: check.fn,
-  sortedByDownloads: check.fn,
-  topDependents: check.fn
-}, npm), 'invalid npm methods', npm)
+var npm = require('top-dependents');
+la(
+  check.schema(
+    {
+      downloads: check.fn,
+      sortedByDownloads: check.fn,
+      topDependents: check.fn
+    },
+    npm
+  ),
+  'invalid npm methods',
+  npm
+);
 
-function saveTopDependents (name, metric, n) {
-  la(check.unemptyString(name), 'invalid package name', name)
-  la(check.unemptyString(metric), 'invalid metric', metric)
-  la(check.positiveNumber(n), 'invalid top number', n)
+function saveTopDependents(name, metric, n) {
+  la(check.unemptyString(name), 'invalid package name', name);
+  la(check.unemptyString(metric), 'invalid metric', metric);
+  la(check.positiveNumber(n), 'invalid top number', n);
 
-  var fetchTop = _.partial(npm.downloads, metric)
-  return npm.topDependents(name, n)
+  var fetchTop = _.partial(npm.downloads, metric);
+  return npm
+    .topDependents(name, n)
     .then(fetchTop)
     .then(npm.sortedByDownloads)
-    .then(function (dependents) {
-      la(check.array(dependents), 'cannot select top n, not a list', dependents)
-      console.log('limiting top downloads to first', n, 'from the list of', dependents.length)
-      return _.take(dependents, n)
+    .then(function(dependents) {
+      la(
+        check.array(dependents),
+        'cannot select top n, not a list',
+        dependents
+      );
+      console.log(
+        'limiting top downloads to first',
+        n,
+        'from the list of',
+        dependents.length
+      );
+      return _.take(dependents, n);
     })
-    .then(function saveToFile (topDependents) {
-      la(check.arrayOfStrings(topDependents), 'expected list of top strings', topDependents)
+    .then(function saveToFile(topDependents) {
+      la(
+        check.arrayOfStrings(topDependents),
+        'expected list of top strings',
+        topDependents
+      );
       // TODO use template library instead of manual concat
-      var str = '// top ' + n + ' most dependent modules by ' + metric + ' for ' + name + '\n'
-      str += '// data from NPM registry on ' + (new Date()).toDateString() + '\n'
-      str += JSON.stringify(topDependents, null, 2) + '\n'
-      return fs.writeFile(dontBreakFilename, str, 'utf-8').then(function () {
-        console.log('saved top', n, 'dependents for', name, 'by', metric, 'to', dontBreakFilename)
-        return topDependents
-      })
-    })
+      var str =
+        '// top ' +
+        n +
+        ' most dependent modules by ' +
+        metric +
+        ' for ' +
+        name +
+        '\n';
+      str += '// data from NPM registry on ' + new Date().toDateString() + '\n';
+      str += JSON.stringify(topDependents, null, 2) + '\n';
+      return fs.writeFile(dontBreakFilename, str, 'utf-8').then(function() {
+        console.log(
+          'saved top',
+          n,
+          'dependents for',
+          name,
+          'by',
+          metric,
+          'to',
+          dontBreakFilename
+        );
+        return topDependents;
+      });
+    });
 }
 
-function getDependentsFromFile () {
-  return fs.readFile(dontBreakFilename, 'utf-8')
+function getDependentsFromFile() {
+  return fs
+    .readFile(dontBreakFilename, 'utf-8')
     .then(stripComments)
-    .then(function (text) {
-      debug('loaded dependencies file', text)
-      return text
+    .then(function(text) {
+      debug('loaded dependencies file', text);
+      return text;
     })
     .then(JSON.parse)
-    .catch(function (err) {
+    .catch(function(err) {
       // the file does not exist probably
-      console.log(err && err.message)
-      console.log('could not find file', quote(dontBreakFilename), 'in', quote(process.cwd()))
-      console.log('no dependent projects, maybe query NPM for projects that depend on this one.')
-      return []
-    })
+      console.log(err && err.message);
+      console.log(
+        'could not find file',
+        quote(dontBreakFilename),
+        'in',
+        quote(process.cwd())
+      );
+      console.log(
+        'no dependent projects, maybe query NPM for projects that depend on this one.'
+      );
+      return [];
+    });
 }
 
-var currentPackageName = _.memoize(function () {
-  var pkg = require(join(process.cwd(), 'package.json'))
-  return pkg.name
-})
+var currentPackageName = _.memoize(function() {
+  var pkg = require(join(process.cwd(), 'package.json'));
+  return pkg.name;
+});
 
-function getDependents (options, name) {
-  options = options || {}
-  var forName = name
+function getDependents(options, name) {
+  options = options || {};
+  var forName = name;
 
   if (!name) {
-    forName = currentPackageName()
+    forName = currentPackageName();
   }
 
-  var firstStep
+  var firstStep;
 
-  var metric, n
+  var metric, n;
   if (check.number(options.topDownloads)) {
-    metric = 'downloads'
-    n = options.topDownloads
+    metric = 'downloads';
+    n = options.topDownloads;
   } else if (check.number(options.topStarred)) {
-    metric = 'starred'
-    n = options.topStarred
+    metric = 'starred';
+    n = options.topStarred;
   }
   if (check.unemptyString(metric) && check.number(n)) {
-    firstStep = saveTopDependents(forName, metric, n)
+    firstStep = saveTopDependents(forName, metric, n);
   } else {
-    firstStep = Promise.resolve()
+    firstStep = Promise.resolve();
   }
 
-  return firstStep.then(getDependentsFromFile)
+  return firstStep.then(getDependentsFromFile);
 }
 
-function testInFolder (emitter, dependent, testCommand, folder) {
+function testInFolder(emitter, dependent, testCommand, folder) {
   return runInFolder(folder, testCommand, {
     missing: 'missing test command',
-    success: () => emitter.emit('pass', {
-      title: dependent,
-      duration: 0,
-      slow: () => 0
-    }),
+    success: () =>
+      emitter.emit('pass', {
+        title: dependent,
+        duration: 0,
+        slow: () => 0
+      }),
     failure: err => {
       emitter.emit('fail', {
         title: dependent,
         err
-      })
+      });
     }
-  })
+  });
 }
 
-function getDependencyName (dependent) {
+function getDependencyName(dependent) {
   if (isRepoUrl(dependent)) {
-    debug('dependent is git repo url %s', dependent)
-    return dependent
+    debug('dependent is git repo url %s', dependent);
+    return dependent;
   }
-  const nameParts = dependent.split(NAME_COMMAND_SEPARATOR)
-  la(nameParts.length, 'expected at least module name', dependent)
-  const moduleName = nameParts[0].trim()
-  return moduleName
+  const nameParts = dependent.split(NAME_COMMAND_SEPARATOR);
+  la(nameParts.length, 'expected at least module name', dependent);
+  const moduleName = nameParts[0].trim();
+  return moduleName;
 }
 
-function getDependentVersion (pkg, name) {
+function getDependentVersion(pkg, name) {
   if (check.object(pkg.dependencies) && pkg.dependencies[name]) {
-    return pkg.dependencies[name]
+    return pkg.dependencies[name];
   }
   if (check.object(pkg.devDependencies) && pkg.devDependencies[name]) {
-    return pkg.devDependencies[name]
+    return pkg.devDependencies[name];
   }
 }
 
-function testDependent (emitter, options, dependent, config) {
-  var moduleTestCommand
-  var modulePostinstallCommand
-  var testWithPreviousVersion
+function testDependent(emitter, options, dependent, config) {
+  var moduleTestCommand;
+  var modulePostinstallCommand;
+  var testWithPreviousVersion;
   if (check.string(dependent)) {
-    dependent = {name: dependent.trim()}
+    dependent = { name: dependent.trim() };
   }
 
-  dependent = Object.assign({pretest: true, currentModuleInstall: 'npm install $CURRENT_MODULE_DIR'}, config, dependent)
-  moduleTestCommand = dependent.test
-  modulePostinstallCommand = dependent.postinstall || 'npm install'
-  testWithPreviousVersion = dependent.pretest
-  var dependentInstall = dependent.install
+  dependent = Object.assign(
+    { pretest: true, currentModuleInstall: 'npm install $CURRENT_MODULE_DIR' },
+    config,
+    dependent
+  );
+  moduleTestCommand = dependent.test;
+  modulePostinstallCommand = dependent.postinstall || 'npm install';
+  testWithPreviousVersion = dependent.pretest;
+  var dependentInstall = dependent.install;
 
-  dependent = dependent.name
+  dependent = dependent.name;
 
-  la(check.unemptyString(dependent), 'invalid dependent', dependent)
+  la(check.unemptyString(dependent), 'invalid dependent', dependent);
 
-  const moduleName = getDependencyName(dependent)
+  const moduleName = getDependencyName(dependent);
 
-  function formFullFolderName () {
+  function formFullFolderName() {
     if (isRepoUrl(dependent)) {
       // simple repo installation
-      return toFolder
+      return toFolder;
     } else {
-      let scoped = moduleName.startsWith('@')
-      let idx = scoped ? 1 : 0
-      let moduleDir = moduleName.split('@')[idx]
-      moduleDir = scoped ? `@${moduleDir}` : moduleDir
-      return join(toFolder, 'node_modules', moduleDir)
+      let scoped = moduleName.startsWith('@');
+      let idx = scoped ? 1 : 0;
+      let moduleDir = moduleName.split('@')[idx];
+      moduleDir = scoped ? `@${moduleDir}` : moduleDir;
+      return join(toFolder, 'node_modules', moduleDir);
     }
   }
 
@@ -191,115 +241,122 @@ function testDependent (emitter, options, dependent, config) {
   // la(nameParts.length, 'expected at least module name', dependent)
   // var moduleName = nameParts[0].trim()
   // var moduleTestCommand = nameParts[1] || DEFAULT_TEST_COMMAND
-  moduleTestCommand = moduleTestCommand || DEFAULT_TEST_COMMAND
+  moduleTestCommand = moduleTestCommand || DEFAULT_TEST_COMMAND;
 
-  var cwd = process.cwd()
-  var pkg = require(join(cwd, 'package.json'))
-  process.env.CURRENT_MODULE_NAME = pkg.name
-  process.env.CURRENT_MODULE_DIR = cwd
+  var cwd = process.cwd();
+  var pkg = require(join(cwd, 'package.json'));
+  process.env.CURRENT_MODULE_NAME = pkg.name;
+  process.env.CURRENT_MODULE_DIR = cwd;
 
-  function expandCommandVars (command) {
+  function expandCommandVars(command) {
     if (!command) {
-      return command
+      return command;
     }
-    command = command.replace('$CURRENT_MODULE_DIR', cwd)
-    command = command.replace('$CURRENT_MODULE_NAME', pkg.name)
-    return command
+    command = command.replace('$CURRENT_MODULE_DIR', cwd);
+    command = command.replace('$CURRENT_MODULE_NAME', pkg.name);
+    return command;
   }
 
-  function postInstallInFolder (dependentFolder, command) {
+  function postInstallInFolder(dependentFolder, command) {
     if (command) {
-      command = expandCommandVars(command)
+      command = expandCommandVars(command);
       return runInFolder(dependentFolder, command, {
         success: 'postinstall succeeded',
         failure: 'postinstall did not work'
-      })
+      });
     } else {
-      return dependentFolder
+      return dependentFolder;
     }
   }
 
-  var depName = pkg.name + '-v' + pkg.version + '-against-' + moduleName
-  var safeName = _.kebabCase(_.deburr(depName))
-  debug('original name "%s", safe "%s"', depName, safeName)
-  var toFolder = join(osTmpdir(), safeName)
-  debug('testing folder %s', quote(toFolder))
+  var depName = pkg.name + '-v' + pkg.version + '-against-' + moduleName;
+  var safeName = _.kebabCase(_.deburr(depName));
+  debug('original name "%s", safe "%s"', depName, safeName);
+  var toFolder = join(osTmpdir(), safeName);
+  debug('testing folder %s', quote(toFolder));
 
-  var timeoutSeconds = options.timeout || INSTALL_TIMEOUT_SECONDS
-  la(check.positiveNumber(timeoutSeconds), 'wrong timeout', timeoutSeconds, options)
+  var timeoutSeconds = options.timeout || INSTALL_TIMEOUT_SECONDS;
+  la(
+    check.positiveNumber(timeoutSeconds),
+    'wrong timeout',
+    timeoutSeconds,
+    options
+  );
 
   var installOptions = {
     name: moduleName,
     prefix: toFolder,
     cmd: expandCommandVars(dependentInstall)
-  }
+  };
 
-  var postInstallModuleInFolder = _.partialRight(postInstallInFolder, modulePostinstallCommand)
+  var postInstallModuleInFolder = _.partialRight(
+    postInstallInFolder,
+    modulePostinstallCommand
+  );
 
   var res = install(installOptions)
     .timeout(timeoutSeconds * 1000, 'install timed out for ' + moduleName)
     .then(formFullFolderName)
-    .then(function checkInstalledFolder (folder) {
-      la(check.unemptyString(folder), 'expected folder', folder)
-      la(exists(folder), 'expected folder to exist', folder)
-      return folder
+    .then(function checkInstalledFolder(folder) {
+      la(check.unemptyString(folder), 'expected folder', folder);
+      la(exists(folder), 'expected folder to exist', folder);
+      return folder;
     })
-    .then(function printMessage (folder) {
-      var installedPackage = readJSON(join(folder, 'package.json'))
-      var moduleVersion = installedPackage.version
-      var currentVersion = getDependentVersion(installedPackage, pkg.name)
+    .then(function printMessage(folder) {
+      var installedPackage = readJSON(join(folder, 'package.json'));
+      var moduleVersion = installedPackage.version;
+      var currentVersion = getDependentVersion(installedPackage, pkg.name);
       var usageMessage = currentVersion
         ? '\ncurrently uses ' + pkg.name + '@' + currentVersion
-        : '\ncurrently not (directly) using ' + pkg.name
+        : '\ncurrently not (directly) using ' + pkg.name;
       /*
       banner('installed', moduleName + '@' + moduleVersion,
         '\ninto', folder,
         usageMessage,
         '\nwill test', pkg.name + '@' + pkg.version)
         */
-      return folder
-    })
+      return folder;
+    });
 
   if (testWithPreviousVersion) {
-    var modulePretestCommand
+    var modulePretestCommand;
     if (check.type('string', testWithPreviousVersion)) {
-      modulePretestCommand = testWithPreviousVersion
+      modulePretestCommand = testWithPreviousVersion;
     } else {
-      modulePretestCommand = moduleTestCommand
+      modulePretestCommand = moduleTestCommand;
     }
-    var pretestModuleInFolder = _.partial(testInFolder, modulePretestCommand)
-    res = res
-      .then(postInstallModuleInFolder)
-      .then(pretestModuleInFolder)
+    var pretestModuleInFolder = _.partial(testInFolder, modulePretestCommand);
+    res = res.then(postInstallModuleInFolder).then(pretestModuleInFolder);
   }
 
   return res
     .then(postInstallModuleInFolder)
     .then(folder => {
       return testInFolder(emitter, dependent, moduleTestCommand, folder);
-    }).catch(err => {
+    })
+    .catch(err => {
       emitter.emit('fail', {
         title: dependent,
         err
       });
     })
-    .finally(function () {
-      debug('restoring original directory', cwd)
-      process.chdir(cwd)
-    })
+    .finally(function() {
+      debug('restoring original directory', cwd);
+      process.chdir(cwd);
+    });
 }
 
-function testDependents (options, config) {
+function testDependents(options, config) {
   var stats = {
     passes: 0,
     failures: 0
   };
 
-  la(check.array(config.projects), 'expected dependents', config.projects)
+  la(check.array(config.projects), 'expected dependents', config.projects);
 
-  const emitter = new EventEmitter()
-  emitter.on('pass', () => stats.passes += 1);
-  emitter.on('fail', () => stats.failures += 1);
+  const emitter = new EventEmitter();
+  emitter.on('pass', () => (stats.passes += 1));
+  emitter.on('fail', () => (stats.failures += 1));
 
   if (options.reporter) {
     try {
@@ -315,54 +372,63 @@ function testDependents (options, config) {
   emitter.emit('start');
 
   // TODO switch to parallel testing!
-  return config.projects.reduce(function (prev, dependent) {
-    return prev.then(function () {
-      return testDependent(emitter, options, dependent, config)
-    })
-  }, Promise.resolve(true)).then(() => {
-    emitter.emit('end');
-  });
+  return config.projects
+    .reduce(function(prev, dependent) {
+      return prev.then(function() {
+        return testDependent(emitter, options, dependent, config);
+      });
+    }, Promise.resolve(true))
+    .then(() => {
+      emitter.emit('end');
+    });
 }
 
-function dontBreakDependents (options, dependents) {
-  if (check.arrayOf(check.object, dependents) || check.arrayOfStrings(dependents)) {
+function dontBreakDependents(options, dependents) {
+  if (
+    check.arrayOf(check.object, dependents) ||
+    check.arrayOfStrings(dependents)
+  ) {
     dependents = {
       projects: dependents
-    }
+    };
   }
-  la(check.arrayOf(function (item) {
-    return check.object(item) || check.string(item)
-  }, dependents.projects), 'invalid dependents', dependents.projects)
-  debug('testing the following dependents', JSON.stringify(dependents))
+  la(
+    check.arrayOf(function(item) {
+      return check.object(item) || check.string(item);
+    }, dependents.projects),
+    'invalid dependents',
+    dependents.projects
+  );
+  debug('testing the following dependents', JSON.stringify(dependents));
   if (check.empty(dependents)) {
-    return Promise.resolve()
+    return Promise.resolve();
   }
 
   return testDependents(options, dependents);
 }
 
-function dontBreak (options) {
+function dontBreak(options) {
   if (check.unemptyString(options)) {
     options = {
       folder: options
-    }
+    };
   }
-  options = options || {}
-  options.folder = options.folder || process.cwd()
+  options = options || {};
+  options.folder = options.folder || process.cwd();
   options.reporter = 'dot';
 
-  debug('working in folder %s', options.folder)
-  var start = chdir.to(options.folder)
+  debug('working in folder %s', options.folder);
+  var start = chdir.to(options.folder);
 
   if (check.arrayOfStrings(options.dep)) {
-    start = start.then(function () {
-      return options.dep
-    })
+    start = start.then(function() {
+      return options.dep;
+    });
   } else {
-    start = start.then(function () {
-      debug('getting dependents')
-      return getDependents(options)
-    })
+    start = start.then(function() {
+      debug('getting dependents');
+      return getDependents(options);
+    });
   }
 
   return start
@@ -372,9 +438,10 @@ function dontBreak (options) {
       if (stats.fail > 0) {
         throw new Error('failed');
       }
-    }).catch(() => {
-      process.exit(1);
     })
+    .catch(() => {
+      process.exit(1);
+    });
 }
 
-module.exports = dontBreak
+module.exports = dontBreak;
