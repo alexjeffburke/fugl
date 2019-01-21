@@ -1,6 +1,6 @@
 'use strict';
 
-var la = require('lazy-ass');
+var la = require('./la');
 var debug = require('debug')('dont-break');
 var check = require('check-more-types');
 var chdir = require('chdir-promise');

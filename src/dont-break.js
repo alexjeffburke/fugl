@@ -1,6 +1,6 @@
 'use strict';
 
-var la = require('lazy-ass');
+var la = require('./la');
 var check = require('check-more-types');
 var EventEmitter = require('events');
 var path = require('path');
