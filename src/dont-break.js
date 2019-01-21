@@ -162,8 +162,7 @@ function testInFolder(emitter, dependent, testCommand, folder) {
 
   return runInFolder(folder, testCommand, {
     missing: 'missing test command',
-    success: () =>
-      emitter.emit('pass', test),
+    success: () => emitter.emit('pass', test),
     failure: err => {
       emitter.emit('fail', test, err);
     }
@@ -367,7 +366,7 @@ function testDependents(options, config) {
         fs.copyFileSync(
           require.resolve('mocha/mocha.css'),
           path.join(options.reportDir, 'index.css')
-        )
+        );
         fs.writeFileSync(
           path.join(options.reportDir, 'index.html'),
           document.documentElement.outerHTML
@@ -409,7 +408,8 @@ function dontBreak(options) {
   options = options || {};
   options.folder = options.folder || process.cwd();
   options.reporter = options.reporter || 'console';
-  options.reportDir = options.reportDir || path.resolve(options.folder, 'breakage');
+  options.reportDir =
+    options.reportDir || path.resolve(options.folder, 'breakage');
 
   debug('working in folder %s', options.folder);
   var start = chdir.to(options.folder);
