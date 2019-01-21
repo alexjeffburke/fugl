@@ -16,6 +16,7 @@ var _ = require('lodash');
 var fs = require('fs-extra');
 var exists = fs.existsSync;
 
+var npm = require('top-dependents');
 var stripComments = require('strip-json-comments');
 // write found dependencies into a hidden file
 var dontBreakFilename = './.dont-break.json';
@@ -35,20 +36,6 @@ var INSTALL_TIMEOUT_SECONDS = 3 * 60;
 
 var install = require('./install-dependency');
 var runInFolder = require('./run-in-folder');
-
-var npm = require('top-dependents');
-la(
-  check.schema(
-    {
-      downloads: check.fn,
-      sortedByDownloads: check.fn,
-      topDependents: check.fn
-    },
-    npm
-  ),
-  'invalid npm methods',
-  npm
-);
 
 function saveTopDependents(name, metric, n) {
   la(check.unemptyString(name), 'invalid package name', name);
