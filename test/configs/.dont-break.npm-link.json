@@ -1,5 +1,0 @@
-{
-  "pretest": false,
-  "currentModuleInstall": "npm-link",
-  "projects": ["https://github.com/bahmutov/dont-break-bar", "https://github.com/bahmutov/dont-break-bar"]
-}

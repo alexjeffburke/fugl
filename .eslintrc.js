@@ -6,8 +6,7 @@ const config = {
     'import/no-unresolved': [
       'error',
       {
-        commonjs: true,
-        devDependencies: ['test/**/*.js']
+        commonjs: true
       }
     ]
   }
