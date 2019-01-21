@@ -119,20 +119,28 @@ function getDependentsFromFile() {
     });
 }
 
-var currentPackageName = _.memoize(function() {
-  var pkg = require(join(process.cwd(), 'package.json'));
-  return pkg.name;
-});
-
-function getDependents(options, name) {
-  options = options || {};
-  var forName = name;
-
-  if (!name) {
-    forName = currentPackageName();
+function currentPackageName(options) {
+  try {
+    const pkg = require(path.join(options.folder, 'package.json'));
+    if (!pkg.name) {
+      throw new Error(`The package in ${options.folder} has no name.`);
+    }
+    return pkg.name;
+  } catch (e) {
+    throw new Error(`The folder ${options.folder} contain no valid package.`);
   }
+}
 
-  var firstStep;
+function determinePackageName(options) {
+  if (options.packageName) {
+    return options.packageName;
+  } else {
+    return currentPackageName(options);
+  }
+}
+
+function getDependents(options, forName) {
+  options = options || {};
 
   var metric, n;
   if (check.number(options.topDownloads)) {
@@ -142,6 +150,8 @@ function getDependents(options, name) {
     metric = 'starred';
     n = options.topStarred;
   }
+
+  var firstStep;
   if (check.unemptyString(metric) && check.number(n)) {
     firstStep = saveTopDependents(forName, metric, n);
   } else {
@@ -411,6 +421,8 @@ function dontBreak(options) {
   options.reportDir =
     options.reportDir || path.resolve(options.folder, 'breakage');
 
+  var packageName = determinePackageName(options);
+
   debug('working in folder %s', options.folder);
   var start = chdir.to(options.folder);
 
@@ -421,7 +433,7 @@ function dontBreak(options) {
   } else {
     start = start.then(function() {
       debug('getting dependents');
-      return getDependents(options);
+      return getDependents(options, packageName);
     });
   }
 
