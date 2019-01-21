@@ -5,7 +5,6 @@ var check = require('check-more-types');
 var EventEmitter = require('events');
 var path = require('path');
 var osTmpdir = require('os-tmpdir');
-var join = path.join;
 var quote = require('quote');
 var chdir = require('chdir-promise');
 var debug = require('debug')('dont-break');
@@ -217,12 +216,12 @@ function testDependent(emitter, options, dependent, config) {
       let idx = scoped ? 1 : 0;
       let moduleDir = moduleName.split('@')[idx];
       moduleDir = scoped ? `@${moduleDir}` : moduleDir;
-      return join(toFolder, 'node_modules', moduleDir);
+      return path.join(toFolder, 'node_modules', moduleDir);
     }
   }
 
   var cwd = process.cwd();
-  var pkg = require(join(cwd, 'package.json'));
+  var pkg = require(path.join(cwd, 'package.json'));
   process.env.CURRENT_MODULE_NAME = pkg.name;
   process.env.CURRENT_MODULE_DIR = cwd;
 
@@ -246,7 +245,7 @@ function testDependent(emitter, options, dependent, config) {
   var depName = pkg.name + '-v' + pkg.version + '-against-' + moduleName;
   var safeName = _.kebabCase(_.deburr(depName));
   debug('original name "%s", safe "%s"', depName, safeName);
-  var toFolder = join(osTmpdir(), safeName);
+  var toFolder = path.join(osTmpdir(), safeName);
   debug('testing folder %s', quote(toFolder));
 
   var timeoutSeconds = options.timeout || INSTALL_TIMEOUT_SECONDS;
