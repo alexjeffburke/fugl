@@ -198,7 +198,6 @@ function testDependent(emitter, options, dependent, config) {
   var moduleTestCommand = dependent.test || DEFAULT_TEST_COMMAND;
   var modulePostinstallCommand =
     dependent.postinstall || `npm install ${options.packageName}`;
-  var testWithPreviousVersion = dependent.pretest;
   var dependentInstall = dependent.install;
 
   dependent = dependent.name;
@@ -271,6 +270,7 @@ function testDependent(emitter, options, dependent, config) {
       return folder;
     });
 
+  var testWithPreviousVersion = dependent.pretest;
   if (testWithPreviousVersion) {
     var modulePretestCommand;
     if (check.type('string', testWithPreviousVersion)) {
