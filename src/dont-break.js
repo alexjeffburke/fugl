@@ -196,10 +196,10 @@ function testDependent(emitter, options, dependent, config) {
   }
   dependent = Object.assign({ pretest: true }, config, dependent);
 
-  var moduleTestCommand = dependent.test || DEFAULT_TEST_COMMAND;
+  var moduleInstallCommand = dependent.install || DEFAULT_INSTALL_COMMAND;
   var modulePostinstallCommand =
     dependent.postinstall || `npm install ${options.packageName}`;
-  var moduleInstallCommand = dependent.install || DEFAULT_INSTALL_COMMAND;
+  var moduleTestCommand = dependent.test || DEFAULT_TEST_COMMAND;
 
   dependent = dependent.name;
 
