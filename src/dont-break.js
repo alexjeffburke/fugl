@@ -197,12 +197,8 @@ function testDependent(emitter, options, dependent, config) {
   if (check.string(dependent)) {
     dependent = { name: dependent.trim() };
   }
+  dependent = Object.assign({ pretest: true }, config, dependent);
 
-  dependent = Object.assign(
-    { pretest: true, currentModuleInstall: 'npm install $CURRENT_MODULE_DIR' },
-    config,
-    dependent
-  );
   moduleTestCommand = dependent.test;
   modulePostinstallCommand = dependent.postinstall || 'npm install';
   testWithPreviousVersion = dependent.pretest;
