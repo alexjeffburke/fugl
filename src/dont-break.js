@@ -235,16 +235,12 @@ function testDependent(emitter, options, dependent, config) {
     return command;
   }
 
-  function postInstallInFolder(dependentFolder, command) {
-    if (command) {
-      command = expandCommandVars(command);
-      return runInFolder(dependentFolder, command, {
-        success: 'postinstall succeeded',
-        failure: 'postinstall did not work'
-      });
-    } else {
-      return dependentFolder;
-    }
+  function postInstallModuleInFolder(dependentFolder) {
+    var command = expandCommandVars(modulePostinstallCommand);
+    return runInFolder(dependentFolder, command, {
+      success: 'postinstall succeeded',
+      failure: 'postinstall did not work'
+    });
   }
 
   var depName = pkg.name + '-v' + pkg.version + '-against-' + moduleName;
@@ -266,11 +262,6 @@ function testDependent(emitter, options, dependent, config) {
     prefix: toFolder,
     cmd: expandCommandVars(dependentInstall)
   };
-
-  var postInstallModuleInFolder = _.partialRight(
-    postInstallInFolder,
-    modulePostinstallCommand
-  );
 
   var res = install(installOptions)
     .timeout(timeoutSeconds * 1000, 'install timed out for ' + moduleName)
