@@ -18,7 +18,7 @@ function removeFolder(folder) {
 }
 
 function install(options) {
-  let cmd = options.cmd || 'npm install';
+  let cmd = options.cmd;
   let res;
   if (!exists(options.prefix)) {
     mkdirp.sync(options.prefix);

@@ -30,6 +30,7 @@ var MOCHA_HTML_DOCUMENT = `<html>
 </html>
 `;
 var NAME_COMMAND_SEPARATOR = ':';
+var DEFAULT_INSTALL_COMMAND = 'npm install';
 var DEFAULT_TEST_COMMAND = 'npm test';
 var INSTALL_TIMEOUT_SECONDS = 3 * 60;
 
@@ -198,7 +199,7 @@ function testDependent(emitter, options, dependent, config) {
   var moduleTestCommand = dependent.test || DEFAULT_TEST_COMMAND;
   var modulePostinstallCommand =
     dependent.postinstall || `npm install ${options.packageName}`;
-  var dependentInstall = dependent.install;
+  var moduleInstallCommand = dependent.install || DEFAULT_INSTALL_COMMAND;
 
   dependent = dependent.name;
 
@@ -258,7 +259,7 @@ function testDependent(emitter, options, dependent, config) {
   var installOptions = {
     name: moduleName,
     prefix: toFolder,
-    cmd: expandCommandVars(dependentInstall)
+    cmd: expandCommandVars(moduleInstallCommand)
   };
 
   var res = install(installOptions)
