@@ -163,10 +163,10 @@ function getDependents(options, forName) {
 
 function testInFolder(emitter, dependent, testCommand, folder) {
   const test = {
-    title: dependent,
+    title: dependent.name,
     body: '',
     duration: 0,
-    fullTitle: () => dependent,
+    fullTitle: () => dependent.name,
     slow: () => 0
   };
 
@@ -201,14 +201,12 @@ function testDependent(emitter, options, dependent, config) {
     dependent.postinstall || `npm install ${options.packageName}`;
   var moduleTestCommand = dependent.test || DEFAULT_TEST_COMMAND;
 
-  dependent = dependent.name;
+  const moduleName = getDependencyName(dependent.name);
 
-  la(check.unemptyString(dependent), 'invalid dependent', dependent);
-
-  const moduleName = getDependencyName(dependent);
+  la(check.unemptyString(moduleName), 'invalid dependent', moduleName);
 
   function formFullFolderName() {
-    if (isRepoUrl(dependent)) {
+    if (isRepoUrl(moduleName)) {
       // simple repo installation
       return toFolder;
     } else {
@@ -290,7 +288,7 @@ function testDependent(emitter, options, dependent, config) {
     })
     .catch(err => {
       emitter.emit('fail', {
-        title: dependent,
+        title: dependent.name,
         err
       });
     })
