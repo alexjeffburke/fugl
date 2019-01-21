@@ -191,17 +191,15 @@ function getDependencyName(dependent) {
 }
 
 function testDependent(emitter, options, dependent, config) {
-  var moduleTestCommand;
-  var modulePostinstallCommand;
-  var testWithPreviousVersion;
   if (check.string(dependent)) {
     dependent = { name: dependent.trim() };
   }
   dependent = Object.assign({ pretest: true }, config, dependent);
 
-  moduleTestCommand = dependent.test;
-  modulePostinstallCommand = dependent.postinstall || 'npm install';
-  testWithPreviousVersion = dependent.pretest;
+  var moduleTestCommand = dependent.test || DEFAULT_TEST_COMMAND;
+  var modulePostinstallCommand =
+    dependent.postinstall || `npm install ${options.packageName}`;
+  var testWithPreviousVersion = dependent.pretest;
   var dependentInstall = dependent.install;
 
   dependent = dependent.name;
@@ -222,12 +220,6 @@ function testDependent(emitter, options, dependent, config) {
       return join(toFolder, 'node_modules', moduleDir);
     }
   }
-
-  // var nameParts = dependent.split(NAME_COMMAND_SEPARATOR)
-  // la(nameParts.length, 'expected at least module name', dependent)
-  // var moduleName = nameParts[0].trim()
-  // var moduleTestCommand = nameParts[1] || DEFAULT_TEST_COMMAND
-  moduleTestCommand = moduleTestCommand || DEFAULT_TEST_COMMAND;
 
   var cwd = process.cwd();
   var pkg = require(join(cwd, 'package.json'));
@@ -418,6 +410,7 @@ function dontBreak(options) {
     options.reportDir || path.resolve(options.folder, 'breakage');
 
   var packageName = determinePackageName(options);
+  options.packageName = packageName;
 
   debug('working in folder %s', options.folder);
   var start = chdir.to(options.folder);
