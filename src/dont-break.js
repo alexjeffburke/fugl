@@ -220,8 +220,7 @@ function testDependent(emitter, options, dependent, config) {
   }
 
   var cwd = process.cwd();
-  var pkg = require(path.join(cwd, 'package.json'));
-  process.env.CURRENT_MODULE_NAME = pkg.name;
+  process.env.CURRENT_MODULE_NAME = moduleName;
   process.env.CURRENT_MODULE_DIR = cwd;
 
   function expandCommandVars(command) {
@@ -229,7 +228,7 @@ function testDependent(emitter, options, dependent, config) {
       return command;
     }
     command = command.replace('$CURRENT_MODULE_DIR', cwd);
-    command = command.replace('$CURRENT_MODULE_NAME', pkg.name);
+    command = command.replace('$CURRENT_MODULE_NAME', moduleName);
     return command;
   }
 
@@ -241,9 +240,8 @@ function testDependent(emitter, options, dependent, config) {
     });
   }
 
-  var depName = pkg.name + '-v' + pkg.version + '-against-' + moduleName;
-  var safeName = _.kebabCase(_.deburr(depName));
-  debug('original name "%s", safe "%s"', depName, safeName);
+  var safeName = _.kebabCase(_.deburr(moduleName));
+  debug('original name "%s", safe "%s"', moduleName, safeName);
   var toFolder = path.join(options.tmpDir, safeName);
   debug('testing folder %s', quote(toFolder));
 
