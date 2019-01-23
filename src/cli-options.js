@@ -21,6 +21,9 @@ var argv = require('yargs')
     type: 'number',
     describe: 'Wait for N seconds when installing a package'
   })
+  .option('package', {
+    alias: 'package'
+  })
   .option('reporter', {
     alias: 'reporter'
   }).argv;

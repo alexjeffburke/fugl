@@ -131,8 +131,8 @@ function currentPackageName(options) {
 }
 
 function determinePackageName(options) {
-  if (options.packageName) {
-    return options.packageName;
+  if (options.package) {
+    return options.package;
   } else {
     return currentPackageName(options);
   }
