@@ -138,8 +138,9 @@ function determinePackageName(options) {
   }
 }
 
-function getDependents(options, forName) {
+function getDependents(options) {
   options = options || {};
+  var forName = options.packageName;
 
   var metric, n;
   if (check.number(options.topDownloads)) {
@@ -399,9 +400,7 @@ function dontBreak(options) {
   options.tmpDir = options.tmpDir
     ? path.resolve(options.tmpDir)
     : path.resolve(options.folder, 'builds');
-
-  var packageName = determinePackageName(options);
-  options.packageName = packageName;
+  options.packageName = determinePackageName(options);
 
   debug('working in folder %s', options.folder);
   var start = chdir.to(options.folder);
@@ -413,7 +412,7 @@ function dontBreak(options) {
   } else {
     start = start.then(function() {
       debug('getting dependents');
-      return getDependents(options, packageName);
+      return getDependents(options);
     });
   }
 
