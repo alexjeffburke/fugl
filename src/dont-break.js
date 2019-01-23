@@ -4,7 +4,6 @@ var la = require('./la');
 var check = require('check-more-types');
 var EventEmitter = require('events');
 var path = require('path');
-var osTmpdir = require('os-tmpdir');
 var quote = require('quote');
 var chdir = require('chdir-promise');
 var debug = require('debug')('dont-break');
@@ -243,7 +242,7 @@ function testDependent(emitter, options, dependent, config) {
   var depName = pkg.name + '-v' + pkg.version + '-against-' + moduleName;
   var safeName = _.kebabCase(_.deburr(depName));
   debug('original name "%s", safe "%s"', depName, safeName);
-  var toFolder = path.join(osTmpdir(), safeName);
+  var toFolder = path.join(options.tmpDir, safeName);
   debug('testing folder %s', quote(toFolder));
 
   var timeoutSeconds = options.timeout || INSTALL_TIMEOUT_SECONDS;
@@ -397,6 +396,9 @@ function dontBreak(options) {
   options.reporter = options.reporter || 'console';
   options.reportDir =
     options.reportDir || path.resolve(options.folder, 'breakage');
+  options.tmpDir = options.tmpDir
+    ? path.resolve(options.tmpDir)
+    : path.resolve(options.folder, 'builds');
 
   var packageName = determinePackageName(options);
   options.packageName = packageName;
