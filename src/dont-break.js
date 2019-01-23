@@ -360,7 +360,8 @@ function testDependents(options, config) {
           document.documentElement.outerHTML
         );
       }
-    });
+    })
+    .then(() => stats);
 }
 
 function dontBreakDependents(options, dependents) {
