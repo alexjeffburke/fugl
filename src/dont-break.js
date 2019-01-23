@@ -431,9 +431,6 @@ function dontBreak(options) {
       if (stats.fail > 0) {
         throw new Error('failed');
       }
-    })
-    .catch(() => {
-      process.exit(1);
     });
 }
 

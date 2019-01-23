@@ -17,4 +17,6 @@ dontBreak(options)
     console.log('finishing with success?', success);
     process.exit(success ? 0 : 1);
   })
-  .done();
+  .catch(() => {
+    process.exit(1);
+  });
