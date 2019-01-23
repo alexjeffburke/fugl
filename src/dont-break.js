@@ -6,13 +6,14 @@ var EventEmitter = require('events');
 var path = require('path');
 var quote = require('quote');
 var chdir = require('chdir-promise');
+var mkdirp = require('mkdirp');
 var debug = require('debug')('dont-break');
 var isRepoUrl = require('./is-repo-url');
 
 var _ = require('lodash');
 
 var fs = require('fs-extra');
-var exists = fs.existsSync;
+var exists = require('fs').existsSync;
 
 var npm = require('top-dependents');
 var stripComments = require('strip-json-comments');
@@ -401,6 +402,10 @@ function dontBreak(options) {
     ? path.resolve(options.tmpDir)
     : path.resolve(options.folder, 'builds');
   options.packageName = determinePackageName(options);
+
+  if (!exists(options.folder)) {
+    mkdirp.sync(options.folder);
+  }
 
   debug('working in folder %s', options.folder);
   var start = chdir.to(options.folder);
