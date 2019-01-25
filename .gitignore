@@ -6,3 +6,6 @@ npm-debug.log
 .idea/
 yarn.lock
 package-lock.json
+
+# misc
+.vscode/settings.json
