@@ -276,8 +276,9 @@ function testDependent(emitter, options, dependent, config) {
     } else {
       modulePretestCommand = moduleTestCommand;
     }
-    var pretestModuleInFolder = _.partial(testInFolder, modulePretestCommand);
-    res = res.then(postInstallModuleInFolder).then(pretestModuleInFolder);
+    res = res.then(postInstallModuleInFolder).then(folder => {
+      return testInFolder(emitter, dependent, modulePretestCommand, folder);
+    });
   }
 
   return res
