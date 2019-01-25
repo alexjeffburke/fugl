@@ -32,7 +32,7 @@ var MOCHA_HTML_DOCUMENT = `<html>
 var NAME_COMMAND_SEPARATOR = ':';
 var DEFAULT_INSTALL_COMMAND = 'npm install';
 var DEFAULT_TEST_COMMAND = 'npm test';
-var INSTALL_TIMEOUT_SECONDS = 3 * 60;
+var INSTALL_TIMEOUT_SECONDS = 2 * 60 * 1000; // 2 minutes
 
 var install = require('./install-dependency');
 var runInFolder = require('./run-in-folder');
@@ -259,8 +259,19 @@ function testDependent(emitter, options, dependent, config) {
     cmd: expandCommandVars(moduleInstallCommand)
   };
 
-  var res = install(installOptions)
-    .timeout(timeoutSeconds * 1000, 'install timed out for ' + moduleName)
+  var res = Promise.race([
+    install(installOptions),
+    new Promise(resolve =>
+      setTimeout(() => resolve({ timeout: true }), timeoutSeconds)
+    )
+  ])
+    .then(result => {
+      if (result && result.timeout) {
+        debug('install timed out for ' + moduleName);
+        throw new Error('timeout');
+      }
+      return result;
+    })
     .then(formFullFolderName)
     .then(function checkInstalledFolder(folder) {
       la(check.unemptyString(folder), 'expected folder', folder);
@@ -292,7 +303,7 @@ function testDependent(emitter, options, dependent, config) {
         err
       });
     })
-    .finally(function() {
+    .then(function() {
       debug('restoring original directory', cwd);
       process.chdir(cwd);
     });
