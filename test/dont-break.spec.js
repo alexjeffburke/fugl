@@ -23,3 +23,23 @@ describe('when supplied module', () => {
     });
   });
 });
+
+describe('when used within module', () => {
+  it('should have created the module folder', () => {
+    return dontBreak({
+      folder: path.join(__dirname, 'module'),
+      dep: ['https://github.com/bahmutov/dont-break-bar.git']
+    }).then(() => {
+      assert.ok(
+        fs.existsSync(
+          path.join(
+            __dirname,
+            'module',
+            'builds',
+            'https-github-com-bahmutov-dont-break-bar-git'
+          )
+        )
+      );
+    });
+  });
+});
