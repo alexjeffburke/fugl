@@ -1,14 +1,20 @@
 'use strict';
 
-var q = require('q');
 var isRepoUrl = require('./is-repo-url');
 var debug = require('debug')('dont-break');
 var exists = require('fs').existsSync;
 var rimraf = require('rimraf');
+var simpleGit = require('simple-git/promise')();
 
-var cloneRepo = require('ggit').cloneRepo;
 var runInFolder = require('./run-in-folder');
 var mkdirp = require('mkdirp');
+
+function createFolder(folder) {
+  if (!exists(folder)) {
+    debug('creating folder %s', folder);
+    mkdirp.sync(folder);
+  }
+}
 
 function removeFolder(folder) {
   if (exists(folder)) {
@@ -19,30 +25,20 @@ function removeFolder(folder) {
 
 function install(options) {
   let cmd = options.cmd;
+
   let res;
-  if (!exists(options.prefix)) {
-    mkdirp.sync(options.prefix);
-  }
   if (isRepoUrl(options.name)) {
-    debug('installing repo %s', options.name);
     removeFolder(options.prefix);
-    res = q(
-      cloneRepo({
-        url: options.name,
-        folder: options.prefix
-      })
-    )
-      .then(function() {
-        debug('cloned %s', options.name);
-      })
-      .catch(function(err) {
-        throw err;
-      });
+    createFolder(options.prefix);
+
+    debug('installing repo %s', options.name);
+
+    res = simpleGit.clone(options.name, options.prefix).then(() => {
+      debug('cloned %s', options.name);
+    });
   } else {
-    if (options.name) {
-      cmd = `${cmd} ${options.name}`;
-    }
-    res = q([]);
+    cmd = `${cmd} ${options.name}`;
+    res = Promise.resolve();
   }
 
   return res.then(function() {
