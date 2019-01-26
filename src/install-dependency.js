@@ -30,14 +30,23 @@ function install(options) {
 
   let res;
   if (isRepoUrl(moduleName)) {
-    removeFolder(toFolder);
-    createFolder(toFolder);
+    if (options.noClean && exists(toFolder)) {
+      debug('updating repo %s', moduleName);
 
-    debug('installing repo %s', moduleName);
+      res = simpleGit
+        .cwd(toFolder)
+        .then(() => simpleGit.pull())
+        .then(() => debug('updated %s', moduleName));
+    } else {
+      removeFolder(toFolder);
+      createFolder(toFolder);
 
-    res = simpleGit.clone(moduleName, toFolder).then(() => {
-      debug('cloned %s', moduleName);
-    });
+      debug('cloning repo %s', moduleName);
+
+      res = simpleGit.clone(moduleName, toFolder).then(() => {
+        debug('cloned %s', moduleName);
+      });
+    }
   } else {
     cmd = `${cmd} ${moduleName}`;
     res = Promise.resolve();

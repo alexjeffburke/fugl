@@ -413,6 +413,7 @@ function dontBreak(options) {
   }
   options = options || {};
   options.folder = options.folder || process.cwd();
+  options.noClean = !!options.noClean;
   options.reporter = options.reporter || 'console';
   options.reportDir =
     options.reportDir || path.resolve(options.folder, 'breakage');

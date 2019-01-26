@@ -2,6 +2,7 @@ var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
 var rimraf = require('rimraf');
+var simpleGit = require('simple-git/promise')();
 
 var dontBreak = require('../src/dont-break');
 
@@ -27,6 +28,38 @@ describe('when supplied module', () => {
           )
         )
       );
+    });
+  });
+});
+
+describe('when supplied module and noClean', () => {
+  const dir = path.join(
+    __dirname,
+    'noclean',
+    'builds',
+    'https-github-com-bahmutov-dont-break-bar-git'
+  );
+
+  beforeEach(() => {
+    if (fs.existsSync(dir)) {
+      return;
+    }
+
+    return simpleGit.clone(
+      'https://github.com/bahmutov/dont-break-bar.git',
+      dir
+    );
+  });
+
+  it('should have created the module folder', () => {
+    return dontBreak({
+      package: 'dont-break-foo',
+      reporter: 'none',
+      noClean: true,
+      folder: path.join(__dirname, 'noclean'),
+      dep: ['https://github.com/bahmutov/dont-break-bar.git']
+    }).then(() => {
+      assert.ok(fs.existsSync(dir));
     });
   });
 });
