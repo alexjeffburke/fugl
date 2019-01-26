@@ -94,9 +94,12 @@ function saveTopDependents(name, metric, n) {
     });
 }
 
-function getDependentsFromFile() {
-  return fs
-    .readFile(dontBreakFilename, 'utf-8')
+function getDependentsFromFile(options) {
+  debug('getDependentsFromFile in %s', options.folder);
+
+  return chdir
+    .to(options.folder)
+    .then(() => fs.readFile(dontBreakFilename, 'utf-8'))
     .then(stripComments)
     .then(function(text) {
       debug('loaded dependencies file', text);
@@ -116,6 +119,9 @@ function getDependentsFromFile() {
         'no dependent projects, maybe query NPM for projects that depend on this one.'
       );
       return [];
+    })
+    .then(data => {
+      return chdir.back().then(() => data);
     });
 }
 
@@ -143,6 +149,8 @@ function getDependents(options) {
   options = options || {};
   var forName = options.packageName;
 
+  debug('getting dependents for %s', forName);
+
   var metric, n;
   if (check.number(options.topDownloads)) {
     metric = 'downloads';
@@ -159,7 +167,7 @@ function getDependents(options) {
     firstStep = Promise.resolve();
   }
 
-  return firstStep.then(getDependentsFromFile);
+  return firstStep.then(() => getDependentsFromFile(options));
 }
 
 function testInFolder(emitter, dependent, testCommand, folder) {
@@ -418,17 +426,12 @@ function dontBreak(options) {
   }
 
   debug('working in folder %s', options.folder);
-  var start = chdir.to(options.folder);
 
+  let start;
   if (check.arrayOfStrings(options.dep)) {
-    start = start.then(function() {
-      return options.dep;
-    });
+    start = Promise.resolve(options.dep);
   } else {
-    start = start.then(function() {
-      debug('getting dependents');
-      return getDependents(options);
-    });
+    start = getDependents(options);
   }
 
   return start
@@ -436,9 +439,6 @@ function dontBreak(options) {
       var depenentsToTest = checkDependents(dependents);
 
       return testDependents(options, depenentsToTest);
-    })
-    .then(stats => {
-      return chdir.back().then(() => stats);
     })
     .then(stats => {
       if (stats.fail > 0) {
