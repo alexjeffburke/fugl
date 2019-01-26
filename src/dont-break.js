@@ -330,7 +330,7 @@ function testDependents(options, config) {
   emitter.on('fail', () => (stats.failures += 1));
 
   let reporter;
-  if (options.reporter !== 'console') {
+  if (options.reporter !== 'console' && options.reporter !== 'none') {
     try {
       if (options.reporter === 'html') {
         const jsdom = require('jsdom');
@@ -348,7 +348,7 @@ function testDependents(options, config) {
     }
   }
 
-  if (!reporter) {
+  if (!reporter && options.reporter === 'console') {
     emitter.once('start', () => console.log());
     emitter.on('pass', test => console.log(`  ${test.title} PASSED`));
     emitter.on('fail', test => console.log(`  ${test.title} FAILED`));

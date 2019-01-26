@@ -13,6 +13,7 @@ describe('when supplied module', () => {
   it('should have created the module folder', () => {
     return dontBreak({
       package: 'dont-break-foo',
+      reporter: 'none',
       folder: path.join(__dirname, 'scratch'),
       dep: ['https://github.com/bahmutov/dont-break-bar.git']
     }).then(() => {
@@ -37,6 +38,7 @@ describe('when used within module', () => {
 
   it('should have created the module folder', () => {
     return dontBreak({
+      reporter: 'none',
       folder: path.join(__dirname, 'module'),
       dep: ['https://github.com/bahmutov/dont-break-bar.git']
     }).then(() => {
@@ -62,6 +64,7 @@ describe('when used with a file', () => {
   it('should have created the module folder', () => {
     return dontBreak({
       package: 'dont-break-foo',
+      reporter: 'none',
       folder: path.join(__dirname, 'file')
     }).then(() => {
       assert.ok(
