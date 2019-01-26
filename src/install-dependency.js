@@ -25,24 +25,26 @@ function removeFolder(folder) {
 
 function install(options) {
   let cmd = options.cmd;
+  const moduleName = options.moduleName;
+  const toFolder = options.toFolder;
 
   let res;
-  if (isRepoUrl(options.name)) {
-    removeFolder(options.prefix);
-    createFolder(options.prefix);
+  if (isRepoUrl(moduleName)) {
+    removeFolder(toFolder);
+    createFolder(toFolder);
 
-    debug('installing repo %s', options.name);
+    debug('installing repo %s', moduleName);
 
-    res = simpleGit.clone(options.name, options.prefix).then(() => {
-      debug('cloned %s', options.name);
+    res = simpleGit.clone(moduleName, toFolder).then(() => {
+      debug('cloned %s', moduleName);
     });
   } else {
-    cmd = `${cmd} ${options.name}`;
+    cmd = `${cmd} ${moduleName}`;
     res = Promise.resolve();
   }
 
   return res.then(function() {
-    return runInFolder(options.prefix, cmd, {
+    return runInFolder(toFolder, cmd, {
       success: 'installing dependent module succeeded',
       failure: 'installing dependent module failed'
     });

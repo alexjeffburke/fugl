@@ -254,8 +254,8 @@ function testDependent(emitter, options, dependent, config) {
   );
 
   var installOptions = {
-    name: moduleName,
-    prefix: toFolder,
+    moduleName,
+    toFolder,
     cmd: expandCommandVars(moduleInstallCommand)
   };
 
