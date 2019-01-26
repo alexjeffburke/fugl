@@ -1,6 +1,6 @@
 node_modules/
 test/builds/
-test/module/builds/
+test/**/builds/
 
 # misc
 .DS_Store

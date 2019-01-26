@@ -52,3 +52,27 @@ describe('when used within module', () => {
     });
   });
 });
+
+describe('when used with a file', () => {
+  beforeEach(() => {
+    rimraf.sync(path.join(__dirname, 'file', 'builds'));
+  });
+
+  it('should have created the module folder', () => {
+    return dontBreak({
+      package: 'dont-break-foo',
+      folder: path.join(__dirname, 'file')
+    }).then(() => {
+      assert.ok(
+        fs.existsSync(
+          path.join(
+            __dirname,
+            'file',
+            'builds',
+            'https-github-com-bahmutov-dont-break-bar'
+          )
+        )
+      );
+    });
+  });
+});

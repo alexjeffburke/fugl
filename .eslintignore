@@ -1,2 +1,2 @@
 test/builds/
-test/module/builds/
+test/**/builds/
