@@ -7,19 +7,20 @@ var dontBreak = require('../src/dont-break');
 
 describe('when supplied module', () => {
   beforeEach(() => {
-    rimraf.sync(path.join(__dirname, 'builds'));
+    rimraf.sync(path.join(__dirname, 'scratch', 'builds'));
   });
 
   it('should have created the module folder', () => {
     return dontBreak({
       package: 'dont-break-foo',
-      folder: path.join(__dirname),
+      folder: path.join(__dirname, 'scratch'),
       dep: ['https://github.com/bahmutov/dont-break-bar.git']
     }).then(() => {
       assert.ok(
         fs.existsSync(
           path.join(
             __dirname,
+            'scratch',
             'builds',
             'https-github-com-bahmutov-dont-break-bar-git'
           )
