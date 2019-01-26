@@ -34,7 +34,7 @@ var DEFAULT_INSTALL_COMMAND = 'npm install';
 var DEFAULT_TEST_COMMAND = 'npm test';
 var INSTALL_TIMEOUT_SECONDS = 2 * 60 * 1000; // 2 minutes
 
-var install = require('./install-dependency');
+var installDependent = require('./install-dependency');
 var runInFolder = require('./run-in-folder');
 
 function saveTopDependents(name, metric, n) {
@@ -268,7 +268,7 @@ function testDependent(emitter, options, dependent, config) {
   };
 
   var res = Promise.race([
-    install(installOptions),
+    installDependent(installOptions),
     new Promise(resolve =>
       setTimeout(() => resolve({ timeout: true }), timeoutSeconds)
     )
