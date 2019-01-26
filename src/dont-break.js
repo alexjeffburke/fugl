@@ -374,7 +374,7 @@ function testDependents(options, config) {
     .then(() => stats);
 }
 
-function dontBreakDependents(options, dependents) {
+function checkDependents(dependents) {
   if (
     check.arrayOf(check.object, dependents) ||
     check.arrayOfStrings(dependents)
@@ -383,6 +383,7 @@ function dontBreakDependents(options, dependents) {
       projects: dependents
     };
   }
+
   la(
     check.arrayOf(function(item) {
       return check.object(item) || check.string(item);
@@ -390,12 +391,10 @@ function dontBreakDependents(options, dependents) {
     'invalid dependents',
     dependents.projects
   );
-  debug('testing the following dependents', JSON.stringify(dependents));
-  if (check.empty(dependents)) {
-    return Promise.resolve();
-  }
 
-  return testDependents(options, dependents);
+  debug('testing the following dependents', JSON.stringify(dependents));
+
+  return dependents;
 }
 
 function dontBreak(options) {
@@ -434,7 +433,9 @@ function dontBreak(options) {
 
   return start
     .then(dependents => {
-      return dontBreakDependents(options, dependents);
+      var depenentsToTest = checkDependents(dependents);
+
+      return testDependents(options, depenentsToTest);
     })
     .then(stats => {
       return chdir.back().then(() => stats);
