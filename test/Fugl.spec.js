@@ -1,6 +1,7 @@
 const expect = require('unexpected')
   .clone()
   .use(require('unexpected-sinon'));
+const EventEmitter = require('events');
 const path = require('path');
 const rimraf = require('rimraf');
 const sinon = require('sinon');
@@ -45,6 +46,55 @@ describe('Fugl', () => {
       failures: 1
     }).then(() => {
       expect(testDependentStub, 'was called');
+    });
+  });
+
+  describe('with multiple dependents', () => {
+    it('should return stats on a pass', () => {
+      const fugl = new Fugl({ dep: ['FOO', 'BAR', 'BAZ'], reporter: 'none' });
+      let testDependentCallCount = 0;
+      const testDependentStub = sinon
+        .stub(fugl, 'testDependent')
+        .callsFake(emitter => {
+          testDependentCallCount += 1;
+
+          switch (testDependentCallCount) {
+            case 1:
+              emitter.emit('pass', { title: 'FOO' });
+              break;
+            case 2:
+              emitter.emit('fail', { title: 'BAR' }, new Error('failure'));
+              break;
+            case 3:
+              emitter.emit('pass', { title: 'BAZ' });
+              break;
+          }
+
+          return Promise.resolve();
+        });
+
+      return expect(() => fugl.run(), 'to be fulfilled with', {
+        passes: 2,
+        failures: 1
+      }).then(() => {
+        expect(testDependentStub, 'to have calls satisfying', [
+          [
+            expect.it('to be a', EventEmitter),
+            {},
+            { name: 'FOO', pretest: true }
+          ],
+          [
+            expect.it('to be a', EventEmitter),
+            {},
+            { name: 'BAR', pretest: true }
+          ],
+          [
+            expect.it('to be a', EventEmitter),
+            {},
+            { name: 'BAZ', pretest: true }
+          ]
+        ]);
+      });
     });
   });
 });
