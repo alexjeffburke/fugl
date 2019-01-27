@@ -126,12 +126,39 @@ function currentPackageName(options) {
   }
 }
 
-function determinePackageName(options) {
+function determinePackage(options) {
   if (options.package) {
     return options.package;
   } else {
     return currentPackageName(options);
   }
+}
+
+function parsePackage(packageString) {
+  if (typeof packageString !== 'string' || packageString.trim().length === 0) {
+    throw new Error(`Invalid package @{package}`);
+  }
+
+  let packageParts;
+  let name;
+  if (packageString[0] === '@') {
+    packageParts = packageString.slice(1).split('@');
+    name = '@';
+  } else {
+    packageParts = packageString.split('@');
+    name = '';
+  }
+
+  name += packageParts[0];
+
+  let version = null;
+  if (packageParts.length === 2) {
+    version = packageParts[1];
+  } else {
+    version = null;
+  }
+
+  return { name, version };
 }
 
 function getDependents(options) {
@@ -193,7 +220,10 @@ class Fugl {
     options.tmpDir = options.tmpDir
       ? path.resolve(options.tmpDir)
       : path.resolve(options.folder, 'builds');
-    options.packageName = determinePackageName(options);
+
+    const packageInfo = parsePackage(determinePackage(options));
+    options.packageName = packageInfo.name;
+    options.packageVersion = packageInfo.version || 'latest';
   }
 
   testDependent(emitter, options, dependent) {

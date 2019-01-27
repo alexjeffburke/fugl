@@ -24,7 +24,8 @@ describe('Fugl', () => {
       pretest: true,
       reportDir: path.join(baseDir, 'breakage'),
       tmpDir: path.join(baseDir, 'builds'),
-      packageName: 'dont-break'
+      packageName: 'dont-break',
+      packageVersion: 'latest'
     });
   });
 
