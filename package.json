@@ -36,7 +36,10 @@
     "eslint-plugin-import": "^2.14.0",
     "eslint-plugin-prettier": "^3.0.1",
     "if-node-version": "^1.1.1",
-    "prettier": "~1.15.3"
+    "prettier": "~1.15.3",
+    "sinon": "^7.2.3",
+    "unexpected": "^11.0.1",
+    "unexpected-sinon": "^10.11.0"
   },
   "engines": {
     "node": ">= 0.12.0",
