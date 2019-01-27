@@ -160,71 +160,6 @@ function getDependents(options) {
   return firstStep.then(() => getDependentsFromFile(options));
 }
 
-function testDependents(options, config) {
-  var stats = {
-    passes: 0,
-    failures: 0
-  };
-
-  la(check.array(config.projects), 'expected dependents', config.projects);
-
-  const emitter = new EventEmitter();
-  emitter.on('pass', () => (stats.passes += 1));
-  emitter.on('fail', () => (stats.failures += 1));
-
-  let reporter;
-  if (options.reporter !== 'console' && options.reporter !== 'none') {
-    try {
-      if (options.reporter === 'html') {
-        const jsdom = require('jsdom');
-        const dom = new jsdom.JSDOM(MOCHA_HTML_DOCUMENT);
-        // disable canvas
-        dom.window.HTMLCanvasElement.prototype.getContext = null;
-        global.window = dom.window;
-        global.document = dom.window.document;
-        global.fragment = html => new dom.window.DocumentFragment(html);
-      }
-      const Reporter = require(`mocha/lib/reporters/${options.reporter}`);
-      reporter = new Reporter(emitter);
-    } catch (e) {
-      // ignore
-    }
-  }
-
-  if (!reporter && options.reporter === 'console') {
-    emitter.once('start', () => console.log());
-    emitter.on('pass', test => console.log(`  ${test.title} PASSED`));
-    emitter.on('fail', test => console.log(`  ${test.title} FAILED`));
-  }
-
-  emitter.emit('start');
-
-  // TODO switch to parallel testing!
-  return config.projects
-    .reduce(function(prev, dependent) {
-      return prev.then(function() {
-        return testDependent(emitter, options, dependent, config);
-      });
-    }, Promise.resolve(true))
-    .then(() => {
-      emitter.emit('end');
-    })
-    .then(() => {
-      if (options.reporter === 'html') {
-        fs.ensureDirSync(options.reportDir);
-        fs.copyFileSync(
-          require.resolve('mocha/mocha.css'),
-          path.join(options.reportDir, 'index.css')
-        );
-        fs.writeFileSync(
-          path.join(options.reportDir, 'index.html'),
-          document.documentElement.outerHTML
-        );
-      }
-    })
-    .then(() => stats);
-}
-
 function checkDependents(dependents) {
   if (
     check.arrayOf(check.object, dependents) ||
@@ -262,6 +197,72 @@ class Fugl {
     options.packageName = determinePackageName(options);
   }
 
+  testDependents(config) {
+    const options = this.options;
+    const stats = {
+      passes: 0,
+      failures: 0
+    };
+
+    la(check.array(config.projects), 'expected dependents', config.projects);
+
+    const emitter = new EventEmitter();
+    emitter.on('pass', () => (stats.passes += 1));
+    emitter.on('fail', () => (stats.failures += 1));
+
+    let reporter;
+    if (options.reporter !== 'console' && options.reporter !== 'none') {
+      try {
+        if (options.reporter === 'html') {
+          const jsdom = require('jsdom');
+          const dom = new jsdom.JSDOM(MOCHA_HTML_DOCUMENT);
+          // disable canvas
+          dom.window.HTMLCanvasElement.prototype.getContext = null;
+          global.window = dom.window;
+          global.document = dom.window.document;
+          global.fragment = html => new dom.window.DocumentFragment(html);
+        }
+        const Reporter = require(`mocha/lib/reporters/${options.reporter}`);
+        reporter = new Reporter(emitter);
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    if (!reporter && options.reporter === 'console') {
+      emitter.once('start', () => console.log());
+      emitter.on('pass', test => console.log(`  ${test.title} PASSED`));
+      emitter.on('fail', test => console.log(`  ${test.title} FAILED`));
+    }
+
+    emitter.emit('start');
+
+    // TODO switch to parallel testing!
+    return config.projects
+      .reduce(function(prev, dependent) {
+        return prev.then(function() {
+          return testDependent(emitter, options, dependent, config);
+        });
+      }, Promise.resolve(true))
+      .then(() => {
+        emitter.emit('end');
+      })
+      .then(() => {
+        if (options.reporter === 'html') {
+          fs.ensureDirSync(options.reportDir);
+          fs.copyFileSync(
+            require.resolve('mocha/mocha.css'),
+            path.join(options.reportDir, 'index.css')
+          );
+          fs.writeFileSync(
+            path.join(options.reportDir, 'index.html'),
+            document.documentElement.outerHTML
+          );
+        }
+      })
+      .then(() => stats);
+  }
+
   run() {
     const options = this.options;
 
@@ -282,7 +283,7 @@ class Fugl {
       .then(dependents => {
         var depenentsToTest = checkDependents(dependents);
 
-        return testDependents(options, depenentsToTest);
+        return this.testDependents(depenentsToTest);
       })
       .then(stats => {
         if (stats.fail > 0) {
