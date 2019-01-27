@@ -15,7 +15,6 @@
     "check-more-types": "2.24.0",
     "debug": "3.2.6",
     "fs-extra": "^3.0.1",
-    "ggit": "2.4.11",
     "jsdom": "^13.1.0",
     "lodash": "4.17.11",
     "mkdirp": "^0.5.1",
