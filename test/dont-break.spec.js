@@ -113,3 +113,23 @@ describe('when used with a file', () => {
     });
   });
 });
+
+describe('when reporting with html', () => {
+  beforeEach(() => {
+    rimraf.sync(path.join(__dirname, 'html', 'breakage'));
+    rimraf.sync(path.join(__dirname, 'html', 'builds'));
+  });
+
+  it('should have created the module folder', () => {
+    return dontBreak({
+      package: 'dont-break-foo',
+      reporter: 'html',
+      folder: path.join(__dirname, 'html'),
+      dep: ['https://github.com/bahmutov/dont-break-bar.git']
+    }).then(() => {
+      assert.ok(
+        fs.existsSync(path.join(__dirname, 'html', 'breakage', 'index.html'))
+      );
+    });
+  });
+});
