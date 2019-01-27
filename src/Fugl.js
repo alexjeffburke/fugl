@@ -197,6 +197,10 @@ class Fugl {
     options.packageName = determinePackageName(options);
   }
 
+  testDependent(...args) {
+    return testDependent(...args);
+  }
+
   testDependents(config) {
     const options = this.options;
     const stats = {
@@ -239,9 +243,9 @@ class Fugl {
 
     // TODO switch to parallel testing!
     return config.projects
-      .reduce(function(prev, dependent) {
-        return prev.then(function() {
-          return testDependent(emitter, options, dependent, config);
+      .reduce((prev, dependent) => {
+        return prev.then(() => {
+          return this.testDependent(emitter, options, dependent, config);
         });
       }, Promise.resolve(true))
       .then(() => {
