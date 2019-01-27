@@ -45,6 +45,8 @@ function npmTest(cmd) {
 }
 
 function runInFolder(folder, command, options) {
+  let sawError = null;
+
   return Promise.resolve()
     .then(() => {
       la(check.unemptyString(command), 'missing test command', command);
@@ -56,23 +58,24 @@ function runInFolder(folder, command, options) {
       return npmTest(command);
     })
     .then(function() {
-      if (typeof options.success === 'function') {
-        options.success();
-      } else {
+      if (typeof options.success === 'string') {
         debug(`${options.success} in ${folder}`);
       }
-      return folder;
     })
-    .catch(function(errors) {
-      if (typeof options.failure === 'function') {
-        options.failure(errors);
-      } else {
+    .catch(error => {
+      sawError = error;
+      if (typeof options.failure === 'string') {
         debug(`${options.failure} in ${folder}`);
-        debug('code', errors.code);
-        throw errors;
       }
     })
-    .finally(chdir.from);
+    .then(() => chdir.from())
+    .then(() => {
+      if (sawError !== null) {
+        throw sawError;
+      } else {
+        return folder;
+      }
+    });
 }
 
 module.exports = runInFolder;

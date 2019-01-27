@@ -143,24 +143,21 @@ function testDependent(emitter, options, dependent, config) {
     });
   }
 
+  const test = {
+    title: dependent.name,
+    body: '',
+    duration: 0,
+    fullTitle: () => dependent.name,
+    slow: () => 0
+  };
+
   return res
     .then(postInstallModuleInFolder)
     .then(folder => {
       return testInFolder(emitter, dependent, moduleTestCommand, folder);
     })
-    .catch(err => {
-      emitter.emit(
-        'fail',
-        {
-          title: dependent.name,
-          body: '',
-          duration: 0,
-          fullTitle: () => dependent.name,
-          slow: () => 0
-        },
-        err
-      );
-    })
+    .then(() => emitter.emit('pass', test))
+    .catch(err => emitter.emit('fail', test, err))
     .then(function() {
       debug('restoring original directory', cwd);
       process.chdir(cwd);
