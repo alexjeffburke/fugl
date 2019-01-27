@@ -9,6 +9,12 @@ var pkg = require(join(__dirname, '..', 'package.json'));
 console.log(pkg.name + '@' + pkg.version, '-', pkg.description);
 
 var options = require('../src/cli-options');
-dontBreak(options).catch(() => {
-  process.exit(1);
-});
+dontBreak(options)
+  .then(stats => {
+    if (stats.failures > 0) {
+      throw new Error('failed');
+    }
+  })
+  .catch(() => {
+    process.exit(1);
+  });

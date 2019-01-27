@@ -283,17 +283,11 @@ class Fugl {
       start = getDependents(options);
     }
 
-    return start
-      .then(dependents => {
-        var depenentsToTest = checkDependents(dependents);
+    return start.then(dependents => {
+      var depenentsToTest = checkDependents(dependents);
 
-        return this.testDependents(depenentsToTest);
-      })
-      .then(stats => {
-        if (stats.fail > 0) {
-          throw new Error('failed');
-        }
-      });
+      return this.testDependents(depenentsToTest);
+    });
   }
 }
 
