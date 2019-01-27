@@ -89,25 +89,44 @@ describe('when used within module', () => {
   });
 });
 
-describe('when used with a file', () => {
+describe('when used with a file (array)', () => {
+  const dir = path.join(path.join(__dirname, 'file-array'));
+
   beforeEach(() => {
-    rimraf.sync(path.join(__dirname, 'file', 'builds'));
+    rimraf.sync(path.join(dir, 'builds'));
   });
 
   it('should have created the module folder', () => {
     return dontBreak({
       package: 'dont-break-foo',
       reporter: 'none',
-      folder: path.join(__dirname, 'file')
+      folder: dir
     }).then(() => {
       assert.ok(
         fs.existsSync(
-          path.join(
-            __dirname,
-            'file',
-            'builds',
-            'https-github-com-bahmutov-dont-break-bar'
-          )
+          path.join(dir, 'builds', 'https-github-com-bahmutov-dont-break-bar')
+        )
+      );
+    });
+  });
+});
+
+describe('when used with a file (object)', () => {
+  const dir = path.join(path.join(__dirname, 'file-object'));
+
+  beforeEach(() => {
+    rimraf.sync(path.join(dir, 'builds'));
+  });
+
+  it('should have created the module folder', () => {
+    return dontBreak({
+      package: 'dont-break-foo',
+      reporter: 'none',
+      folder: dir
+    }).then(() => {
+      assert.ok(
+        fs.existsSync(
+          path.join(dir, 'builds', 'https-github-com-bahmutov-dont-break-bar')
         )
       );
     });

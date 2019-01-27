@@ -110,6 +110,10 @@ function getDependentsFromFile(options) {
       return [];
     })
     .then(data => {
+      if (Array.isArray(data)) {
+        data = { projects: data };
+      }
+
       return chdir.back().then(() => data);
     });
 }
@@ -186,7 +190,9 @@ function getDependents(options) {
   return firstStep.then(() => getDependentsFromFile(options));
 }
 
-function checkDependents(dependents) {
+function checkConfig(config) {
+  const dependents = config.projects;
+
   if (
     !(
       check.arrayOf(check.object, dependents) ||
@@ -311,13 +317,13 @@ class Fugl {
 
     let start;
     if (check.arrayOfStrings(options.dep)) {
-      start = Promise.resolve(options.dep);
+      start = Promise.resolve({ projects: options.dep });
     } else {
       start = getDependents(options);
     }
 
-    return start.then(dependents => {
-      var depenentsToTest = checkDependents(dependents);
+    return start.then(config => {
+      var depenentsToTest = checkConfig(config);
 
       debug(
         'testing the following dependents',
