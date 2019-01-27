@@ -152,11 +152,7 @@ function testDependent(emitter, options, dependent) {
       return testInFolder(emitter, dependent, moduleTestCommand, folder);
     })
     .then(() => emitter.emit('pass', test))
-    .catch(err => emitter.emit('fail', test, err))
-    .then(function() {
-      debug('restoring original directory', cwd);
-      process.chdir(cwd);
-    });
+    .catch(err => emitter.emit('fail', test, err));
 }
 
 module.exports = testDependent;
