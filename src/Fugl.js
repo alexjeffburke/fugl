@@ -330,6 +330,13 @@ class Fugl {
         JSON.stringify(depenentsToTest)
       );
 
+      if (typeof config.pretest === 'boolean') {
+        options.pretest = config.pretest;
+      }
+      if (typeof config.postinstall === 'string') {
+        options.postinstall = config.postinstall;
+      }
+
       return this.testDependents(depenentsToTest);
     });
   }
