@@ -13,6 +13,21 @@ describe('Fugl', () => {
     rimraf.sync(path.join(__dirname, 'scratch', 'builds'));
   });
 
+  it('should default options', () => {
+    const fugl = new Fugl({});
+    const baseDir = path.resolve(__dirname, '..');
+
+    return expect(fugl.options, 'to equal', {
+      reporter: 'console',
+      folder: baseDir,
+      noClean: false,
+      pretest: true,
+      reportDir: path.join(baseDir, 'breakage'),
+      tmpDir: path.join(baseDir, 'builds'),
+      packageName: 'dont-break'
+    });
+  });
+
   it('should return stats on a pass', () => {
     const fugl = new Fugl({ dep: ['FOO'], reporter: 'none' });
     const testDependentStub = sinon
