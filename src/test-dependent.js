@@ -152,8 +152,14 @@ function testDependent(emitter, options, dependent) {
     .then(folder => {
       return testInFolder(emitter, dependent, moduleTestCommand, folder);
     })
-    .then(() => emitter.emit('pass', test))
-    .catch(err => emitter.emit('fail', test, err));
+    .then(() => {
+      debug('testDependent passed for %s', dependent.name);
+      emitter.emit('pass', test);
+    })
+    .catch(err => {
+      debug('testDependent failed for %s: %s', dependent.name, err);
+      emitter.emit('fail', test, err);
+    });
 }
 
 module.exports = testDependent;
