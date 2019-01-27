@@ -2,7 +2,6 @@ var la = require('./la');
 var check = require('check-more-types');
 var EventEmitter = require('events');
 var path = require('path');
-var quote = require('quote');
 var chdir = require('chdir-promise');
 var mkdirp = require('mkdirp');
 var debug = require('debug')('dont-break');
@@ -101,9 +100,9 @@ function getDependentsFromFile(options) {
       console.log(err && err.message);
       console.log(
         'could not find file',
-        quote(dontBreakFilename),
+        dontBreakFilename,
         'in',
-        quote(process.cwd())
+        process.cwd()
       );
       console.log(
         'no dependent projects, maybe query NPM for projects that depend on this one.'
