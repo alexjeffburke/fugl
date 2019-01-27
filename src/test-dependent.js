@@ -149,10 +149,17 @@ function testDependent(emitter, options, dependent, config) {
       return testInFolder(emitter, dependent, moduleTestCommand, folder);
     })
     .catch(err => {
-      emitter.emit('fail', {
-        title: dependent.name,
+      emitter.emit(
+        'fail',
+        {
+          title: dependent.name,
+          body: '',
+          duration: 0,
+          fullTitle: () => dependent.name,
+          slow: () => 0
+        },
         err
-      });
+      );
     })
     .then(function() {
       debug('restoring original directory', cwd);
