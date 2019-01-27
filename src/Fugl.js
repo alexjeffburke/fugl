@@ -102,7 +102,7 @@ function getDependentsFromFile(options) {
         'could not find file',
         dontBreakFilename,
         'in',
-        process.cwd()
+        options.folder
       );
       console.log(
         'no dependent projects, maybe query NPM for projects that depend on this one.'
