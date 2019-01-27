@@ -42,12 +42,7 @@ function getDependencyName(dependent) {
   return moduleName;
 }
 
-function testDependent(emitter, options, dependent, config) {
-  if (check.string(dependent)) {
-    dependent = { name: dependent.trim() };
-  }
-  dependent = Object.assign({ pretest: true }, config, dependent);
-
+function testDependent(emitter, options, dependent) {
   var moduleInstallCommand = dependent.install || DEFAULT_INSTALL_COMMAND;
   var modulePostinstallCommand =
     dependent.postinstall || `npm install ${options.packageName}`;

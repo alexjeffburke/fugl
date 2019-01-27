@@ -162,25 +162,23 @@ function getDependents(options) {
 
 function checkDependents(dependents) {
   if (
-    check.arrayOf(check.object, dependents) ||
-    check.arrayOfStrings(dependents)
+    !(
+      check.arrayOf(check.object, dependents) ||
+      check.arrayOfStrings(dependents)
+    )
   ) {
-    dependents = {
-      projects: dependents
-    };
+    la(false, 'invalid dependents');
   }
 
-  la(
-    check.arrayOf(function(item) {
-      return check.object(item) || check.string(item);
-    }, dependents.projects),
-    'invalid dependents',
-    dependents.projects
-  );
+  const projects = dependents.map(project => {
+    if (typeof project === 'string') {
+      return { name: project.trim() };
+    } else {
+      return project;
+    }
+  });
 
-  debug('testing the following dependents', JSON.stringify(dependents));
-
-  return dependents;
+  return { projects };
 }
 
 class Fugl {
@@ -188,6 +186,8 @@ class Fugl {
     this.options = options = options || {};
     options.folder = options.folder || process.cwd();
     options.noClean = !!options.noClean;
+    options.pretest =
+      typeof options.pretest === 'undefined' ? true : !!options.pretest;
     options.reporter = options.reporter || 'console';
     options.reportDir =
       options.reportDir || path.resolve(options.folder, 'breakage');
@@ -197,8 +197,8 @@ class Fugl {
     options.packageName = determinePackageName(options);
   }
 
-  testDependent(...args) {
-    return testDependent(...args);
+  testDependent(emitter, options, dependent) {
+    return testDependent(emitter, options, dependent);
   }
 
   testDependents(config) {
@@ -245,7 +245,11 @@ class Fugl {
     return config.projects
       .reduce((prev, dependent) => {
         return prev.then(() => {
-          return this.testDependent(emitter, options, dependent, config);
+          return this.testDependent(
+            emitter,
+            options,
+            Object.assign({ pretest: options.pretest }, dependent)
+          );
         });
       }, Promise.resolve(true))
       .then(() => {
@@ -285,6 +289,11 @@ class Fugl {
 
     return start.then(dependents => {
       var depenentsToTest = checkDependents(dependents);
+
+      debug(
+        'testing the following dependents',
+        JSON.stringify(depenentsToTest)
+      );
 
       return this.testDependents(depenentsToTest);
     });
