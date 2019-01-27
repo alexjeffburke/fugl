@@ -24,7 +24,6 @@ function testInFolder(emitter, dependent, testCommand, folder) {
   };
 
   return runInFolder(folder, testCommand, {
-    missing: 'missing test command',
     success: () => emitter.emit('pass', test),
     failure: err => {
       emitter.emit('fail', test, err);

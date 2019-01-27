@@ -45,11 +45,12 @@ function npmTest(cmd) {
 }
 
 function runInFolder(folder, command, options) {
-  la(check.unemptyString(command), options.missing, command);
-  la(check.unemptyString(folder), 'expected folder', folder);
-
-  return chdir
-    .to(folder)
+  return Promise.resolve()
+    .then(() => {
+      la(check.unemptyString(command), 'missing test command', command);
+      la(check.unemptyString(folder), 'expected folder', folder);
+    })
+    .then(() => chdir.to(folder))
     .then(function() {
       debug(`running "${command}" from ${folder}`);
       return npmTest(command);
