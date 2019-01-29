@@ -190,8 +190,8 @@ function getDependents(options) {
   return firstStep.then(() => getDependentsFromFile(options));
 }
 
-function checkConfig(config) {
-  const dependents = config.projects;
+function checkConfig(loadedConfig) {
+  const dependents = loadedConfig.projects;
 
   if (
     !(
@@ -210,7 +210,15 @@ function checkConfig(config) {
     }
   });
 
-  return { projects };
+  const config = { projects };
+
+  ['install', 'postinstall', 'test'].forEach(configKey => {
+    if (typeof loadedConfig[configKey] === 'string') {
+      config[configKey] = loadedConfig[configKey];
+    }
+  });
+
+  return config;
 }
 
 class Fugl {
@@ -227,17 +235,29 @@ class Fugl {
       ? path.resolve(options.tmpDir)
       : path.resolve(options.folder, 'builds');
 
+    this.config = options.config ? Object.assign({}, options.config) : {};
     const packageInfo = parsePackage(determinePackage(options));
-    options.packageName = packageInfo.name;
-    options.packageVersion = packageInfo.version || 'latest';
+    this.config.packageName = packageInfo.name;
+    this.config.packageVersion = packageInfo.version || 'latest';
+  }
+
+  configForDependent(dependent) {
+    return Object.assign(
+      {
+        pretest: this.options.pretest
+      },
+      this.config,
+      dependent
+    );
   }
 
   testDependent(emitter, options, dependent) {
     return testDependent(emitter, options, dependent);
   }
 
-  testDependents(config) {
+  testDependents() {
     const options = this.options;
+    const config = this.config;
     const stats = {
       passes: 0,
       failures: 0
@@ -283,7 +303,7 @@ class Fugl {
           return this.testDependent(
             emitter,
             options,
-            Object.assign({ pretest: options.pretest }, dependent)
+            this.configForDependent(dependent)
           );
         });
       }, Promise.resolve(true))
@@ -316,28 +336,23 @@ class Fugl {
     debug('working in folder %s', options.folder);
 
     let start;
-    if (check.arrayOfStrings(options.dep)) {
-      start = Promise.resolve({ projects: options.dep });
+    if (check.arrayOfStrings(options.projects)) {
+      start = Promise.resolve({ projects: options.projects });
     } else {
       start = getDependents(options);
     }
 
     return start.then(config => {
-      var depenentsToTest = checkConfig(config);
+      var checkedConfig = checkConfig(config);
+      // update configuration
+      this.config = Object.assign({}, this.config, checkedConfig);
 
-      debug(
-        'testing the following dependents',
-        JSON.stringify(depenentsToTest)
-      );
-
+      // update the top-level pretest flag
       if (typeof config.pretest === 'boolean') {
         options.pretest = config.pretest;
       }
-      if (typeof config.postinstall === 'string') {
-        options.postinstall = config.postinstall;
-      }
 
-      return this.testDependents(depenentsToTest);
+      return this.testDependents();
     });
   }
 }

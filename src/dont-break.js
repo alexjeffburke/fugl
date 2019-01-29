@@ -7,5 +7,10 @@ module.exports = function dontBreak(options) {
     };
   }
 
+  if (options.dep) {
+    options.projects = options.dep;
+    delete options.dep;
+  }
+
   return new Fugl(options).run();
 };

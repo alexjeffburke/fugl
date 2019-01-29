@@ -23,14 +23,21 @@ describe('Fugl', () => {
       noClean: false,
       pretest: true,
       reportDir: path.join(baseDir, 'breakage'),
-      tmpDir: path.join(baseDir, 'builds'),
+      tmpDir: path.join(baseDir, 'builds')
+    });
+  });
+
+  it('should populate config', () => {
+    const fugl = new Fugl({});
+
+    return expect(fugl.config, 'to equal', {
       packageName: 'dont-break',
       packageVersion: 'latest'
     });
   });
 
   it('should return stats on a pass', () => {
-    const fugl = new Fugl({ dep: ['FOO'], reporter: 'none' });
+    const fugl = new Fugl({ projects: ['FOO'], reporter: 'none' });
     const testDependentStub = sinon
       .stub(fugl, 'testDependent')
       .callsFake(emitter => {
@@ -48,7 +55,7 @@ describe('Fugl', () => {
   });
 
   it('should return stats on a fail', () => {
-    const fugl = new Fugl({ dep: ['FOO'], reporter: 'none' });
+    const fugl = new Fugl({ projects: ['FOO'], reporter: 'none' });
     const testDependentStub = sinon
       .stub(fugl, 'testDependent')
       .callsFake(emitter => {
@@ -67,7 +74,10 @@ describe('Fugl', () => {
 
   describe('with multiple dependents', () => {
     it('should return stats on a pass', () => {
-      const fugl = new Fugl({ dep: ['FOO', 'BAR', 'BAZ'], reporter: 'none' });
+      const fugl = new Fugl({
+        projects: ['FOO', 'BAR', 'BAZ'],
+        reporter: 'none'
+      });
       let testDependentCallCount = 0;
       const testDependentStub = sinon
         .stub(fugl, 'testDependent')
@@ -110,6 +120,34 @@ describe('Fugl', () => {
             { name: 'BAZ', pretest: true }
           ]
         ]);
+      });
+    });
+  });
+
+  describe('with customised test execution config', () => {
+    it('should include script overrides', () => {
+      const fugl = new Fugl({
+        projects: [],
+        config: {
+          install: 'INSTALL',
+          postinstall: 'POSTINSTALL',
+          test: 'TEST'
+        }
+      });
+      const testDependentsStub = sinon.stub(fugl, 'testDependents');
+      testDependentsStub.resolves({ passes: 123, failure: 456 });
+
+      return expect(() => fugl.run(), 'to be fulfilled with', {
+        passes: 123,
+        failure: 456
+      }).then(() => {
+        expect(fugl.config, 'to satisfy', {
+          packageName: 'dont-break',
+          packageVersion: 'latest',
+          install: 'INSTALL',
+          postinstall: 'POSTINSTALL',
+          test: 'TEST'
+        });
       });
     });
   });

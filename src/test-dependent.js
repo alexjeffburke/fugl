@@ -46,7 +46,7 @@ function testDependent(emitter, options, dependent) {
   var moduleInstallCommand = dependent.install || DEFAULT_INSTALL_COMMAND;
   var modulePostinstallCommand =
     dependent.postinstall ||
-    `npm install ${options.packageName}@${options.packageVersion}`;
+    `npm install ${dependent.packageName}@${dependent.packageVersion}`;
   var moduleTestCommand = dependent.test || DEFAULT_TEST_COMMAND;
 
   const moduleName = getDependencyName(dependent.name);
