@@ -14,10 +14,15 @@ describe('Fugl', () => {
   });
 
   it('should default options', () => {
-    const fugl = new Fugl({});
-    const baseDir = path.resolve(__dirname, '..');
+    const baseDir = path.resolve(__dirname);
+    const fugl = new Fugl({
+      package: 'somepackage',
+      folder: baseDir,
+      projects: []
+    });
 
     return expect(fugl.options, 'to equal', {
+      package: 'somepackage',
       reporter: 'console',
       folder: baseDir,
       noClean: false,
@@ -28,16 +33,26 @@ describe('Fugl', () => {
   });
 
   it('should populate config', () => {
-    const fugl = new Fugl({});
+    const fugl = new Fugl({
+      package: 'somepackage',
+      folder: __dirname,
+      projects: []
+    });
 
     return expect(fugl.config, 'to equal', {
-      packageName: 'dont-break',
-      packageVersion: 'latest'
+      packageName: 'somepackage',
+      packageVersion: 'latest',
+      projects: []
     });
   });
 
   it('should return stats on a pass', () => {
-    const fugl = new Fugl({ projects: ['FOO'], reporter: 'none' });
+    const fugl = new Fugl({
+      package: 'somepackage',
+      folder: __dirname,
+      reporter: 'none',
+      projects: ['FOO']
+    });
     const testDependentStub = sinon
       .stub(fugl, 'testDependent')
       .callsFake(emitter => {
@@ -55,7 +70,12 @@ describe('Fugl', () => {
   });
 
   it('should return stats on a fail', () => {
-    const fugl = new Fugl({ projects: ['FOO'], reporter: 'none' });
+    const fugl = new Fugl({
+      package: 'somepackage',
+      folder: __dirname,
+      reporter: 'none',
+      projects: ['FOO']
+    });
     const testDependentStub = sinon
       .stub(fugl, 'testDependent')
       .callsFake(emitter => {
@@ -75,8 +95,10 @@ describe('Fugl', () => {
   describe('with multiple dependents', () => {
     it('should return stats on a pass', () => {
       const fugl = new Fugl({
-        projects: ['FOO', 'BAR', 'BAZ'],
-        reporter: 'none'
+        package: 'somepackage',
+        folder: __dirname,
+        reporter: 'none',
+        projects: ['FOO', 'BAR', 'BAZ']
       });
       let testDependentCallCount = 0;
       const testDependentStub = sinon
@@ -127,6 +149,8 @@ describe('Fugl', () => {
   describe('with customised test execution config', () => {
     it('should include script overrides', () => {
       const fugl = new Fugl({
+        package: 'package-and-overrides',
+        folder: __dirname,
         projects: [],
         config: {
           install: 'INSTALL',
@@ -142,7 +166,7 @@ describe('Fugl', () => {
         failure: 456
       }).then(() => {
         expect(fugl.config, 'to satisfy', {
-          packageName: 'dont-break',
+          packageName: 'package-and-overrides',
           packageVersion: 'latest',
           install: 'INSTALL',
           postinstall: 'POSTINSTALL',
