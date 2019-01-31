@@ -1,9 +1,9 @@
 var la = require('./la');
 var check = require('check-more-types');
+var debug = require('./debug');
 var EventEmitter = require('events');
 var path = require('path');
 var mkdirp = require('mkdirp');
-var debug = require('debug')('dont-break');
 var fs = require('fs-extra');
 var exists = require('fs').existsSync;
 

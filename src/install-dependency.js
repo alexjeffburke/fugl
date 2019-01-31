@@ -1,7 +1,7 @@
 'use strict';
 
 var isRepoUrl = require('./is-repo-url');
-var debug = require('debug')('dont-break');
+var debug = require('./debug');
 var exists = require('fs').existsSync;
 var rimraf = require('rimraf');
 var simpleGit = require('simple-git/promise')();

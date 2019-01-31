@@ -1,4 +1,4 @@
-var debug = require('debug')('dont-break');
+var debug = require('./debug');
 
 var argv = require('yargs')
   .option('t', {

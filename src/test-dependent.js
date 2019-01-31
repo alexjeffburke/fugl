@@ -1,6 +1,6 @@
 var _ = require('lodash');
 var check = require('check-more-types');
-var debug = require('debug')('dont-break');
+var debug = require('./debug');
 var fs = require('fs');
 var path = require('path');
 

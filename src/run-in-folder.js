@@ -1,7 +1,7 @@
 'use strict';
 
 var la = require('./la');
-var debug = require('debug')('dont-break');
+var debug = require('./debug');
 var check = require('check-more-types');
 var chdir = require('chdir-promise');
 var spawn = require('child_process').spawn;
