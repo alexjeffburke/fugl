@@ -22,15 +22,16 @@ Checks if the node module in the current folder breaks unit tests for specified 
 [nut-readme]: https://github.com/bahmutov/next-update-travis#readme
 
 ## Install
+
 ```
 npm install -g dont-break
 ```
 
 ## Use
 
-* Create `.dont-break.json` file in the root of your package,
+- Create `.dont-break.json` file in the root of your package,
   list module names that you would like to test as an array.
-* Run `dont-break` any time to test latest version of each dependent module
+- Run `dont-break` any time to test latest version of each dependent module
   against the curent code
 
 ## Example
@@ -41,10 +42,12 @@ npm install -g dont-break
 2. Second project `foo-user` depends on `foo`.
 
 `foo-user` only works if it gets string `foo` from the module it depends on, like this:
+
 ```js
 var str = require('foo');
 console.assert(str === 'foo', 'value of foo should be "foo", but is ' + str);
 ```
+
 `foo` has only a single release 0.1.0 that works for `foo-user` project.
 
 The author of `foo` changes code to be `module.exports = 'bar';` and releases it as 0.2.0.
@@ -56,9 +59,11 @@ changes.
 
 Instead, before publishing new version to NPM, project `foo` can create a file in its
 project folder `.dont-break.json` with names of dependent projects to test
+
 ```bash
 echo '["foo-user"]' > .dont-break.json
 ```
+
 You can check if the current code breaks listed dependent project by running
 
 ```bash
@@ -71,6 +76,7 @@ will copy the current project into the temp folder, overwriting the previous wor
 Then it will run the tests again, throwing an exception if they stopped working.
 
 In the example case, it will report something like this
+
 ```bash
 $ dont-break
 dependents [ 'foo-user' ]
@@ -90,6 +96,7 @@ tests did not work in /tmp/foo@0.0.0-against-foo-user/lib/node_modules/foo-user
 code 1
 FAIL: Current version break dependents
 ```
+
 The message clearly tells you that the dependent projects as they are right now cannot
 upgrade to the version you are about to release.
 
@@ -100,26 +107,27 @@ have tests. For example in `.dont-break.json`
 
 ```js
 // you can use JavaScript comments in this file .dont-break.json
-[
-  "https://github.com/bahmutov/dont-break-bar"
-]
+['https://github.com/bahmutov/dont-break-bar'];
 ```
 
 Picking projects to test manually is a judgement call.
 Dont-break can fetch top N most downloaded
 or most starred dependent modules and save the list.
-* run `dont-break --top-downloads <N>` to find top N most downloaded dependent modules,
-save to `.dont-break.json` and check.
-* run `dont-break --top-starred <N>` to find top N most starred dependent modules,
-save to `.dont-break.json` and check.
+
+- run `dont-break --top-downloads <N>` to find top N most downloaded dependent modules,
+  save to `.dont-break.json` and check.
+- run `dont-break --top-starred <N>` to find top N most starred dependent modules,
+  save to `.dont-break.json` and check.
 
 The above commands overwrite `.dont-break.json` file.
 
 ## Configuration options
 
 ### Global vs. project-level configuration
+
 You can specify different configuration options on global level or on project level. Following configs are equivalent.
 Project level:
+
 ```
 [
   {
@@ -136,13 +144,15 @@ Project level:
   }
 ]
 ```
+
 Global level:
+
 ```
 {
   "test": "grunt test",
   "projects": [
-    "project-a", 
-    "https://github.com/bahmutov/dont-break-bar", 
+    "project-a",
+    "https://github.com/bahmutov/dont-break-bar",
     {
       "name": "project-c",
       "test": "npm test:special"
@@ -150,24 +160,27 @@ Global level:
   ]
 }
 ```
-Global level will simplify dont-break config if dependent projects share the same options. Also, options can be 
+
+Global level will simplify dont-break config if dependent projects share the same options. Also, options can be
 overriden on project level as in case of "project-c" here.
-  
+
 ### Execution flow overview
+
 Dont-break performs folowing steps for each dependent project:
-* Clone the dependent project repo into temporary dir using `git clone`, if dependent project is a Github repo url
-* Install the dependent project in temporary dir using the [specified command](#install-command)
-* Run [post-install](#post-install-command) command if [pre-test](#pre-testing-with-previous-package-version) is not disabled
-* [Pre-test](#pre-testing-with-previous-package-version) the dependent project if this is not disabled
-* [Install current module](#current-module-installation-method) into the dependent project
-* Run [post-install](#post-install-command) command
-* [Test](#test-command) the dependent project
+
+- Clone the dependent project repo into temporary dir using `git clone`, if dependent project is a Github repo url
+- Install the dependent project in temporary dir using the [specified command](#install-command)
+- Run [post-install](#post-install-command) command if [pre-test](#pre-testing-with-previous-package-version) is not disabled
+- [Pre-test](#pre-testing-with-previous-package-version) the dependent project if this is not disabled
+- [Install current module](#current-module-installation-method) into the dependent project
+- Run [post-install](#post-install-command) command
+- [Test](#test-command) the dependent project
 
 Sections below describe how you can customize these steps.
 
 ### Name
 
-Serves to identify the dependent module by either a NPM module name (possibly with scope and version range) or Github URL. 
+Serves to identify the dependent module by either a NPM module name (possibly with scope and version range) or Github URL.
 
 ```
 [
@@ -208,6 +221,7 @@ but default command for module `bar-name`, list in `.dont-break.json` the follow
 
 You can specify a custom install command per dependent module. By default it's `npm install`. For example, this will use
 `yarn add` for `foo-module-name`, but keep default `npm install` for module `bar-name`:
+
 ```
 [
   {
@@ -217,12 +231,14 @@ You can specify a custom install command per dependent module. By default it's `
   "bar-name"
 ]
 ```
+
 The name of dependent module will be added to given command, e.g. for above it will run `yarn add foo-module-name`.
 
 ### Post-install command
 
 Before testing the dependent package dont-break installs its dev dependencies via `npm install` command run from the
 dependency directory. If you need something more you can specify it via "postinstall" config parameter like this:
+
 ```
 [
   {
@@ -233,9 +249,11 @@ dependency directory. If you need something more you can specify it via "postins
   }
 ]
 ```
-If specified this command will run first before pretesting the old version of lib (if pretest isn't disabled), then 
-after installing current version of lib to dependent package. You can use $CURRENT_MODULE_DIR variable here which 
-will be replaced with a path to current module: 
+
+If specified this command will run first before pretesting the old version of lib (if pretest isn't disabled), then
+after installing current version of lib to dependent package. You can use \$CURRENT_MODULE_DIR variable here which
+will be replaced with a path to current module:
+
 ```
 [
   {
@@ -246,8 +264,10 @@ will be replaced with a path to current module:
 ```
 
 ### Pre-testing with previous package version
-By default dont-break first tests dependent module with its published version of current module, to make sure that it 
-was working before the update. If this sounds excessive to you you can disable it with {"pretest": false} option: 
+
+By default dont-break first tests dependent module with its published version of current module, to make sure that it
+was working before the update. If this sounds excessive to you you can disable it with {"pretest": false} option:
+
 ```
 [
   {
@@ -257,10 +277,12 @@ was working before the update. If this sounds excessive to you you can disable i
   }
 ]
 ```
-Here "foo-module-name" module will be tested only once, and "bar-name" twise: first with its published version of 
-current module, and then with the updated version.   
+
+Here "foo-module-name" module will be tested only once, and "bar-name" twise: first with its published version of
+current module, and then with the updated version.
 
 The "pretest" property can also accept custom script to run for pretesting:
+
 ```
 [
   {
@@ -270,15 +292,17 @@ The "pretest" property can also accept custom script to run for pretesting:
   }
 ]
 ```
+
 By default it equals to "test" command.
 
 ### Current module installation method
 
 To test dependent package dont-break installs current module inside the dependent package directory. By default it uses
-`npm install $CURRENT_MODULE_DIR`. You can enter your command there, e.g. `yarn add $CURRENT_MODULE_DIR`. There are 
-also pre-configured options [npm-link](https://docs.npmjs.com/cli/link) and 
-[yarn-link](https://yarnpkg.com/lang/en/docs/cli/link/). They can be helpful in some cases, e.g. if you need to use 
-`npm install` or `yarn` in postinstall command. To use `npm link` method specify {"currentModuleInstall": "npm-link"}: 
+`npm install $CURRENT_MODULE_DIR`. You can enter your command there, e.g. `yarn add $CURRENT_MODULE_DIR`. There are
+also pre-configured options [npm-link](https://docs.npmjs.com/cli/link) and
+[yarn-link](https://yarnpkg.com/lang/en/docs/cli/link/). They can be helpful in some cases, e.g. if you need to use
+`npm install` or `yarn` in postinstall command. To use `npm link` method specify {"currentModuleInstall": "npm-link"}:
+
 ```
 {
   "currentModuleInstall": "npm-link",
@@ -287,11 +311,14 @@ also pre-configured options [npm-link](https://docs.npmjs.com/cli/link) and
 ```
 
 ### Env vars exported to called scripts
-Following env vars are available for use in scripts called by executed steps: 
-* `$CURRENT_MODULE_DIR` - directory of current module  
-* `$CURRENT_MODULE_NAME` - name of current module as stated in its package.json
- 
+
+Following env vars are available for use in scripts called by executed steps:
+
+- `$CURRENT_MODULE_DIR` - directory of current module
+- `$CURRENT_MODULE_NAME` - name of current module as stated in its package.json
+
 ### Installation timeout
+
 You can specify a longer installation time out, in seconds, using CLI option
 
 ```
@@ -300,7 +327,7 @@ dont-break --timeout 30
 
 ## Related
 
-*dont-break* is the opposite of [next-update](https://github.com/bahmutov/next-update)
+_dont-break_ is the opposite of [next-update](https://github.com/bahmutov/next-update)
 that one can use to safely upgrade dependencies.
 
 ## Setting up second CI for dont-break
@@ -314,8 +341,8 @@ pretty standard [.travis.yml](https://github.com/bahmutov/boggle/blob/master/.tr
 ```yml
 language: node_js
 node_js:
-  - "0.12"
-  - "4"
+  - '0.12'
+  - '4'
 branches:
   only:
     - master
@@ -345,7 +372,7 @@ It should be clear what it does - installs `dont-break`, and runs the npm script
 ```yml
 machine:
   node:
-    version: "0.12"
+    version: '0.12'
 dependencies:
   post:
     - npm install -g dont-break
@@ -385,9 +412,9 @@ variable.
 
 Author: Gleb Bahmutov &copy; 2014
 
-* [@bahmutov](https://twitter.com/bahmutov)
-* [glebbahmutov.com](http://glebbahmutov.com)
-* [blog](http://glebbahmutov.com/blog)
+- [@bahmutov](https://twitter.com/bahmutov)
+- [glebbahmutov.com](http://glebbahmutov.com)
+- [blog](http://glebbahmutov.com/blog)
 
 License: MIT - do anything with the code, but don't blame me if it does not work.
 
