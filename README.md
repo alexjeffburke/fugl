@@ -1,38 +1,28 @@
-# dont-break
+# Fugl
 
-Checks if the node module in the current folder breaks unit tests for specified dependent projects.
+A tool for verifying that changes to a package do not affect projects dependent upon it.
 
-[Relevant discussion at npm](https://github.com/npm/npm/issues/6510),
-[Do not break dependant modules](http://glebbahmutov.com/blog/do-not-break-dependant-modules/).
+## Introduction
 
-[![Build status][dont-break-ci-image] ][dont-break-ci-url]
-[![npm][dont-break-npm-image]](dont-break-npm-url)
-[![semantic-release][semantic-image] ][semantic-url]
-[![next-update-travis badge][nut-badge]][nut-readme]
+Most projects fortunate enough to see wider use end up with a tension between changes that
+move things forward and consumers that depend on features and behaviours of existing versions.
 
-[dont-break-icon]: https://nodei.co/npm/dont-break.svg?downloads=true
-[dont-break-url]: https://npmjs.org/package/dont-break
-[dont-break-ci-image]: https://travis-ci.org/bahmutov/dont-break.svg?branch=master
-[dont-break-ci-url]: https://travis-ci.org/bahmutov/dont-break
-[dont-break-npm-url]: https://img.shields.io/npm/dm/dont-break
-[dont-break-npm-image]: https://img.shields.io/npm/dm/dont-break.svg?maxAge=2592000
-[semantic-image]: https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg
-[semantic-url]: https://github.com/semantic-release/semantic-release
-[nut-badge]: https://img.shields.io/badge/next--update--travis-weekly-green.svg
-[nut-readme]: https://github.com/bahmutov/next-update-travis#readme
+Fugl intends to provide a way to address that question by providing automation around gaining
+confidence that forward progress does not come at the expense of compatibility.
+
+[Relevant discussion at npm](https://github.com/npm/npm/issues/6510).
 
 ## Install
 
 ```
-npm install -g dont-break
+npm install -g fugl
 ```
 
 ## Use
 
-- Create `.dont-break.json` file in the root of your package,
-  list module names that you would like to test as an array.
-- Run `dont-break` any time to test latest version of each dependent module
-  against the curent code
+```
+dont-break --package dont-break-foo --dep dont-break-bar
+```
 
 ## Example
 

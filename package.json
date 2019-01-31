@@ -1,15 +1,21 @@
 {
-  "name": "dont-break",
+  "name": "fugl",
   "description": "Checks if the current version of your package would break dependent projects",
-  "version": "0.0.0-development",
-  "author": "Gleb Bahmutov <gleb.bahmutov@gmail.com>",
+  "version": "0.0.0",
+  "author": "Alex J Burke <alex@alexjeffburke.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alexjeffburke/fugl.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alexjeffburke/fugl/issues"
+  },
   "bin": {
     "dont-break": "./bin/dont-break"
   },
-  "bugs": {
-    "url": "https://github.com/bahmutov/dont-break/issues"
-  },
-  "contributors": [],
+  "contributors": [
+    "Gleb Bahmutov <gleb.bahmutov@gmail.com>"
+  ],
   "dependencies": {
     "chdir-promise": "0.6.2",
     "check-more-types": "2.24.0",
@@ -49,7 +55,6 @@
     "src/*.js",
     "!src/*-spec.js"
   ],
-  "homepage": "https://github.com/bahmutov/dont-break",
   "keywords": [
     "check",
     "dependency",
@@ -59,10 +64,6 @@
   ],
   "license": "MIT",
   "main": "index.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/bahmutov/dont-break.git"
-  },
   "scripts": {
     "issues": "git-issues",
     "lint": "eslint .",
