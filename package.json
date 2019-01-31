@@ -46,8 +46,7 @@
     "unexpected-sinon": "^10.11.0"
   },
   "engines": {
-    "node": ">= 0.12.0",
-    "npm": ">= 3.0.0"
+    "node": ">= 8.5.0"
   },
   "files": [
     "bin",
