@@ -43,6 +43,8 @@ function getDependencyName(dependent) {
 }
 
 function testDependent(emitter, options, dependent) {
+  var performDependentInstall = options._installDependent || installDependent;
+  var performDependentTest = options._testDependent || testInFolder;
   var moduleInstallCommand = dependent.install || DEFAULT_INSTALL_COMMAND;
   var modulePostinstallCommand =
     dependent.postinstall ||
@@ -107,7 +109,7 @@ function testDependent(emitter, options, dependent) {
   };
 
   var res = Promise.race([
-    installDependent(installOptions),
+    performDependentInstall(installOptions).then(() => null),
     new Promise(resolve =>
       setTimeout(() => resolve({ timeout: true }), timeoutSeconds)
     )
@@ -135,7 +137,12 @@ function testDependent(emitter, options, dependent) {
       modulePretestCommand = moduleTestCommand;
     }
     res = res.then(postInstallModuleInFolder).then(folder => {
-      return testInFolder(emitter, dependent, modulePretestCommand, folder);
+      return performDependentTest(
+        emitter,
+        dependent,
+        modulePretestCommand,
+        folder
+      ).then(() => folder);
     });
   }
 
@@ -150,7 +157,12 @@ function testDependent(emitter, options, dependent) {
   return res
     .then(postInstallModuleInFolder)
     .then(folder => {
-      return testInFolder(emitter, dependent, moduleTestCommand, folder);
+      return performDependentTest(
+        emitter,
+        dependent,
+        moduleTestCommand,
+        folder
+      ).then(() => folder);
     })
     .then(() => {
       debug('testDependent passed for %s', dependent.name);
