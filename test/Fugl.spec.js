@@ -175,4 +175,49 @@ describe('Fugl', () => {
       });
     });
   });
+
+  describe('with pretest', () => {
+    it('should return stats on a pass', () => {
+      const fugl = new Fugl({
+        package: 'somepackage',
+        folder: __dirname,
+        reporter: 'none',
+        projects: ['FOO']
+      });
+      const testDependentStub = sinon
+        .stub(fugl, 'testDependent')
+        .callsFake(emitter => {
+          emitter.emit('pass', { title: 'FOO' });
+
+          return Promise.resolve();
+        });
+
+      return expect(() => fugl.run(), 'to be fulfilled with', {
+        passes: 1,
+        failures: 0
+      }).then(() => {
+        expect(testDependentStub, 'to have calls exhaustively satisfying', [
+          [
+            expect.it('to be a', EventEmitter),
+            {
+              package: 'somepackage',
+              folder: __dirname,
+              reporter: 'none',
+              noClean: false,
+              pretest: true,
+              reportDir: path.join(__dirname, 'breakage'),
+              tmpDir: path.join(__dirname, 'builds')
+            },
+            {
+              pretest: true,
+              packageName: 'somepackage',
+              packageVersion: 'latest',
+              projects: [{ name: 'FOO' }],
+              name: 'FOO'
+            }
+          ]
+        ]);
+      });
+    });
+  });
 });
