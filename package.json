@@ -2,6 +2,7 @@
   "name": "fugl",
   "description": "Checks if the current version of your package would break dependent projects",
   "version": "0.0.0",
+  "main": "src/Fugl.js",
   "author": "Alex J Burke <alex@alexjeffburke.com>",
   "repository": {
     "type": "git",
@@ -50,9 +51,7 @@
   },
   "files": [
     "bin",
-    "index.js",
-    "src/*.js",
-    "!src/*-spec.js"
+    "src"
   ],
   "keywords": [
     "check",
@@ -62,7 +61,6 @@
     "update"
   ],
   "license": "MIT",
-  "main": "index.js",
   "scripts": {
     "issues": "git-issues",
     "lint": "eslint .",

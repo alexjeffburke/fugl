@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var dontBreak = require('..');
+var dontBreak = require('../src/dont-break');
 var osTmpdir = require('os-tmpdir');
 
 console.assert(!module.parent, 'why are you using me from another module?');
