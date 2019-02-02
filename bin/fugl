@@ -18,10 +18,13 @@ const argv = yargs
     describe: 'The projects depending on the package to be tested.'
   })
   .option('reporter', {
-    type: 'string'
+    type: 'string',
+    describe: 'The name of the reporter to use for the output.'
   })
   .option('quick', {
-    type: 'boolean'
+    type: 'boolean',
+    describe:
+      'Switch to allow fetching changes to project repositories instead of freshly cloning.'
   }).argv;
 
 wrap(main)(process.cwd(), argv);
