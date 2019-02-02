@@ -1,3 +1,4 @@
+var _ = require('lodash');
 var la = require('./la');
 var check = require('check-more-types');
 var debug = require('./debug');
@@ -7,6 +8,7 @@ var mkdirp = require('mkdirp');
 var fs = require('fs-extra');
 var exists = require('fs').existsSync;
 
+var installDependent = require('./install-dependency');
 var testDependent = require('./test-dependent');
 
 var MOCHA_HTML_DOCUMENT = `<html>
@@ -124,8 +126,46 @@ class Fugl {
     );
   }
 
-  testDependent(emitter, options, dependent) {
-    return testDependent(emitter, options, dependent);
+  executeDependent(emitter, options, dependent) {
+    const test = {
+      title: dependent.name,
+      body: '',
+      duration: 0,
+      fullTitle: () => dependent.name,
+      slow: () => 0
+    };
+
+    const moduleName = dependent.name;
+    const safeName = _.kebabCase(_.deburr(moduleName));
+    debug('original name "%s", safe "%s"', moduleName, safeName);
+    const toFolder = path.join(options.tmpDir, safeName);
+    debug('testing folder %s', toFolder);
+
+    const dependentOptions = {
+      ...options,
+      moduleName,
+      toFolder
+    };
+
+    return Promise.resolve()
+      .then(() => this.installDependent(dependentOptions, dependent))
+      .then(() => this.testDependent(dependentOptions, dependent))
+      .then(() => {
+        debug('testDependent passed for %s', dependent.name);
+        emitter.emit('pass', test);
+      })
+      .catch(err => {
+        debug('testDependent failed for %s: %s', dependent.name, err);
+        emitter.emit('fail', test, err);
+      });
+  }
+
+  installDependent(options, dependent) {
+    return installDependent(options, dependent);
+  }
+
+  testDependent(options, dependent) {
+    return testDependent(options, dependent);
   }
 
   testDependents() {
@@ -173,7 +213,7 @@ class Fugl {
     return config.projects
       .reduce((prev, dependent) => {
         return prev.then(() => {
-          return this.testDependent(
+          return this.executeDependent(
             emitter,
             options,
             this.configForDependent(dependent)

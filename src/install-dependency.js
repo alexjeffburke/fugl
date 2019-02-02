@@ -1,39 +1,38 @@
 'use strict';
 
-var isRepoUrl = require('./is-repo-url');
 var debug = require('./debug');
-var exists = require('fs').existsSync;
+var fs = require('fs');
+var mkdirp = require('mkdirp');
+var path = require('path');
 var rimraf = require('rimraf');
 var simpleGit = require('simple-git/promise')();
 
+var isRepoUrl = require('./is-repo-url');
 var runInFolder = require('./run-in-folder');
-var mkdirp = require('mkdirp');
+
+var DEFAULT_INSTALL_COMMAND = 'npm install';
+var INSTALL_TIMEOUT_SECONDS = 2 * 60 * 1000; // 2 minutes
 
 function createFolder(folder) {
-  if (!exists(folder)) {
+  if (!fs.existsSync(folder)) {
     debug('creating folder %s', folder);
     mkdirp.sync(folder);
   }
 }
 
 function removeFolder(folder) {
-  if (exists(folder)) {
+  if (fs.existsSync(folder)) {
     debug('removing folder %s', folder);
     rimraf.sync(folder);
   }
 }
 
-function install(options) {
-  let cmd = options.cmd;
-  const moduleName = options.moduleName;
-  const toFolder = options.toFolder;
-
-  let res;
+function moduleProvision({ moduleName, toFolder, ...options }) {
   if (isRepoUrl(moduleName)) {
-    if (options.noClean && exists(toFolder)) {
+    if (options.noClean && fs.exists(toFolder)) {
       debug('updating repo %s', moduleName);
 
-      res = simpleGit
+      return simpleGit
         .cwd(toFolder)
         .then(() => simpleGit.pull())
         .then(() => debug('updated %s', moduleName));
@@ -43,20 +42,67 @@ function install(options) {
 
       debug('cloning repo %s', moduleName);
 
-      res = simpleGit.clone(moduleName, toFolder).then(() => {
+      return simpleGit.clone(moduleName, toFolder).then(() => {
         debug('cloned %s', moduleName);
       });
     }
   } else {
+    return Promise.resolve();
+  }
+}
+
+function moduleInstall({ moduleName, toFolder }, dependent) {
+  let cmd = dependent.install || DEFAULT_INSTALL_COMMAND;
+  if (!isRepoUrl(moduleName)) {
     cmd = `${cmd} ${moduleName}`;
-    res = Promise.resolve();
   }
 
-  return res.then(function() {
-    return runInFolder(toFolder, cmd, {
-      success: 'installing dependent module succeeded',
-      failure: 'installing dependent module failed'
+  function formFullFolderName() {
+    if (isRepoUrl(moduleName)) {
+      // simple repo installation
+      return toFolder;
+    } else {
+      let scoped = moduleName.startsWith('@');
+      let idx = scoped ? 1 : 0;
+      let moduleDir = moduleName.split('@')[idx];
+      moduleDir = scoped ? `@${moduleDir}` : moduleDir;
+      return path.join(toFolder, 'node_modules', moduleDir);
+    }
+  }
+
+  return runInFolder(toFolder, cmd, {
+    success: 'installing module succeeded',
+    failure: 'installing module failed'
+  })
+    .then(formFullFolderName)
+    .then(function checkInstalledFolder(folder) {
+      if (!fs.existsSync(folder)) {
+        throw new Error(`unable to verify installation at ${folder}`);
+      }
+      return folder;
     });
+}
+
+function install({ moduleName, toFolder, ...options }, dependent) {
+  var timeoutSeconds = options.timeout || INSTALL_TIMEOUT_SECONDS;
+
+  function _install() {
+    return Promise.resolve()
+      .then(() => moduleProvision({ moduleName, toFolder, ...options }))
+      .then(() => moduleInstall({ moduleName, toFolder }, dependent));
+  }
+
+  return Promise.race([
+    _install().then(() => null),
+    new Promise(resolve =>
+      setTimeout(() => resolve({ timeout: true }), timeoutSeconds)
+    )
+  ]).then(result => {
+    if (result && result.timeout) {
+      debug('install timed out for ' + moduleName);
+      throw new Error('timeout');
+    }
+    return result;
   });
 }
 

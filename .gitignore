@@ -1,6 +1,7 @@
 node_modules/
 test/**/builds/
 test/**/breakage/
+test/**/working/
 
 # misc
 .DS_Store

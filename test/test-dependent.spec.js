@@ -1,26 +1,25 @@
-const EventEmitter = require('events');
 const expect = require('unexpected')
   .clone()
   .use(require('unexpected-sinon'));
+const path = require('path');
 const sinon = require('sinon');
 
 const testDependent = require('../src/test-dependent');
 
 describe('testDependent', () => {
-  it('should trigger installing the package in the dependent', () => {
-    const dependentInstallSpy = sinon.stub().resolves();
+  const toFolder = path.join(__dirname, 'scratch', 'foo');
+
+  it('should trigger tests of the dependent', () => {
+    const runInFolderSpy = sinon.stub().resolves();
+    const testInFolderSpy = sinon.stub().resolves();
 
     return expect(
       testDependent(
-        new EventEmitter(),
         {
-          _installDependent: dependentInstallSpy,
-          _testDependent: () => Promise.resolve(),
-          package: 'somepackage',
-          folder: '/path/to/it',
-          tmpDir: '/tmp/test_base',
-          noClean: false,
-          pretest: true
+          _runInFolder: runInFolderSpy,
+          _testInFolder: testInFolderSpy,
+          moduleName: 'https://github.com/bahmutov/dont-break-bar',
+          toFolder: toFolder
         },
         {
           pretest: true,
@@ -32,35 +31,24 @@ describe('testDependent', () => {
       ),
       'to be fulfilled'
     ).then(() => {
-      expect(dependentInstallSpy, 'was called times', 1).and(
-        'to have a call satisfying',
-        [
-          {
-            moduleName: 'FOO',
-            toFolder: '/tmp/test_base/foo',
-            cmd: 'npm install'
-          }
-        ]
+      expect(testInFolderSpy, 'was called times', 2).and(
+        'to have all calls satisfying',
+        [toFolder, 'npm test', {}]
       );
     });
   });
 
-  it('should emit failure', () => {
-    const fakeEmitter = {
-      emit: sinon.stub().named('emit')
-    };
-    const error = new Error('bad times');
+  it('should trigger installing the package in the dependent', () => {
+    const runInFolderSpy = sinon.stub().resolves();
+    const testInFolderSpy = sinon.stub().resolves();
 
     return expect(
       testDependent(
-        fakeEmitter,
         {
-          _installDependent: () => Promise.reject(error),
-          package: 'somepackage',
-          folder: '/path/to/it',
-          tmpDir: '/tmp/test_base',
-          noClean: false,
-          pretest: true
+          _runInFolder: runInFolderSpy,
+          _testInFolder: testInFolderSpy,
+          moduleName: 'https://github.com/bahmutov/dont-break-bar',
+          toFolder: toFolder
         },
         {
           pretest: true,
@@ -72,17 +60,10 @@ describe('testDependent', () => {
       ),
       'to be fulfilled'
     ).then(() => {
-      expect(fakeEmitter.emit, 'to have a call satisfying', [
-        'fail',
-        {
-          title: 'FOO',
-          body: '',
-          duration: 0,
-          fullTitle: expect.it('to be a function'),
-          slow: expect.it('to be a function')
-        },
-        error
-      ]);
+      expect(runInFolderSpy, 'was called times', 2).and(
+        'to have all calls satisfying',
+        [toFolder, 'npm install somepackage@latest', {}]
+      );
     });
   });
 });
