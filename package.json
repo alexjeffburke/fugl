@@ -64,17 +64,8 @@
   ],
   "license": "MIT",
   "scripts": {
-    "issues": "git-issues",
+    "ci": "npm test && npm run lint",
     "lint": "eslint .",
-    "pretest": "npm run lint",
-    "test": "mocha",
-    "semantic-release": "semantic-release pre && npm publish && semantic-release post",
-    "show-help": "./bin/dont-break --help",
-    "size": "t=\"$(npm pack .)\"; wc -c \"${t}\"; tar tvf \"${t}\"; rm \"${t}\";",
-    "e2e": "./test/e2e.sh"
-  },
-  "release": {
-    "analyzeCommits": "simple-commit-message",
-    "generateNotes": "github-post-release"
+    "test": "mocha"
   }
 }
