@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 var dontBreak = require('..');
+var osTmpdir = require('os-tmpdir');
 
 console.assert(!module.parent, 'why are you using me from another module?');
 
@@ -9,6 +10,9 @@ var pkg = require(join(__dirname, '..', 'package.json'));
 console.log(pkg.name + '@' + pkg.version, '-', pkg.description);
 
 var options = require('../src/cli-options');
+
+options.tmpDir = osTmpdir();
+
 dontBreak(options)
   .then(stats => {
     if (stats.failures > 0) {
