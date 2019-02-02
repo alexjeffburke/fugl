@@ -6,6 +6,7 @@ module.exports = function main(cwd, yargv) {
     folder: yargv.folder || cwd,
     projects: yargv.projects,
     reporter: yargv.reporter,
+    pretest: yargv.pretest,
     noClean: yargv.quick
   };
 

@@ -21,6 +21,11 @@ const argv = yargs
     type: 'string',
     describe: 'The name of the reporter to use for the output.'
   })
+  .option('pretest', {
+    type: 'boolean',
+    describe:
+      'Toggle whether the tests pass in a project prior to package installation.'
+  })
   .option('quick', {
     type: 'boolean',
     describe:
