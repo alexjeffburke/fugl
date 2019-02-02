@@ -12,15 +12,14 @@ function testDependent({ moduleName, toFolder, ...options }, dependent) {
     `npm install ${dependent.packageName}@${dependent.packageVersion}`;
   var moduleTestCommand = dependent.test || DEFAULT_TEST_COMMAND;
 
-  var cwd = process.cwd();
   process.env.CURRENT_MODULE_NAME = moduleName;
-  process.env.CURRENT_MODULE_DIR = cwd;
+  process.env.CURRENT_MODULE_DIR = options.folder;
 
   function expandCommandVars(command) {
     if (!command) {
       return command;
     }
-    command = command.replace('$CURRENT_MODULE_DIR', cwd);
+    command = command.replace('$CURRENT_MODULE_DIR', options.folder);
     command = command.replace('$CURRENT_MODULE_NAME', moduleName);
     return command;
   }
