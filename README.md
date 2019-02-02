@@ -21,7 +21,20 @@ npm install -g fugl
 ## Use
 
 ```
-dont-break --package dont-break-foo --dep dont-break-bar
+fugl --package <packageName>@<packageVersion> --projects https://github.com/someone/somepackage
+```
+
+By default, Fugl will output the success or failure of the tests it performs to the console. You
+can also specify other reporters, and they correspond to the names of mocha reporters. Perhaps of
+most interest is the HTML reporter, which will write a self contained breakage report that can be
+viewed within the browser:
+
+```
+fugl --package unexpected --projects https://github.com/alexjeffburke/jest-unexpected --reporter html
+
+// ...
+
+open breakage/index.html
 ```
 
 ## Example

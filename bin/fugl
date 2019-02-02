@@ -1,0 +1,27 @@
+#!/usr/bin/env node
+
+const yargs = require('yargs');
+const main = require('../src/cli');
+const wrap = require('@gustavnikolaj/async-main-wrap');
+
+const argv = yargs
+  .config()
+  .option('package', {
+    type: 'string',
+    demandOption: true,
+    describe:
+      'The package to install for testing: <packageName>@<packageVersion>'
+  })
+  .option('projects', {
+    type: 'array',
+    demandOption: true,
+    describe: 'The projects depending on the package to be tested.'
+  })
+  .option('reporter', {
+    type: 'string'
+  })
+  .option('quick', {
+    type: 'boolean'
+  }).argv;
+
+wrap(main)(process.cwd(), argv);

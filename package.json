@@ -12,12 +12,14 @@
     "url": "https://github.com/alexjeffburke/fugl/issues"
   },
   "bin": {
-    "dont-break": "./bin/dont-break"
+    "dont-break": "./bin/dont-break",
+    "fugl": "./bin/fugl"
   },
   "contributors": [
     "Gleb Bahmutov <gleb.bahmutov@gmail.com>"
   ],
   "dependencies": {
+    "@gustavnikolaj/async-main-wrap": "^3.0.0",
     "chdir-promise": "0.6.2",
     "check-more-types": "2.24.0",
     "debug": "3.2.6",
