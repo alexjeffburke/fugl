@@ -50,16 +50,16 @@ function testDependent({ moduleName, toFolder, ...options }, dependent) {
     } else {
       modulePretestCommand = moduleTestCommand;
     }
-    res = res.then(postInstallModuleInFolder).then(folder => {
-      return testModuleInFolder(folder, modulePretestCommand).then(
-        () => folder
-      );
-    });
+    res = res.then(folder =>
+      testModuleInFolder(folder, modulePretestCommand).then(() => folder)
+    );
   }
 
-  return res.then(postInstallModuleInFolder).then(folder => {
-    return testModuleInFolder(folder, moduleTestCommand).then(() => folder);
-  });
+  return res
+    .then(postInstallModuleInFolder)
+    .then(folder =>
+      testModuleInFolder(folder, moduleTestCommand).then(() => folder)
+    );
 }
 
 module.exports = testDependent;

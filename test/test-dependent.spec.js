@@ -60,8 +60,8 @@ describe('testDependent', () => {
       ),
       'to be fulfilled'
     ).then(() => {
-      expect(runInFolderSpy, 'was called times', 2).and(
-        'to have all calls satisfying',
+      expect(runInFolderSpy, 'was called times', 1).and(
+        'to have a call satisfying',
         [toFolder, 'npm install somepackage@latest', {}]
       );
     });
