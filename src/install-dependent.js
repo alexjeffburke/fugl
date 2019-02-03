@@ -108,26 +108,3 @@ function install({ moduleName, toFolder, ...options }, dependent) {
 }
 
 module.exports = install;
-
-if (!module.parent) {
-  // quick and dirty test of module install
-  var join = require('path').join;
-  var osTmpdir = require('os-tmpdir');
-  var folder = join(osTmpdir(), 'test-install');
-  console.log('tmp folder for testing');
-  console.log(folder);
-
-  install({
-    // name: 'boggle-connect',
-    name: 'https://github.com/bahmutov/dont-break-bar',
-    prefix: folder
-  }).then(
-    function() {
-      console.log('all done');
-    },
-    function(err) {
-      console.error('Could not install');
-      console.error(err);
-    }
-  );
-}

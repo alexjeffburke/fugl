@@ -8,7 +8,7 @@ var mkdirp = require('mkdirp');
 var fs = require('fs-extra');
 var exists = require('fs').existsSync;
 
-var installDependent = require('./install-dependency');
+var installDependent = require('./install-dependent');
 var testDependent = require('./test-dependent');
 
 var MOCHA_HTML_DOCUMENT = `<html>

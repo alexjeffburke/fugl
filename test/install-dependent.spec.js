@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const rimraf = require('rimraf');
 
-const installDependent = require('../src/install-dependency');
+const installDependent = require('../src/install-dependent');
 
 describe('installDependent', () => {
   const toFolder = path.join(__dirname, 'scratch', 'working');
