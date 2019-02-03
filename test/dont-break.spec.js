@@ -33,22 +33,21 @@ describe('when supplied module', () => {
 });
 
 describe('when supplied module and noClean', () => {
+  const baseDir = path.join(__dirname, 'noclean', 'builds');
   const dir = path.join(
-    __dirname,
-    'noclean',
-    'builds',
+    baseDir,
     'https-github-com-bahmutov-dont-break-bar-git'
   );
+  const file = path.join(dir, 'test-file-in-checkout');
 
   beforeEach(() => {
-    if (fs.existsSync(dir)) {
-      return;
-    }
+    rimraf.sync(baseDir);
 
-    return simpleGit.clone(
-      'https://github.com/bahmutov/dont-break-bar.git',
-      dir
-    );
+    return simpleGit
+      .clone('https://github.com/bahmutov/dont-break-bar.git', dir)
+      .then(() => {
+        fs.writeFileSync(file, '');
+      });
   });
 
   it('should have created the module folder', () => {
@@ -60,6 +59,8 @@ describe('when supplied module and noClean', () => {
       dep: ['https://github.com/bahmutov/dont-break-bar.git']
     }).then(() => {
       assert.ok(fs.existsSync(dir));
+      // the file should still be there if noClean applied correctly
+      assert.ok(fs.existsSync(file));
     });
   });
 });
