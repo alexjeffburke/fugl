@@ -297,6 +297,22 @@ describe('Fugl', () => {
     });
   });
 
+  describe('when supplying a package', () => {
+    it('should parse the version', () => {
+      const fugl = new Fugl({
+        package: 'somepackage@beta',
+        folder: __dirname,
+        projects: []
+      });
+
+      return expect(fugl.config, 'to equal', {
+        packageName: 'somepackage',
+        packageVersion: 'beta',
+        projects: []
+      });
+    });
+  });
+
   describe('when supplying options', () => {
     it('should allow reporter', () => {
       const baseDir = path.resolve(__dirname);
