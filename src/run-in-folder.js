@@ -73,12 +73,13 @@ function npmTest(cmd) {
 }
 
 function runInFolder(folder, command, options) {
+  options = options || {};
   let sawError = null;
 
   return Promise.resolve()
     .then(() => {
-      la(check.unemptyString(command), 'missing test command', command);
-      la(check.unemptyString(folder), 'expected folder', folder);
+      la(check.unemptyString(folder), 'expected folder');
+      la(check.unemptyString(command), 'expected command');
     })
     .then(() => chdir.to(folder))
     .then(function() {
