@@ -29,7 +29,7 @@ function removeFolder(folder) {
 
 function moduleProvision({ moduleName, toFolder, ...options }) {
   if (isRepoUrl(moduleName)) {
-    if (options.noClean && fs.exists(toFolder)) {
+    if (options.noClean && fs.existsSync(toFolder)) {
       debug('updating repo %s', moduleName);
 
       return simpleGit
