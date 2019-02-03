@@ -313,6 +313,37 @@ describe('Fugl', () => {
     });
   });
 
+  describe('when supplying projects', () => {
+    it('should allow project objects with specific options', () => {
+      const fugl = new Fugl({
+        package: 'somepackage',
+        folder: __dirname,
+        reporter: 'none',
+        projects: [{ name: 'FOO', pretest: true }],
+        pretest: false
+      });
+      sinon.stub(fugl, 'installDependent').resolves();
+      const testDependentStub = sinon.stub(fugl, 'testDependent').resolves();
+
+      return expect(() => fugl.run(), 'to be fulfilled with', {
+        passes: 1,
+        failures: 0
+      }).then(() => {
+        expect(testDependentStub, 'to have calls satisfying', [
+          [
+            {},
+            {
+              name: 'FOO',
+              pretest: true,
+              packageName: 'somepackage',
+              packageVersion: 'latest'
+            }
+          ]
+        ]);
+      });
+    });
+  });
+
   describe('when supplying options', () => {
     it('should allow reporter', () => {
       const baseDir = path.resolve(__dirname);
