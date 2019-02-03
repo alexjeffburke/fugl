@@ -12,6 +12,56 @@ describe('Fugl', () => {
     rimraf.sync(path.join(__dirname, 'scratch', 'builds'));
   });
 
+  it('should error with missing options', () => {
+    return expect(
+      () => {
+        new Fugl();
+      },
+      'to throw',
+      'Fugl: missing options'
+    );
+  });
+
+  it('should error with missing package', () => {
+    return expect(
+      () => {
+        new Fugl({});
+      },
+      'to throw',
+      'Fugl: missing package'
+    );
+  });
+
+  it('should error with missing folder', () => {
+    return expect(
+      () => {
+        new Fugl({ package: 'somepackage' });
+      },
+      'to throw',
+      'Fugl: missing folder'
+    );
+  });
+
+  it('should error with missing projects', () => {
+    return expect(
+      () => {
+        new Fugl({ package: 'somepackage', folder: __dirname });
+      },
+      'to throw',
+      'Fugl: missing projects'
+    );
+  });
+
+  it('should error with invalid projects', () => {
+    return expect(
+      () => {
+        new Fugl({ package: 'somepackage', folder: __dirname, projects: {} });
+      },
+      'to throw',
+      'Fugl: missing projects'
+    );
+  });
+
   it('should default options', () => {
     const baseDir = path.resolve(__dirname);
     const fugl = new Fugl({

@@ -9,7 +9,15 @@ const config = {
         commonjs: true
       }
     ]
-  }
+  },
+  overrides: [
+    {
+      files: ['*.spec.js'],
+      rules: {
+        'no-new': 'off'
+      }
+    }
+  ]
 };
 
 if (process.stdin.isTTY) {

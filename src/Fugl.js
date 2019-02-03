@@ -81,7 +81,11 @@ function checkConfig(loadedConfig) {
 
 class Fugl {
   constructor(options) {
-    this.options = options = Object.assign({}, options || {});
+    if (!(options && typeof options === 'object')) {
+      throw new Error('Fugl: missing options');
+    }
+
+    this.options = options = Object.assign({}, options);
 
     if (!options.package) {
       throw new Error('Fugl: missing package');
