@@ -6,6 +6,13 @@ var check = require('check-more-types');
 var chdir = require('chdir-promise');
 var spawn = require('child_process').spawn;
 
+function createError(output, defaultMessageFn) {
+  const message =
+    output.length > 0 ? `Test Failure\n${output.join('')}` : defaultMessageFn();
+
+  return new Error(message);
+}
+
 function npmTest(cmd) {
   var app;
   var parts;
@@ -23,17 +30,38 @@ function npmTest(cmd) {
 
   return new Promise((resolve, reject) => {
     const npm = spawn(app, parts);
-    let testErrors = '';
+    let output = [];
 
-    npm.on('error', function(err) {
-      testErrors += err.toString();
+    npm.stdout.on('data', data => {
+      output.push(data);
     });
 
-    npm.on('exit', function(code) {
-      if (code) {
-        var defaultMessage = 'Could not execute ' + app + ' ' + parts.join(' ');
+    let sawExit = false;
 
-        const error = new Error(testErrors || defaultMessage);
+    npm.on('error', err => {
+      if (sawExit) {
+        return;
+      }
+
+      sawExit = true;
+
+      const error = createError(output, () => err.toString());
+
+      reject(error);
+    });
+
+    npm.on('exit', code => {
+      if (sawExit) {
+        return;
+      }
+
+      sawExit = true;
+
+      if (code) {
+        const error = createError(
+          output,
+          () => 'Could not execute ' + app + ' ' + parts.join(' ')
+        );
         error.code = code;
 
         reject(error);
