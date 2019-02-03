@@ -107,8 +107,9 @@ class Fugl {
     options.pretest =
       typeof options.pretest === 'undefined' ? true : !!options.pretest;
     options.reporter = options.reporter || 'console';
-    options.reportDir =
-      options.reportDir || path.resolve(options.folder, 'breakage');
+    options.reportDir = options.reportDir
+      ? path.resolve(options.reportDir)
+      : path.resolve(options.folder, 'breakage');
     options.tmpDir = options.tmpDir
       ? path.resolve(options.tmpDir)
       : path.resolve(options.folder, 'builds');

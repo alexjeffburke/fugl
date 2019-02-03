@@ -296,4 +296,56 @@ describe('Fugl', () => {
       });
     });
   });
+
+  describe('when supplying options', () => {
+    it('should allow reporter', () => {
+      const baseDir = path.resolve(__dirname);
+      const fugl = new Fugl({
+        package: 'somepackage',
+        folder: baseDir,
+        projects: [],
+        reporter: 'spec'
+      });
+
+      expect(fugl.options, 'to satisfy', { reporter: 'spec' });
+    });
+
+    it('should allow pretest', () => {
+      const baseDir = path.resolve(__dirname);
+      const fugl = new Fugl({
+        package: 'somepackage',
+        folder: baseDir,
+        projects: [],
+        pretest: false
+      });
+
+      expect(fugl.options, 'to satisfy', { pretest: false });
+    });
+
+    it('should allow reportDir', () => {
+      const baseDir = path.resolve(__dirname);
+      const reportDir = path.join(baseDir, 'report');
+      const fugl = new Fugl({
+        package: 'somepackage',
+        folder: baseDir,
+        projects: [],
+        reportDir
+      });
+
+      expect(fugl.options, 'to satisfy', { reportDir });
+    });
+
+    it('should allow tmpDir', () => {
+      const baseDir = path.resolve(__dirname);
+      const tmpDir = path.join(baseDir, 'tmp');
+      const fugl = new Fugl({
+        package: 'somepackage',
+        folder: baseDir,
+        projects: [],
+        tmpDir
+      });
+
+      expect(fugl.options, 'to satisfy', { tmpDir });
+    });
+  });
 });
