@@ -7,8 +7,14 @@ var simpleGit = require('simple-git/promise')();
 var dontBreak = require('../src/dont-break');
 
 describe('when supplied module', () => {
+  const baseDir = path.join(__dirname, 'scratch', 'builds');
+  const dir = path.join(
+    baseDir,
+    'https-github-com-bahmutov-dont-break-bar-git'
+  );
+
   beforeEach(() => {
-    rimraf.sync(path.join(__dirname, 'scratch', 'builds'));
+    rimraf.sync(baseDir);
   });
 
   it('should have created the module folder', () => {
@@ -18,16 +24,7 @@ describe('when supplied module', () => {
       folder: path.join(__dirname, 'scratch'),
       dep: ['https://github.com/bahmutov/dont-break-bar.git']
     }).then(() => {
-      assert.ok(
-        fs.existsSync(
-          path.join(
-            __dirname,
-            'scratch',
-            'builds',
-            'https-github-com-bahmutov-dont-break-bar-git'
-          )
-        )
-      );
+      assert.ok(fs.existsSync(dir));
     });
   });
 });
@@ -66,8 +63,14 @@ describe('when supplied module and noClean', () => {
 });
 
 describe('when used within module', () => {
+  const baseDir = path.join(path.join(__dirname, 'module', 'builds'));
+  const dir = path.join(
+    baseDir,
+    'https-github-com-bahmutov-dont-break-bar-git'
+  );
+
   beforeEach(() => {
-    rimraf.sync(path.join(__dirname, 'module', 'builds'));
+    rimraf.sync(baseDir);
   });
 
   it('should have created the module folder', () => {
@@ -76,60 +79,45 @@ describe('when used within module', () => {
       folder: path.join(__dirname, 'module'),
       dep: ['https://github.com/bahmutov/dont-break-bar.git']
     }).then(() => {
-      assert.ok(
-        fs.existsSync(
-          path.join(
-            __dirname,
-            'module',
-            'builds',
-            'https-github-com-bahmutov-dont-break-bar-git'
-          )
-        )
-      );
+      assert.ok(fs.existsSync(dir));
     });
   });
 });
 
 describe('when used with a file (array)', () => {
-  const dir = path.join(path.join(__dirname, 'file-array'));
+  const baseDir = path.join(path.join(__dirname, 'file-array', 'builds'));
+  const dir = path.join(baseDir, 'https-github-com-bahmutov-dont-break-bar');
 
   beforeEach(() => {
-    rimraf.sync(path.join(dir, 'builds'));
+    rimraf.sync(baseDir);
   });
 
   it('should have created the module folder', () => {
     return dontBreak({
       package: 'dont-break-foo',
       reporter: 'none',
-      folder: dir
+      folder: path.join(__dirname, 'file-array')
     }).then(() => {
-      assert.ok(
-        fs.existsSync(
-          path.join(dir, 'builds', 'https-github-com-bahmutov-dont-break-bar')
-        )
-      );
+      assert.ok(fs.existsSync(dir));
     });
   });
 });
 
 describe('when used with a file (object)', () => {
-  const dir = path.join(path.join(__dirname, 'file-object'));
+  const baseDir = path.join(path.join(__dirname, 'file-object', 'builds'));
+  const dir = path.join(baseDir, 'https-github-com-bahmutov-dont-break-bar');
 
   beforeEach(() => {
-    rimraf.sync(path.join(dir, 'builds'));
+    rimraf.sync(baseDir);
   });
 
   it('should have created the module folder', () => {
     return dontBreak({
       package: 'dont-break-foo',
       reporter: 'none',
-      folder: dir
+      folder: path.join(__dirname, 'file-object')
     }).then(() => {
-      assert.ok(
-        fs.existsSync(
-          path.join(dir, 'builds', 'https-github-com-bahmutov-dont-break-bar')
-        )
-      );
+      assert.ok(fs.existsSync(dir));
     });
   });
 });
