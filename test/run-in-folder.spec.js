@@ -28,10 +28,11 @@ describe('runInFolder', () => {
   });
 
   describe('when executed', () => {
-    const toFolder = path.join(__dirname, 'scratch', 'working');
+    const baseDir = path.join(__dirname, 'scratch', 'builds');
+    const toFolder = path.join(__dirname, 'scratch', 'builds', 'run-in-folder');
 
     beforeEach(() => {
-      rimraf.sync(toFolder);
+      rimraf.sync(baseDir);
 
       return simpleGit.clone(
         'https://github.com/bahmutov/dont-break-bar.git',
