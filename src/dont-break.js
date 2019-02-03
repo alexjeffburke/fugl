@@ -58,6 +58,8 @@ function getDependents(options) {
 function getDependentsFromFile(options) {
   debug('getDependentsFromFile in %s', options.folder);
 
+  var sawError = null;
+
   return chdir
     .to(options.folder)
     .then(() => fs.readFile(dontBreakFilename, 'utf-8'))
@@ -67,18 +69,12 @@ function getDependentsFromFile(options) {
       return text;
     })
     .then(JSON.parse)
-    .catch(function(err) {
-      // the file does not exist probably
-      console.log(err && err.message);
-      console.log(
-        'could not find file',
-        dontBreakFilename,
-        'in',
-        options.folder
-      );
-      console.log(
-        'no dependent projects, maybe query NPM for projects that depend on this one.'
-      );
+    .catch(err => {
+      if (err.message.indexOf('ENOENT') !== -1) {
+        sawError = new Error('missing .dont-break.json');
+      } else {
+        sawError = new Error('invalid .dont-break.json');
+      }
       return [];
     })
     .then(data => {
@@ -86,7 +82,13 @@ function getDependentsFromFile(options) {
         data = { projects: data };
       }
 
-      return chdir.back().then(() => data);
+      return chdir.back().then(() => {
+        if (sawError) {
+          throw sawError;
+        } else {
+          return data;
+        }
+      });
     });
 }
 
@@ -179,6 +181,7 @@ module.exports = function dontBreak(options) {
       options.pretest = config.pretest;
     }
 
-    return new Fugl(options).run();
+    const fugl = options._fugl ? options._fugl(options) : new Fugl(options);
+    return fugl.run();
   });
 };

@@ -1,8 +1,12 @@
 var assert = require('assert');
+var expect = require('unexpected')
+  .clone()
+  .use(require('unexpected-sinon'));
 var fs = require('fs');
 var path = require('path');
 var rimraf = require('rimraf');
 var simpleGit = require('simple-git/promise')();
+var sinon = require('sinon');
 
 var dontBreak = require('../src/dont-break');
 
@@ -118,6 +122,26 @@ describe('when used with a file (object)', () => {
       folder: path.join(__dirname, 'file-object')
     }).then(() => {
       assert.ok(fs.existsSync(dir));
+    });
+  });
+});
+
+describe('when used with a missing config', () => {
+  it('should error', () => {
+    const fuglStub = sinon.stub().returns({
+      run: () => {}
+    });
+
+    return expect(
+      dontBreak({
+        _fugl: fuglStub,
+        folder: path.join(__dirname, 'module')
+      }),
+      'when rejected',
+      'to have message',
+      'missing .dont-break.json'
+    ).then(() => {
+      expect(fuglStub, 'was not called');
     });
   });
 });
