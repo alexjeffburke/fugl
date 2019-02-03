@@ -39,7 +39,18 @@ describe('runInFolder', () => {
       );
     });
 
-    it('should error on command failure and include output', () => {
+    it('should error on command failure', () => {
+      return expect(
+        () => {
+          return runInFolder(toFolder, 'foobar');
+        },
+        'when rejected',
+        'to have message',
+        expect.it('to start with', 'Command Failure')
+      );
+    });
+
+    it('should error on execution failure and include output', () => {
       return expect(
         () => {
           return runInFolder(toFolder, 'npm test');
