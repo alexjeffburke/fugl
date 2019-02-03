@@ -99,8 +99,9 @@ function install({ moduleName, toFolder, ...options }, dependent) {
     )
   ]).then(result => {
     if (result && result.timeout) {
-      debug('install timed out for ' + moduleName);
-      throw new Error('timeout');
+      const message = `install timed out for ${moduleName}`;
+      debug(message);
+      throw new Error(message);
     }
     return result;
   });

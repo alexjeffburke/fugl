@@ -34,4 +34,23 @@ describe('installDependent', () => {
       expect(fs.existsSync(path.join(toFolder, '.git')), 'to be true');
     });
   });
+
+  it('should error when the installation timeout is exceeded', () => {
+    return expect(
+      installDependent(
+        {
+          moduleName: 'https://github.com/bahmutov/dont-break-bar',
+          toFolder: toFolder,
+          timeout: 100
+        },
+        {
+          pretest: true,
+          packageName: 'somepackage',
+          packageVersion: 'latest'
+        }
+      ),
+      'to be rejected with',
+      'install timed out for https://github.com/bahmutov/dont-break-bar'
+    );
+  });
 });
