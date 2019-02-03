@@ -43,6 +43,7 @@
     "eslint-plugin-import": "^2.14.0",
     "eslint-plugin-prettier": "^3.0.1",
     "if-node-version": "^1.1.1",
+    "nyc": "^13.1.0",
     "prettier": "~1.15.3",
     "sinon": "^7.2.3",
     "unexpected": "^11.0.1",
@@ -65,6 +66,7 @@
   "license": "MIT",
   "scripts": {
     "ci": "npm test && npm run lint",
+    "coverage": "nyc --reporter lcov --reporter text npm test",
     "lint": "eslint .",
     "test": "mocha"
   }
