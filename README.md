@@ -1,5 +1,7 @@
 # Fugl
 
+[![Coverage Status](https://img.shields.io/coveralls/alexjeffburke/fugl.svg?style=flat)](https://coveralls.io/r/alexjeffburke/fugl?branch=master)
+
 A tool for verifying that changes to a package do not affect projects dependent upon it.
 
 ## Introduction
