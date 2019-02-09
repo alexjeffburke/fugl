@@ -64,7 +64,7 @@
   ],
   "license": "MIT",
   "scripts": {
-    "ci": "npm test && npm run lint",
+    "ci": "npm coverage && npm run lint",
     "coverage": "nyc --reporter lcov --reporter text npm test",
     "lint": "eslint .",
     "test": "mocha"
