@@ -146,6 +146,70 @@ describe('when used with a missing config', () => {
   });
 });
 
+describe('when used with top-downloads', () => {
+  const baseDir = path.join(__dirname, 'top-downloads');
+  const dir = path.join(baseDir, 'working');
+
+  beforeEach(() => {
+    rimraf.sync(baseDir);
+  });
+
+  it('should have created the top downloads list', () => {
+    const fuglStub = sinon.stub().returns({
+      run: () => {}
+    });
+
+    return dontBreak({
+      _fugl: fuglStub,
+      package: 'unexpected',
+      reporter: 'none',
+      folder: dir,
+      topDownloads: 25
+    }).then(() => {
+      assert.ok(fs.existsSync(path.join(dir, '.dont-break.json')));
+
+      expect(fuglStub, 'to have a call satisfying', [
+        {
+          package: 'unexpected',
+          reporter: 'none',
+          folder: dir,
+          topDownloads: 25,
+          projects: expect.it('not to be empty')
+        }
+      ]);
+    });
+  });
+});
+
+describe('when used with top-starred', () => {
+  const baseDir = path.join(__dirname, 'top-downloads');
+  const dir = path.join(baseDir, 'working');
+
+  beforeEach(() => {
+    rimraf.sync(baseDir);
+  });
+
+  it('should have created the top starred list', () => {
+    const fuglStub = sinon.stub().returns({
+      run: () => {}
+    });
+
+    return dontBreak({
+      _fugl: fuglStub,
+      package: 'unexpected',
+      reporter: 'none',
+      folder: dir,
+      topStarred: 25
+    }).catch(error => {
+      expect(
+        error,
+        'to have message',
+        'The stars metric is currently disabled.'
+      );
+    });
+  });
+});
+
 describe('when reporting with html', () => {
   beforeEach(() => {
     rimraf.sync(path.join(__dirname, 'html', 'breakage'));
