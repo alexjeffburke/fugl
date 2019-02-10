@@ -79,8 +79,10 @@ function checkConfig(loadedConfig) {
   return config;
 }
 
-class Fugl {
+class Fugl extends EventEmitter {
   constructor(options) {
+    super();
+
     if (!(options && typeof options === 'object')) {
       throw new Error('Fugl: missing options');
     }
@@ -203,7 +205,7 @@ class Fugl {
 
     la(check.array(config.projects), 'expected dependents', config.projects);
 
-    const emitter = new EventEmitter();
+    const emitter = this;
     emitter.on('pass', () => (stats.passes += 1));
     emitter.on('fail', () => (stats.failures += 1));
 
