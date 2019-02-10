@@ -161,16 +161,16 @@ class Fugl extends EventEmitter {
       .then(executionResults => {
         const test = Object.assign({}, testTemplate);
 
-        let resultStatus;
+        let executionResult;
         const pretestResult = executionResults.pretest;
         if (pretestResult && pretestResult.status === 'fail') {
           test.title += ' (pretest)';
-          resultStatus = pretestResult.status;
+          executionResult = pretestResult;
         } else {
-          resultStatus = executionResults.packagetest.status;
+          executionResult = executionResults.packagetest;
         }
 
-        switch (resultStatus) {
+        switch (executionResult.status) {
           case 'pass':
             debug('testDependent passed for %s', dependent.name);
             emitter.emit('pass', test);
@@ -179,9 +179,9 @@ class Fugl extends EventEmitter {
             debug(
               'testDependent failed for %s: %s',
               dependent.name,
-              resultStatus.error
+              executionResult.error
             );
-            emitter.emit('fail', test, resultStatus.error);
+            emitter.emit('fail', test, executionResult.error);
             break;
         }
       });

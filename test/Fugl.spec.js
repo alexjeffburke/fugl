@@ -234,6 +234,34 @@ describe('Fugl', () => {
     });
   });
 
+  it('should emit failure on a fail (event)', () => {
+    const fugl = new Fugl({
+      package: 'somepackage',
+      folder: __dirname,
+      reporter: 'none',
+      projects: ['FOO'],
+      pretest: false
+    });
+    const emitSpy = sinon.spy(fugl, 'emit');
+    sinon.stub(fugl, 'installDependent').resolves();
+    const packageTestError = new Error('bad times');
+    sinon.stub(fugl, 'testDependent').resolves({
+      packagetest: {
+        status: 'fail',
+        error: packageTestError
+      }
+    });
+
+    return expect(fugl.run(), 'to be fulfilled with', {
+      passes: 0,
+      failures: 1
+    }).then(() => {
+      expect(emitSpy, 'to have a call satisfying', {
+        args: ['fail', { title: 'FOO' }, packageTestError]
+      });
+    });
+  });
+
   describe('with multiple dependents', () => {
     it('should return stats on a pass', () => {
       const fugl = new Fugl({
@@ -392,6 +420,36 @@ describe('Fugl', () => {
             }
           ]
         ]);
+      });
+    });
+
+    it('should emit a single failure if the pretest fails', () => {
+      const fugl = new Fugl({
+        package: 'somepackage',
+        folder: __dirname,
+        reporter: 'none',
+        projects: ['FOO']
+      });
+      const emitSpy = sinon.spy(fugl, 'emit');
+      sinon.stub(fugl, 'installDependent').resolves();
+      const pretestError = new Error('pretest error');
+      sinon.stub(fugl, 'testDependent').resolves({
+        pretest: {
+          status: 'fail',
+          error: pretestError
+        },
+        packagetest: {
+          status: 'pass'
+        }
+      });
+
+      return expect(() => fugl.run(), 'to be fulfilled with', {
+        passes: 0,
+        failures: 1
+      }).then(() => {
+        expect(emitSpy, 'to have a call satisfying', {
+          args: ['fail', { title: 'FOO (pretest)' }, pretestError]
+        });
       });
     });
   });
