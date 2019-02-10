@@ -348,6 +348,52 @@ describe('Fugl', () => {
         ]);
       });
     });
+
+    it('should return a single failure if the pretest fails', () => {
+      const fugl = new Fugl({
+        package: 'somepackage',
+        folder: __dirname,
+        reporter: 'none',
+        projects: ['FOO']
+      });
+      sinon.stub(fugl, 'installDependent').resolves();
+      const testDependentStub = sinon.stub(fugl, 'testDependent').resolves({
+        pretest: {
+          status: 'fail'
+        },
+        packagetest: {
+          status: 'pass'
+        }
+      });
+
+      return expect(() => fugl.run(), 'to be fulfilled with', {
+        passes: 0,
+        failures: 1
+      }).then(() => {
+        expect(testDependentStub, 'to have calls exhaustively satisfying', [
+          [
+            {
+              package: 'somepackage',
+              folder: __dirname,
+              reporter: 'none',
+              noClean: false,
+              pretest: true,
+              reportDir: path.join(__dirname, 'breakage'),
+              tmpDir: path.join(__dirname, 'builds'),
+              moduleName: 'FOO',
+              toFolder: path.join(__dirname, 'builds', 'foo')
+            },
+            {
+              pretest: true,
+              packageName: 'somepackage',
+              packageVersion: 'latest',
+              projects: [{ name: 'FOO' }],
+              name: 'FOO'
+            }
+          ]
+        ]);
+      });
+    });
   });
 
   describe('when supplying a package', () => {
