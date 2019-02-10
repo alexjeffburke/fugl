@@ -4,6 +4,16 @@ const Registry = require('npm-stats')();
 const WEEK_IN_MILLISECONDS = 604800000; // 7 * 24 * 60 * 60 * 1000
 
 function createPackageRequest(moduleName, methodName, options) {
+  options = options || {};
+
+  let registry;
+  if (options._registry) {
+    registry = options._registry;
+    delete options._registry;
+  } else {
+    registry = Registry;
+  }
+
   return new Promise((resolve, reject) => {
     const args = [
       (err, result) => {
@@ -15,16 +25,20 @@ function createPackageRequest(moduleName, methodName, options) {
       }
     ];
 
-    if (options) {
+    if (Object.keys(options).length > 0) {
       args.unshift(options);
     }
 
-    Registry.module(moduleName)[methodName](...args);
+    registry.module(moduleName)[methodName](...args);
   });
 }
 
 class ModuleStats {
   constructor(moduleName) {
+    if (!(typeof moduleName === 'string' && moduleName.trim().length)) {
+      throw new Error('Invalid module name.');
+    }
+
     this.moduleName = moduleName;
 
     this.dependents = null;
@@ -35,10 +49,12 @@ class ModuleStats {
       return Promise.resolve(this.dependents);
     }
 
-    return createPackageRequest(this.moduleName, 'dependents').then(result => {
-      this.dependents = result;
-      return result;
-    });
+    return ModuleStats.createPackageRequest(this.moduleName, 'dependents').then(
+      result => {
+        this.dependents = result;
+        return result;
+      }
+    );
   }
 
   fetchDepedentsWithDownloads() {
@@ -52,7 +68,7 @@ class ModuleStats {
 
     return this.fetchDependents().then(result => {
       result.forEach(packageName => {
-        statsPromises[packageName] = createPackageRequest(
+        statsPromises[packageName] = ModuleStats.createPackageRequest(
           packageName,
           'downloads',
           durationOptions
@@ -85,6 +101,8 @@ class ModuleStats {
     }
   }
 }
+
+ModuleStats.createPackageRequest = createPackageRequest;
 
 ModuleStats.packageNamesByMagnitude = metricResult =>
   _.chain(metricResult)
