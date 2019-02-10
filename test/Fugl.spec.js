@@ -103,7 +103,10 @@ describe('Fugl', () => {
       projects: ['FOO']
     });
     sinon.stub(fugl, 'installDependent').resolves();
-    sinon.stub(fugl, 'testDependent').resolves();
+    sinon.stub(fugl, 'testDependent').resolves({
+      pretest: { status: 'pass' },
+      packagetest: { status: 'pass' }
+    });
 
     return expect(() => fugl.run(), 'to be fulfilled with', {
       passes: 1,
@@ -111,7 +114,7 @@ describe('Fugl', () => {
     });
   });
 
-  it('should return stats on a fail', () => {
+  it('should return stats on a fail (installDependent)', () => {
     const fugl = new Fugl({
       package: 'somepackage',
       folder: __dirname,
@@ -150,7 +153,7 @@ describe('Fugl', () => {
     });
   });
 
-  it('should return stats on a fail', () => {
+  it('should return stats on a fail (testDependent)', () => {
     const fugl = new Fugl({
       package: 'somepackage',
       folder: __dirname,
@@ -188,6 +191,49 @@ describe('Fugl', () => {
     });
   });
 
+  it('should return stats on a fail (event)', () => {
+    const fugl = new Fugl({
+      package: 'somepackage',
+      folder: __dirname,
+      reporter: 'none',
+      projects: ['FOO'],
+      pretest: false
+    });
+    sinon.stub(fugl, 'installDependent').resolves();
+    const testDependentStub = sinon.stub(fugl, 'testDependent').resolves({
+      packagetest: {
+        status: 'fail',
+        error: new Error('bad times')
+      }
+    });
+
+    return expect(fugl.run(), 'to be fulfilled with', {
+      passes: 0,
+      failures: 1
+    }).then(() => {
+      expect(testDependentStub, 'to have a call exhaustively satisfying', [
+        {
+          package: 'somepackage',
+          folder: __dirname,
+          reporter: 'none',
+          noClean: false,
+          pretest: false,
+          reportDir: path.join(__dirname, 'breakage'),
+          tmpDir: path.join(__dirname, 'builds'),
+          moduleName: 'FOO',
+          toFolder: path.join(__dirname, 'builds', 'foo')
+        },
+        {
+          pretest: false,
+          packageName: 'somepackage',
+          packageVersion: 'latest',
+          projects: [{ name: 'FOO' }],
+          name: 'FOO'
+        }
+      ]);
+    });
+  });
+
   describe('with multiple dependents', () => {
     it('should return stats on a pass', () => {
       const fugl = new Fugl({
@@ -205,11 +251,11 @@ describe('Fugl', () => {
 
           switch (testDependentCallCount) {
             case 1:
-              return Promise.resolve();
+              return Promise.resolve({ packagetest: { status: 'pass' } });
             case 2:
-              return Promise.reject(new Error('failure'));
+              return Promise.resolve({ packagetest: { status: 'fail' } });
             case 3:
-              return Promise.resolve();
+              return Promise.resolve({ packagetest: { status: 'pass' } });
           }
         });
 
@@ -265,7 +311,14 @@ describe('Fugl', () => {
         projects: ['FOO']
       });
       sinon.stub(fugl, 'installDependent').resolves();
-      const testDependentStub = sinon.stub(fugl, 'testDependent').resolves();
+      const testDependentStub = sinon.stub(fugl, 'testDependent').resolves({
+        pretest: {
+          status: 'pass'
+        },
+        packagetest: {
+          status: 'pass'
+        }
+      });
 
       return expect(() => fugl.run(), 'to be fulfilled with', {
         passes: 1,
@@ -323,7 +376,11 @@ describe('Fugl', () => {
         pretest: false
       });
       sinon.stub(fugl, 'installDependent').resolves();
-      const testDependentStub = sinon.stub(fugl, 'testDependent').resolves();
+      const testDependentStub = sinon.stub(fugl, 'testDependent').resolves({
+        packagetest: {
+          status: 'pass'
+        }
+      });
 
       return expect(() => fugl.run(), 'to be fulfilled with', {
         passes: 1,

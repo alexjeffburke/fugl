@@ -132,7 +132,7 @@ class Fugl {
   }
 
   executeDependent(emitter, options, dependent) {
-    const test = {
+    const testTemplate = {
       title: dependent.name,
       body: '',
       duration: 0,
@@ -155,13 +155,33 @@ class Fugl {
     return Promise.resolve()
       .then(() => this.installDependent(dependentOptions, dependent))
       .then(() => this.testDependent(dependentOptions, dependent))
-      .then(() => {
-        debug('testDependent passed for %s', dependent.name);
-        emitter.emit('pass', test);
-      })
-      .catch(err => {
-        debug('testDependent failed for %s: %s', dependent.name, err);
-        emitter.emit('fail', test, err);
+      .catch(error => ({ packagetest: { status: 'fail', error } }))
+      .then(executionResults => {
+        const test = Object.assign({}, testTemplate);
+
+        let resultStatus;
+        const pretestResult = executionResults.pretest;
+        if (pretestResult && pretestResult.status === 'fail') {
+          test.title += ' (pretest)';
+          resultStatus = pretestResult.status;
+        } else {
+          resultStatus = executionResults.packagetest.status;
+        }
+
+        switch (resultStatus) {
+          case 'pass':
+            debug('testDependent passed for %s', dependent.name);
+            emitter.emit('pass', test);
+            break;
+          case 'fail':
+            debug(
+              'testDependent failed for %s: %s',
+              dependent.name,
+              resultStatus.error
+            );
+            emitter.emit('fail', test, resultStatus.error);
+            break;
+        }
       });
   }
 

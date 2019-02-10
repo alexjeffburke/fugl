@@ -39,6 +39,24 @@ function testDependent({ moduleName, toFolder, ...options }, dependent) {
     }).then(() => dependentFolder);
   }
 
+  var result = {};
+
+  function withResult(resultType, promise) {
+    result[resultType] = {
+      status: null
+    };
+    const testResult = result[resultType];
+
+    return promise
+      .then(() => {
+        testResult.status = 'pass';
+      })
+      .catch(error => {
+        testResult.status = 'fail';
+        testResult.error = error;
+      });
+  }
+
   var res = Promise.resolve(toFolder);
 
   var testWithPreviousVersion = dependent.pretest;
@@ -50,15 +68,23 @@ function testDependent({ moduleName, toFolder, ...options }, dependent) {
       modulePretestCommand = moduleTestCommand;
     }
     res = res.then(folder =>
-      testModuleInFolder(folder, modulePretestCommand).then(() => folder)
+      withResult(
+        'pretest',
+        testModuleInFolder(folder, modulePretestCommand)
+      ).then(() => folder)
     );
   }
 
-  return res
+  res = res
     .then(postInstallModuleInFolder)
     .then(folder =>
-      testModuleInFolder(folder, moduleTestCommand).then(() => folder)
+      withResult(
+        'packagetest',
+        testModuleInFolder(folder, moduleTestCommand)
+      ).then(() => folder)
     );
+
+  return res.then(() => result);
 }
 
 module.exports = testDependent;
