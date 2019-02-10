@@ -75,16 +75,31 @@ function testDependent({ moduleName, toFolder, ...options }, dependent) {
     );
   }
 
-  res = res
-    .then(postInstallModuleInFolder)
-    .then(folder =>
-      withResult(
-        'packagetest',
-        testModuleInFolder(folder, moduleTestCommand)
-      ).then(() => folder)
-    );
+  return res.then(folder => {
+    if (
+      options.pretestOrIgnore &&
+      result.pretest &&
+      result.pretest.status === 'fail'
+    ) {
+      // A failure has occurred in the presence of the ignore flag.
+      // Immediately mark it for the parent and skip test execution.
+      return {
+        pretest: {
+          status: 'pending'
+        }
+      };
+    }
 
-  return res.then(() => result);
+    return Promise.resolve(folder)
+      .then(postInstallModuleInFolder)
+      .then(folder =>
+        withResult(
+          'packagetest',
+          testModuleInFolder(folder, moduleTestCommand)
+        ).then(() => folder)
+      )
+      .then(() => result);
+  });
 }
 
 module.exports = testDependent;

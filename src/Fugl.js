@@ -108,6 +108,7 @@ class Fugl extends EventEmitter {
     options.noClean = !!options.noClean;
     options.pretest =
       typeof options.pretest === 'undefined' ? true : !!options.pretest;
+    options.pretestOrIgnore = options.pretestOrIgnore || false;
     options.reporter = options.reporter || 'console';
     options.reportDir = options.reportDir
       ? path.resolve(options.reportDir)
@@ -115,6 +116,10 @@ class Fugl extends EventEmitter {
     options.tmpDir = options.tmpDir
       ? path.resolve(options.tmpDir)
       : path.resolve(options.folder, 'builds');
+
+    if (!options.pretest && options.pretestOrIgnore) {
+      throw new Error('Fugl: cannot pretestOrIgnore without pretest');
+    }
 
     this.config = options.config ? Object.assign({}, options.config) : {};
     const packageInfo = parsePackage(options.package);
@@ -162,9 +167,12 @@ class Fugl extends EventEmitter {
         const test = Object.assign({}, testTemplate);
 
         let executionResult;
-        const pretestResult = executionResults.pretest;
-        if (pretestResult && pretestResult.status === 'fail') {
+        const pretestResult = executionResults.pretest || { status: 'none' };
+        if (pretestResult.status === 'fail') {
           test.title += ' (pretest)';
+          executionResult = pretestResult;
+        } else if (pretestResult.status === 'pending') {
+          test.title += ' (skipped)';
           executionResult = pretestResult;
         } else {
           executionResult = executionResults.packagetest;
@@ -183,6 +191,10 @@ class Fugl extends EventEmitter {
             );
             emitter.emit('fail', test, executionResult.error);
             break;
+          case 'pending':
+            debug('testDependent skipped for %s', dependent.name);
+            emitter.emit('pending', test);
+            break;
         }
       });
   }
@@ -200,7 +212,8 @@ class Fugl extends EventEmitter {
     const config = this.config;
     const stats = {
       passes: 0,
-      failures: 0
+      failures: 0,
+      skipped: 0
     };
 
     la(check.array(config.projects), 'expected dependents', config.projects);
@@ -208,6 +221,7 @@ class Fugl extends EventEmitter {
     const emitter = this;
     emitter.on('pass', () => (stats.passes += 1));
     emitter.on('fail', () => (stats.failures += 1));
+    emitter.on('pending', () => (stats.skipped += 1));
 
     let reporter;
     if (options.reporter !== 'console' && options.reporter !== 'none') {
@@ -232,6 +246,7 @@ class Fugl extends EventEmitter {
       emitter.once('start', () => console.log());
       emitter.on('pass', test => console.log(`  ${test.title} PASSED`));
       emitter.on('fail', test => console.log(`  ${test.title} FAILED`));
+      emitter.on('pending', test => console.log(`  ${test.title} SKIPPED`));
     }
 
     emitter.emit('start');

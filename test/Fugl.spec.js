@@ -76,6 +76,7 @@ describe('Fugl', () => {
       folder: baseDir,
       noClean: false,
       pretest: true,
+      pretestOrIgnore: false,
       reportDir: path.join(baseDir, 'breakage'),
       tmpDir: path.join(baseDir, 'builds')
     });
@@ -137,6 +138,7 @@ describe('Fugl', () => {
           reporter: 'none',
           noClean: false,
           pretest: true,
+          pretestOrIgnore: false,
           reportDir: path.join(__dirname, 'breakage'),
           tmpDir: path.join(__dirname, 'builds'),
           moduleName: 'FOO',
@@ -175,6 +177,7 @@ describe('Fugl', () => {
           reporter: 'none',
           noClean: false,
           pretest: true,
+          pretestOrIgnore: false,
           reportDir: path.join(__dirname, 'breakage'),
           tmpDir: path.join(__dirname, 'builds'),
           moduleName: 'FOO',
@@ -218,6 +221,7 @@ describe('Fugl', () => {
           reporter: 'none',
           noClean: false,
           pretest: false,
+          pretestOrIgnore: false,
           reportDir: path.join(__dirname, 'breakage'),
           tmpDir: path.join(__dirname, 'builds'),
           moduleName: 'FOO',
@@ -258,6 +262,53 @@ describe('Fugl', () => {
     }).then(() => {
       expect(emitSpy, 'to have a call satisfying', {
         args: ['fail', { title: 'FOO' }, packageTestError]
+      });
+    });
+  });
+
+  describe('when using pretestOrIgnore', () => {
+    it('should throw if missing pretest', () => {
+      return expect(
+        () => {
+          new Fugl({
+            package: 'somepackage',
+            folder: __dirname,
+            reporter: 'none',
+            projects: ['FOO'],
+            pretest: false,
+            pretestOrIgnore: true
+          });
+        },
+        'to throw',
+        'Fugl: cannot pretestOrIgnore without pretest'
+      );
+    });
+
+    it('should emit pending on a pretest fail', () => {
+      const fugl = new Fugl({
+        package: 'somepackage',
+        folder: __dirname,
+        reporter: 'none',
+        projects: ['FOO'],
+        pretest: true,
+        pretestOrIgnore: true
+      });
+      const emitSpy = sinon.spy(fugl, 'emit');
+      sinon.stub(fugl, 'installDependent').resolves();
+      sinon.stub(fugl, 'testDependent').resolves({
+        pretest: {
+          status: 'pending'
+        }
+      });
+
+      return expect(fugl.run(), 'to be fulfilled with', {
+        passes: 0,
+        failures: 0,
+        skipped: 1
+      }).then(() => {
+        expect(emitSpy, 'to have a call satisfying', {
+          args: ['pending', { title: 'FOO (skipped)' }]
+        });
       });
     });
   });
@@ -360,6 +411,7 @@ describe('Fugl', () => {
               reporter: 'none',
               noClean: false,
               pretest: true,
+              pretestOrIgnore: false,
               reportDir: path.join(__dirname, 'breakage'),
               tmpDir: path.join(__dirname, 'builds'),
               moduleName: 'FOO',
@@ -406,6 +458,7 @@ describe('Fugl', () => {
               reporter: 'none',
               noClean: false,
               pretest: true,
+              pretestOrIgnore: false,
               reportDir: path.join(__dirname, 'breakage'),
               tmpDir: path.join(__dirname, 'builds'),
               moduleName: 'FOO',

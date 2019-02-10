@@ -129,6 +129,37 @@ describe('testDependent', () => {
     });
   });
 
+  describe('when operating with pretest', () => {
+    it('should return pending if pretestOrIgnore', () => {
+      const runInFolderSpy = sinon.stub().resolves();
+      const preTestError = new Error('failure');
+      const testInFolderSpy = sinon.stub().rejects(preTestError);
+
+      return expect(
+        testDependent(
+          {
+            _runInFolder: runInFolderSpy,
+            _testInFolder: testInFolderSpy,
+            moduleName: 'https://github.com/bahmutov/dont-break-bar',
+            toFolder: toFolder,
+            pretestOrIgnore: true
+          },
+          {
+            pretest: true,
+            packageName: 'somepackage',
+            packageVersion: 'latest',
+            projects: [{ name: 'FOO' }],
+            name: 'FOO'
+          }
+        ),
+        'to be fulfilled with',
+        expect.it('to equal', {
+          pretest: { status: 'pending' }
+        })
+      );
+    });
+  });
+
   describe('when operating without pretest', () => {
     it('should return test result structure', () => {
       const runInFolderSpy = sinon.stub().resolves();

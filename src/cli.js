@@ -7,6 +7,7 @@ module.exports = function main(cwd, yargv) {
     projects: yargv.projects,
     reporter: yargv.reporter,
     pretest: yargv.pretest,
+    pretestOrIgnore: yargv.pretestOrIgnore,
     noClean: yargv.quick
   };
 

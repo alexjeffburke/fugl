@@ -26,6 +26,12 @@ const argv = yargs
     describe:
       'Toggle whether the tests pass in a project prior to package installation.'
   })
+  .option('pretest-or-ignore', {
+    alias: 'pretestOrIgnore',
+    type: 'boolean',
+    describe:
+      'Toggle whether to ignore a module package test on a pretest failure.'
+  })
   .option('quick', {
     type: 'boolean',
     describe:
