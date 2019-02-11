@@ -14,13 +14,24 @@ confidence that forward progress does not come at the expense of compatibility.
 
 [Relevant discussion at npm](https://github.com/npm/npm/issues/6510).
 
-## Install
+## Use
+
+## Interactively with npx
+
+To check a project currently being worked on the Fugl binary can be invoked via `npx`.
+The current directory is scanned for package.json and testde against the listed projects:
+
+```
+npx fugl --projects https://github.com/alexjeffburke/jest-unexpected
+```
+
+## Installed as a CLI
+
+The module can also also installed globally or as a project dependency and provides a fugl binary.
 
 ```
 npm install -g fugl
 ```
-
-## Use
 
 ```
 fugl --package <packageName>@<packageVersion> --projects https://github.com/someone/somepackage
@@ -50,7 +61,8 @@ In the case of the HTML reporter, we use JSDOM as the output document and serial
 ## Credits
 
 This tool started began as a fork of [dont-break](https://github.com/bahmutov/dont-break.git) but the
-drift of use-cases required a havy rewrite of the internal architecture and thus Fugl was born.
+drift of use-cases required a substantial rework and thus Fugl was born. Since then almost the entire
+codebase has been rewritten.
 
 ### Compabibility with dont-break
 
