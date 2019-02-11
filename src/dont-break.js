@@ -10,19 +10,12 @@ var la = require('./la');
 
 var Fugl = require('./Fugl');
 var ModuleStats = require('./ModuleStats');
+var packageCheck = require('./package-check');
 
 var dontBreakFilename = './.dont-break.json';
 
 function currentPackageName(options) {
-  try {
-    const pkg = require(path.join(options.folder, 'package.json'));
-    if (!pkg.name) {
-      throw new Error(`The package in ${options.folder} has no name.`);
-    }
-    return pkg.name;
-  } catch (e) {
-    throw new Error(`The folder ${options.folder} contain no valid package.`);
-  }
+  return packageCheck(options.folder).name;
 }
 
 function getDependents(options) {
