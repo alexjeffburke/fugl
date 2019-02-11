@@ -6,6 +6,7 @@ const rimraf = require('rimraf');
 const sinon = require('sinon');
 
 const Fugl = require('../src/Fugl');
+const LinkStrategy = require('../src/LinkStrategy');
 const NpmStrategy = require('../src/NpmStrategy');
 
 describe('Fugl', () => {
@@ -95,7 +96,7 @@ describe('Fugl', () => {
     });
   });
 
-  it('should instantiate installer', () => {
+  it('should instantiate installer (npm)', () => {
     const fugl = new Fugl({
       package: 'somepackage',
       folder: __dirname,
@@ -108,6 +109,38 @@ describe('Fugl', () => {
         packageName: 'somepackage',
         packageVersion: 'latest'
       })
+    );
+  });
+
+  it('should instantiate installer (link)', () => {
+    const fugl = new Fugl({
+      package: path.join(__dirname, '..'),
+      packageInstaller: 'link',
+      folder: __dirname,
+      projects: []
+    });
+
+    return expect(
+      fugl.packageInstaller,
+      expect.it('to be a', LinkStrategy).and('to satisfy', {
+        packagePath: path.join(__dirname, '..'),
+        packageName: 'fugl'
+      })
+    );
+  });
+
+  it('should error on an unsuported installer', () => {
+    return expect(
+      () => {
+        new Fugl({
+          package: path.join(__dirname, '..'),
+          packageInstaller: 'other',
+          folder: __dirname,
+          projects: []
+        });
+      },
+      'to throw',
+      'Fugl: unsupported package installer other'
     );
   });
 

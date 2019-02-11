@@ -9,6 +9,7 @@ var fs = require('fs-extra');
 var exists = require('fs').existsSync;
 
 var installDependent = require('./install-dependent');
+var LinkStrategy = require('./LinkStrategy');
 var NpmStrategy = require('./NpmStrategy');
 var testDependent = require('./test-dependent');
 
@@ -98,7 +99,23 @@ class Fugl extends EventEmitter {
     this.config = options.config ? Object.assign({}, options.config) : {};
     this.config.projects = projects || this.config.projects;
 
-    this.packageInstaller = new NpmStrategy(options.package);
+    this.packageInstaller = null;
+
+    const packageInstaller = options.packageInstaller || 'npm';
+    delete options.packageInstaller;
+
+    switch (packageInstaller) {
+      case 'link':
+        this.packageInstaller = new LinkStrategy(options.package);
+        break;
+      case 'npm':
+        this.packageInstaller = new NpmStrategy(options.package);
+        break;
+      default:
+        throw new Error(
+          `Fugl: unsupported package installer ${packageInstaller}`
+        );
+    }
   }
 
   configForDependent(dependent) {

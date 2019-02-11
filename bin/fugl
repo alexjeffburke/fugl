@@ -8,7 +8,6 @@ const argv = yargs
   .config()
   .option('package', {
     type: 'string',
-    demandOption: true,
     describe:
       'The package to install for testing: <packageName>@<packageVersion>'
   })

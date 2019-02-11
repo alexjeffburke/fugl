@@ -11,6 +11,12 @@ module.exports = function main(cwd, yargv) {
     noClean: yargv.quick
   };
 
+  if (!yargv.package && !yargv.folder) {
+    // we may be running via npx
+    options.package = cwd;
+    options.packageInstaller = 'link';
+  }
+
   return new Fugl(options).run().then(stats => {
     if (stats.failures > 0) {
       throw new Error('failed');
