@@ -66,6 +66,9 @@ codebase has been rewritten.
 
 ### Compabibility with dont-break
 
-Some effort was made to continue to support users of `dont-break`. The project continues to ship with
-a command line binary that should behave as a drop-in replacement with the only known exception being
-[current module installation](https://github.com/bahmutov/dont-break#current-module-installation-method).
+Some effort was made to continue to support users of `dont-break`. The fugl binary accept a config
+parameter which can be used to load dont-btrak JSON config files:
+
+```
+fugl --config .dont-break.json
+```
