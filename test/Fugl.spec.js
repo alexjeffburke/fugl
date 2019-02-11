@@ -6,6 +6,7 @@ const rimraf = require('rimraf');
 const sinon = require('sinon');
 
 const Fugl = require('../src/Fugl');
+const NpmStrategy = require('../src/NpmStrategy');
 
 describe('Fugl', () => {
   beforeEach(() => {
@@ -90,10 +91,24 @@ describe('Fugl', () => {
     });
 
     return expect(fugl.config, 'to equal', {
-      packageName: 'somepackage',
-      packageVersion: 'latest',
       projects: []
     });
+  });
+
+  it('should instantiate installer', () => {
+    const fugl = new Fugl({
+      package: 'somepackage',
+      folder: __dirname,
+      projects: []
+    });
+
+    return expect(
+      fugl.packageInstaller,
+      expect.it('to be a', NpmStrategy).and('to satisfy', {
+        packageName: 'somepackage',
+        packageVersion: 'latest'
+      })
+    );
   });
 
   it('should return stats on a pass', () => {
@@ -141,13 +156,12 @@ describe('Fugl', () => {
           pretestOrIgnore: false,
           reportDir: path.join(__dirname, 'breakage'),
           tmpDir: path.join(__dirname, 'builds'),
+          packageInstaller: expect.it('to be a', NpmStrategy),
           moduleName: 'FOO',
           toFolder: path.join(__dirname, 'builds', 'foo')
         },
         {
           pretest: true,
-          packageName: 'somepackage',
-          packageVersion: 'latest',
           projects: [{ name: 'FOO' }],
           name: 'FOO'
         }
@@ -180,13 +194,12 @@ describe('Fugl', () => {
           pretestOrIgnore: false,
           reportDir: path.join(__dirname, 'breakage'),
           tmpDir: path.join(__dirname, 'builds'),
+          packageInstaller: expect.it('to be a', NpmStrategy),
           moduleName: 'FOO',
           toFolder: path.join(__dirname, 'builds', 'foo')
         },
         {
           pretest: true,
-          packageName: 'somepackage',
-          packageVersion: 'latest',
           projects: [{ name: 'FOO' }],
           name: 'FOO'
         }
@@ -224,13 +237,12 @@ describe('Fugl', () => {
           pretestOrIgnore: false,
           reportDir: path.join(__dirname, 'breakage'),
           tmpDir: path.join(__dirname, 'builds'),
+          packageInstaller: expect.it('to be a', NpmStrategy),
           moduleName: 'FOO',
           toFolder: path.join(__dirname, 'builds', 'foo')
         },
         {
           pretest: false,
-          packageName: 'somepackage',
-          packageVersion: 'latest',
           projects: [{ name: 'FOO' }],
           name: 'FOO'
         }
@@ -371,8 +383,6 @@ describe('Fugl', () => {
         failure: 456
       }).then(() => {
         expect(fugl.config, 'to satisfy', {
-          packageName: 'package-and-overrides',
-          packageVersion: 'latest',
           install: 'INSTALL',
           postinstall: 'POSTINSTALL',
           test: 'TEST'
@@ -414,13 +424,12 @@ describe('Fugl', () => {
               pretestOrIgnore: false,
               reportDir: path.join(__dirname, 'breakage'),
               tmpDir: path.join(__dirname, 'builds'),
+              packageInstaller: expect.it('to be a', NpmStrategy),
               moduleName: 'FOO',
               toFolder: path.join(__dirname, 'builds', 'foo')
             },
             {
               pretest: true,
-              packageName: 'somepackage',
-              packageVersion: 'latest',
               projects: [{ name: 'FOO' }],
               name: 'FOO'
             }
@@ -461,13 +470,12 @@ describe('Fugl', () => {
               pretestOrIgnore: false,
               reportDir: path.join(__dirname, 'breakage'),
               tmpDir: path.join(__dirname, 'builds'),
+              packageInstaller: expect.it('to be a', NpmStrategy),
               moduleName: 'FOO',
               toFolder: path.join(__dirname, 'builds', 'foo')
             },
             {
               pretest: true,
-              packageName: 'somepackage',
-              packageVersion: 'latest',
               projects: [{ name: 'FOO' }],
               name: 'FOO'
             }
@@ -507,22 +515,6 @@ describe('Fugl', () => {
     });
   });
 
-  describe('when supplying a package', () => {
-    it('should parse the version', () => {
-      const fugl = new Fugl({
-        package: 'somepackage@beta',
-        folder: __dirname,
-        projects: []
-      });
-
-      return expect(fugl.config, 'to equal', {
-        packageName: 'somepackage',
-        packageVersion: 'beta',
-        projects: []
-      });
-    });
-  });
-
   describe('when supplying projects', () => {
     it('should allow project objects with specific options', () => {
       const fugl = new Fugl({
@@ -548,9 +540,7 @@ describe('Fugl', () => {
             {},
             {
               name: 'FOO',
-              pretest: true,
-              packageName: 'somepackage',
-              packageVersion: 'latest'
+              pretest: true
             }
           ]
         ]);

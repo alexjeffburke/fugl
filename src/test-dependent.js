@@ -5,32 +5,12 @@ var runInFolder = require('./run-in-folder');
 var DEFAULT_TEST_COMMAND = 'npm test';
 
 function testDependent({ moduleName, toFolder, ...options }, dependent) {
-  var performDependentInstall = options._runInFolder || runInFolder;
+  var packageInstaller = options.packageInstaller;
   var performDependentTest = options._testInFolder || runInFolder;
-  var modulePostinstallCommand =
-    dependent.postinstall ||
-    `npm install ${dependent.packageName}@${dependent.packageVersion}`;
   var moduleTestCommand = dependent.test || DEFAULT_TEST_COMMAND;
 
   process.env.CURRENT_MODULE_NAME = moduleName;
   process.env.CURRENT_MODULE_DIR = options.folder;
-
-  function expandCommandVars(command) {
-    if (!command) {
-      return command;
-    }
-    command = command.replace('$CURRENT_MODULE_DIR', options.folder);
-    command = command.replace('$CURRENT_MODULE_NAME', moduleName);
-    return command;
-  }
-
-  function postInstallModuleInFolder(dependentFolder) {
-    var command = expandCommandVars(modulePostinstallCommand);
-    return performDependentInstall(dependentFolder, command, {
-      success: 'postinstall succeeded',
-      failure: 'postinstall did not work'
-    }).then(() => dependentFolder);
-  }
 
   function testModuleInFolder(dependentFolder, testCommand) {
     return performDependentTest(dependentFolder, testCommand, {
@@ -90,8 +70,9 @@ function testDependent({ moduleName, toFolder, ...options }, dependent) {
       };
     }
 
-    return Promise.resolve(folder)
-      .then(postInstallModuleInFolder)
+    return Promise.resolve()
+      .then(() => packageInstaller.installTo({ toFolder }, dependent))
+      .then(() => folder)
       .then(folder =>
         withResult(
           'packagetest',

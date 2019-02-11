@@ -9,6 +9,7 @@ var fs = require('fs-extra');
 var exists = require('fs').existsSync;
 
 var installDependent = require('./install-dependent');
+var NpmStrategy = require('./NpmStrategy');
 var testDependent = require('./test-dependent');
 
 var MOCHA_HTML_DOCUMENT = `<html>
@@ -20,33 +21,6 @@ var MOCHA_HTML_DOCUMENT = `<html>
   </body>
 </html>
 `;
-
-function parsePackage(packageString) {
-  if (typeof packageString !== 'string' || packageString.trim().length === 0) {
-    throw new Error(`Invalid package @{package}`);
-  }
-
-  let packageParts;
-  let name;
-  if (packageString[0] === '@') {
-    packageParts = packageString.slice(1).split('@');
-    name = '@';
-  } else {
-    packageParts = packageString.split('@');
-    name = '';
-  }
-
-  name += packageParts[0];
-
-  let version = null;
-  if (packageParts.length === 2) {
-    version = packageParts[1];
-  } else {
-    version = null;
-  }
-
-  return { name, version };
-}
 
 function checkConfig(loadedConfig) {
   const dependents = loadedConfig.projects;
@@ -122,10 +96,9 @@ class Fugl extends EventEmitter {
     }
 
     this.config = options.config ? Object.assign({}, options.config) : {};
-    const packageInfo = parsePackage(options.package);
-    this.config.packageName = packageInfo.name;
-    this.config.packageVersion = packageInfo.version || 'latest';
     this.config.projects = projects || this.config.projects;
+
+    this.packageInstaller = new NpmStrategy(options.package);
   }
 
   configForDependent(dependent) {
@@ -139,6 +112,7 @@ class Fugl extends EventEmitter {
   }
 
   executeDependent(emitter, options, dependent) {
+    const { packageInstaller } = this;
     const testTemplate = {
       title: dependent.name,
       body: '',
@@ -155,6 +129,7 @@ class Fugl extends EventEmitter {
 
     const dependentOptions = {
       ...options,
+      packageInstaller,
       moduleName,
       toFolder
     };

@@ -6,25 +6,30 @@ const sinon = require('sinon');
 
 const testDependent = require('../src/test-dependent');
 
+function createFakePackageInstaller() {
+  return {
+    installTo: sinon.stub().named('installTo')
+  };
+}
+
 describe('testDependent', () => {
   const toFolder = path.join(__dirname, 'scratch', 'foo');
 
   it('should resolve with a test result structure', () => {
-    const runInFolderSpy = sinon.stub().resolves();
+    const packageInstaller = createFakePackageInstaller();
+    packageInstaller.installTo.resolves();
     const testInFolderSpy = sinon.stub().resolves();
 
     return expect(
       testDependent(
         {
-          _runInFolder: runInFolderSpy,
           _testInFolder: testInFolderSpy,
+          packageInstaller,
           moduleName: 'https://github.com/bahmutov/dont-break-bar',
           toFolder: toFolder
         },
         {
           pretest: true,
-          packageName: 'somepackage',
-          packageVersion: 'latest',
           projects: [{ name: 'FOO' }],
           name: 'FOO'
         }
@@ -38,7 +43,8 @@ describe('testDependent', () => {
   });
 
   it('should resolve with a package test failure', () => {
-    const runInFolderSpy = sinon.stub().resolves();
+    const packageInstaller = createFakePackageInstaller();
+    packageInstaller.installTo.resolves();
     const packageTestError = new Error('failure');
     const testInFolderSpy = sinon
       .stub()
@@ -50,15 +56,13 @@ describe('testDependent', () => {
     return expect(
       testDependent(
         {
-          _runInFolder: runInFolderSpy,
           _testInFolder: testInFolderSpy,
+          packageInstaller,
           moduleName: 'https://github.com/bahmutov/dont-break-bar',
           toFolder: toFolder
         },
         {
           pretest: true,
-          packageName: 'somepackage',
-          packageVersion: 'latest',
           projects: [{ name: 'FOO' }],
           name: 'FOO'
         }
@@ -72,21 +76,20 @@ describe('testDependent', () => {
   });
 
   it('should trigger tests of the dependent', () => {
-    const runInFolderSpy = sinon.stub().resolves();
+    const packageInstaller = createFakePackageInstaller();
+    packageInstaller.installTo.resolves();
     const testInFolderSpy = sinon.stub().resolves();
 
     return expect(
       testDependent(
         {
-          _runInFolder: runInFolderSpy,
           _testInFolder: testInFolderSpy,
+          packageInstaller,
           moduleName: 'https://github.com/bahmutov/dont-break-bar',
           toFolder: toFolder
         },
         {
           pretest: true,
-          packageName: 'somepackage',
-          packageVersion: 'latest',
           projects: [{ name: 'FOO' }],
           name: 'FOO'
         }
@@ -101,53 +104,54 @@ describe('testDependent', () => {
   });
 
   it('should trigger installing the package in the dependent', () => {
-    const runInFolderSpy = sinon.stub().resolves();
+    const packageInstaller = createFakePackageInstaller();
+    packageInstaller.installTo.resolves();
     const testInFolderSpy = sinon.stub().resolves();
 
     return expect(
       testDependent(
         {
-          _runInFolder: runInFolderSpy,
           _testInFolder: testInFolderSpy,
+          packageInstaller,
           moduleName: 'https://github.com/bahmutov/dont-break-bar',
           toFolder: toFolder
         },
         {
           pretest: true,
-          packageName: 'somepackage',
-          packageVersion: 'latest',
           projects: [{ name: 'FOO' }],
           name: 'FOO'
         }
       ),
       'to be fulfilled'
     ).then(() => {
-      expect(runInFolderSpy, 'was called times', 1).and(
-        'to have a call satisfying',
-        [toFolder, 'npm install somepackage@latest', {}]
+      expect(packageInstaller.installTo, 'was called times', 1).and(
+        'to have a call exhaustively satisfying',
+        [
+          { toFolder },
+          { pretest: true, name: 'FOO', projects: [{ name: 'FOO' }] }
+        ]
       );
     });
   });
 
   describe('when operating with pretest', () => {
     it('should return pending if pretestOrIgnore', () => {
-      const runInFolderSpy = sinon.stub().resolves();
+      const packageInstaller = createFakePackageInstaller();
+      packageInstaller.installTo.resolves();
       const preTestError = new Error('failure');
       const testInFolderSpy = sinon.stub().rejects(preTestError);
 
       return expect(
         testDependent(
           {
-            _runInFolder: runInFolderSpy,
             _testInFolder: testInFolderSpy,
+            packageInstaller,
             moduleName: 'https://github.com/bahmutov/dont-break-bar',
             toFolder: toFolder,
             pretestOrIgnore: true
           },
           {
             pretest: true,
-            packageName: 'somepackage',
-            packageVersion: 'latest',
             projects: [{ name: 'FOO' }],
             name: 'FOO'
           }
@@ -162,21 +166,20 @@ describe('testDependent', () => {
 
   describe('when operating without pretest', () => {
     it('should return test result structure', () => {
-      const runInFolderSpy = sinon.stub().resolves();
+      const packageInstaller = createFakePackageInstaller();
+      packageInstaller.installTo.resolves();
       const testInFolderSpy = sinon.stub().resolves();
 
       return expect(
         testDependent(
           {
-            _runInFolder: runInFolderSpy,
             _testInFolder: testInFolderSpy,
+            packageInstaller,
             moduleName: 'https://github.com/bahmutov/dont-break-bar',
             toFolder: toFolder
           },
           {
             pretest: false,
-            packageName: 'somepackage',
-            packageVersion: 'latest',
             projects: [{ name: 'FOO' }],
             name: 'FOO'
           }
