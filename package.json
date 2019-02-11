@@ -12,8 +12,8 @@
     "url": "https://github.com/alexjeffburke/fugl/issues"
   },
   "bin": {
-    "dont-break": "./bin/dont-break",
-    "fugl": "./bin/fugl"
+    "fugl": "./bin/fugl",
+    "dont-break": "./bin/dont-break"
   },
   "contributors": [
     "Gleb Bahmutov <gleb.bahmutov@gmail.com>"
