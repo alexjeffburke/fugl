@@ -18,8 +18,13 @@ module.exports = function main(cwd, yargv) {
   }
 
   return new Fugl(options).run().then(stats => {
+    console.log();
     if (stats.failures > 0) {
-      throw new Error('failed');
+      console.error('completed with failures');
+      process.exit(1);
+    } else {
+      console.log('completed');
+      process.exit(1);
     }
   });
 };

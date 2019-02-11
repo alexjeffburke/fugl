@@ -238,6 +238,7 @@ class Fugl extends EventEmitter {
       emitter.once('start', () => console.log());
       emitter.on('pass', test => console.log(`  ${test.title} PASSED`));
       emitter.on('fail', test => console.log(`  ${test.title} FAILED`));
+      emitter.on('fail', (_, error) => console.log(`${error}\n`));
       emitter.on('pending', test => console.log(`  ${test.title} SKIPPED`));
     }
 
