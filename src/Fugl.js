@@ -130,7 +130,8 @@ class Fugl extends EventEmitter {
 
   executeDependent(emitter, options, dependent) {
     const { packageInstaller } = this;
-    const testTemplate = {
+
+    const test = {
       title: dependent.name,
       body: '',
       duration: 0,
@@ -151,13 +152,13 @@ class Fugl extends EventEmitter {
       toFolder
     };
 
+    emitter.emit('test begin', test);
+
     return Promise.resolve()
       .then(() => this.installDependent(dependentOptions, dependent))
       .then(() => this.testDependent(dependentOptions, dependent))
       .catch(error => ({ packagetest: { status: 'fail', error } }))
       .then(executionResults => {
-        const test = Object.assign({}, testTemplate);
-
         let executionResult;
         const pretestResult = executionResults.pretest || { status: 'none' };
         if (pretestResult.status === 'fail') {
@@ -188,6 +189,8 @@ class Fugl extends EventEmitter {
             emitter.emit('pending', test);
             break;
         }
+
+        emitter.emit('test end', test);
       });
   }
 
