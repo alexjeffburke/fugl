@@ -3,11 +3,9 @@
 var debug = require('./debug');
 var fs = require('fs');
 var mkdirp = require('mkdirp');
-var path = require('path');
 var rimraf = require('rimraf');
 var simpleGit = require('simple-git/promise')();
 
-var isRepoUrl = require('./is-repo-url');
 var runInFolder = require('./run-in-folder');
 
 var DEFAULT_INSTALL_COMMAND = 'npm install';
@@ -28,59 +26,32 @@ function removeFolder(folder) {
 }
 
 function moduleProvision({ moduleName, toFolder, ...options }) {
-  if (isRepoUrl(moduleName)) {
-    if (options.noClean && fs.existsSync(toFolder)) {
-      debug('updating repo %s', moduleName);
+  if (options.noClean && fs.existsSync(toFolder)) {
+    debug('updating repo %s', moduleName);
 
-      return simpleGit
-        .cwd(toFolder)
-        .then(() => simpleGit.pull())
-        .then(() => debug('updated %s', moduleName));
-    } else {
-      removeFolder(toFolder);
-      createFolder(toFolder);
-
-      debug('cloning repo %s', moduleName);
-
-      return simpleGit.clone(moduleName, toFolder).then(() => {
-        debug('cloned %s', moduleName);
-      });
-    }
+    return simpleGit
+      .cwd(toFolder)
+      .then(() => simpleGit.pull())
+      .then(() => debug('updated %s', moduleName));
   } else {
-    return Promise.resolve();
+    removeFolder(toFolder);
+    createFolder(toFolder);
+
+    debug('cloning repo %s', moduleName);
+
+    return simpleGit.clone(moduleName, toFolder).then(() => {
+      debug('cloned %s', moduleName);
+    });
   }
 }
 
-function moduleInstall({ moduleName, toFolder }, dependent) {
-  let cmd = dependent.install || DEFAULT_INSTALL_COMMAND;
-  if (!isRepoUrl(moduleName)) {
-    cmd = `${cmd} ${moduleName}`;
-  }
-
-  function formFullFolderName() {
-    if (isRepoUrl(moduleName)) {
-      // simple repo installation
-      return toFolder;
-    } else {
-      let scoped = moduleName.startsWith('@');
-      let idx = scoped ? 1 : 0;
-      let moduleDir = moduleName.split('@')[idx];
-      moduleDir = scoped ? `@${moduleDir}` : moduleDir;
-      return path.join(toFolder, 'node_modules', moduleDir);
-    }
-  }
+function moduleInstall({ toFolder }, dependent) {
+  const cmd = dependent.install || DEFAULT_INSTALL_COMMAND;
 
   return runInFolder(toFolder, cmd, {
     success: 'installing module succeeded',
     failure: 'installing module failed'
-  })
-    .then(formFullFolderName)
-    .then(function checkInstalledFolder(folder) {
-      if (!fs.existsSync(folder)) {
-        throw new Error(`unable to verify installation at ${folder}`);
-      }
-      return folder;
-    });
+  }).then(() => toFolder);
 }
 
 function install({ moduleName, toFolder, ...options }, dependent) {
