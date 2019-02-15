@@ -76,6 +76,30 @@ describe('Fugl', () => {
     );
   });
 
+  it('should error with project missing name', () => {
+    return expect(
+      () => {
+        new Fugl({ package: 'somepackage', folder: __dirname, projects: [{}] });
+      },
+      'to throw',
+      'Fugl: project exists with no name'
+    );
+  });
+
+  it('should error with project name that is not a repository', () => {
+    return expect(
+      () => {
+        new Fugl({
+          package: 'somepackage',
+          folder: __dirname,
+          projects: ['FOO']
+        });
+      },
+      'to throw',
+      'Fugl: project FOO is not a repository'
+    );
+  });
+
   it('should default options', () => {
     const baseDir = path.resolve(__dirname);
     const fugl = new Fugl({
@@ -105,6 +129,30 @@ describe('Fugl', () => {
 
     return expect(fugl.config, 'to equal', {
       projects: []
+    });
+  });
+
+  it('should populate config (.git suffix)', () => {
+    const fugl = new Fugl({
+      package: 'somepackage',
+      folder: __dirname,
+      projects: ['https://host/foo.git']
+    });
+
+    return expect(fugl.config, 'to equal', {
+      projects: [{ name: 'https://host/foo.git' }]
+    });
+  });
+
+  it('should populate config (no .git suffix)', () => {
+    const fugl = new Fugl({
+      package: 'somepackage',
+      folder: __dirname,
+      projects: ['https://host/foo']
+    });
+
+    return expect(fugl.config, 'to equal', {
+      projects: [{ name: 'https://host/foo' }]
     });
   });
 
@@ -161,7 +209,7 @@ describe('Fugl', () => {
       package: 'somepackage',
       folder: __dirname,
       reporter: 'none',
-      projects: ['FOO']
+      projects: ['https://service.tld/foo.git']
     });
     sinon.stub(fugl, 'installDependent').resolves();
     sinon.stub(fugl, 'testDependent').resolves({
@@ -180,7 +228,7 @@ describe('Fugl', () => {
       package: 'somepackage',
       folder: __dirname,
       reporter: 'none',
-      projects: ['FOO']
+      projects: ['https://service.tld/foo.git']
     });
     const delayByMs = 100;
     sinon.stub(fugl, 'installDependent').returns(delay(delayByMs));
@@ -197,7 +245,7 @@ describe('Fugl', () => {
         [
           'pass',
           {
-            title: 'FOO',
+            title: 'https://service.tld/foo.git',
             duration: 0,
             isPending: expect.it('when called', 'to equal', false)
           }
@@ -213,7 +261,7 @@ describe('Fugl', () => {
       package: 'somepackage',
       folder: __dirname,
       reporter: 'none',
-      projects: ['FOO']
+      projects: ['https://service.tld/foo.git']
     });
     const error = new Error('bad times');
     const installDependentStub = sinon
@@ -235,13 +283,13 @@ describe('Fugl', () => {
           reportDir: path.join(__dirname, 'breakage'),
           tmpDir: path.join(__dirname, 'builds'),
           packageInstaller: expect.it('to be a', NpmStrategy),
-          moduleName: 'FOO',
-          toFolder: path.join(__dirname, 'builds', 'foo')
+          moduleName: 'https://service.tld/foo.git',
+          toFolder: path.join(__dirname, 'builds', 'https-service-tld-foo-git')
         },
         {
           pretest: true,
-          projects: [{ name: 'FOO' }],
-          name: 'FOO'
+          projects: [{ name: 'https://service.tld/foo.git' }],
+          name: 'https://service.tld/foo.git'
         }
       ]);
     });
@@ -252,7 +300,7 @@ describe('Fugl', () => {
       package: 'somepackage',
       folder: __dirname,
       reporter: 'none',
-      projects: ['FOO']
+      projects: ['https://service.tld/foo.git']
     });
     sinon.stub(fugl, 'installDependent').resolves();
     const error = new Error('bad times');
@@ -273,13 +321,13 @@ describe('Fugl', () => {
           reportDir: path.join(__dirname, 'breakage'),
           tmpDir: path.join(__dirname, 'builds'),
           packageInstaller: expect.it('to be a', NpmStrategy),
-          moduleName: 'FOO',
-          toFolder: path.join(__dirname, 'builds', 'foo')
+          moduleName: 'https://service.tld/foo.git',
+          toFolder: path.join(__dirname, 'builds', 'https-service-tld-foo-git')
         },
         {
           pretest: true,
-          projects: [{ name: 'FOO' }],
-          name: 'FOO'
+          projects: [{ name: 'https://service.tld/foo.git' }],
+          name: 'https://service.tld/foo.git'
         }
       ]);
     });
@@ -290,7 +338,7 @@ describe('Fugl', () => {
       package: 'somepackage',
       folder: __dirname,
       reporter: 'none',
-      projects: ['FOO'],
+      projects: ['https://service.tld/foo.git'],
       pretest: false
     });
     sinon.stub(fugl, 'installDependent').resolves();
@@ -316,13 +364,13 @@ describe('Fugl', () => {
           reportDir: path.join(__dirname, 'breakage'),
           tmpDir: path.join(__dirname, 'builds'),
           packageInstaller: expect.it('to be a', NpmStrategy),
-          moduleName: 'FOO',
-          toFolder: path.join(__dirname, 'builds', 'foo')
+          moduleName: 'https://service.tld/foo.git',
+          toFolder: path.join(__dirname, 'builds', 'https-service-tld-foo-git')
         },
         {
           pretest: false,
-          projects: [{ name: 'FOO' }],
-          name: 'FOO'
+          projects: [{ name: 'https://service.tld/foo.git' }],
+          name: 'https://service.tld/foo.git'
         }
       ]);
     });
@@ -333,7 +381,7 @@ describe('Fugl', () => {
       package: 'somepackage',
       folder: __dirname,
       reporter: 'none',
-      projects: ['FOO'],
+      projects: ['https://service.tld/foo.git'],
       pretest: false
     });
     const emitSpy = sinon.spy(fugl, 'emit');
@@ -353,7 +401,7 @@ describe('Fugl', () => {
       expect(emitSpy, 'to have calls satisfying', [
         ['start'],
         ['test begin', {}],
-        ['fail', { title: 'FOO' }, packageTestError],
+        ['fail', { title: 'https://service.tld/foo.git' }, packageTestError],
         ['test end', {}],
         ['end']
       ]);
@@ -368,7 +416,7 @@ describe('Fugl', () => {
             package: 'somepackage',
             folder: __dirname,
             reporter: 'none',
-            projects: ['FOO'],
+            projects: ['https://service.tld/foo.git'],
             pretest: false,
             pretestOrIgnore: true
           });
@@ -383,7 +431,7 @@ describe('Fugl', () => {
         package: 'somepackage',
         folder: __dirname,
         reporter: 'none',
-        projects: ['FOO'],
+        projects: ['https://service.tld/foo.git'],
         pretest: true,
         pretestOrIgnore: true
       });
@@ -405,7 +453,7 @@ describe('Fugl', () => {
           args: [
             'pending',
             {
-              title: 'FOO (skipped)',
+              title: 'https://service.tld/foo.git (skipped)',
               duration: expect.it('to be greater than or equal to', delayByMs),
               isPending: expect.it('when called', 'to equal', true)
             }
@@ -421,7 +469,11 @@ describe('Fugl', () => {
         package: 'somepackage',
         folder: __dirname,
         reporter: 'none',
-        projects: ['FOO', 'BAR', 'BAZ']
+        projects: [
+          'https://service.tld/foo.git',
+          'https://service.tld/bar.git',
+          'https://service.tld/baz.git'
+        ]
       });
       sinon.stub(fugl, 'installDependent').resolves();
       let testDependentCallCount = 0;
@@ -445,9 +497,9 @@ describe('Fugl', () => {
         failures: 1
       }).then(() => {
         expect(testDependentStub, 'to have calls satisfying', [
-          [{}, { name: 'FOO', pretest: true }],
-          [{}, { name: 'BAR', pretest: true }],
-          [{}, { name: 'BAZ', pretest: true }]
+          [{}, { name: 'https://service.tld/foo.git', pretest: true }],
+          [{}, { name: 'https://service.tld/bar.git', pretest: true }],
+          [{}, { name: 'https://service.tld/baz.git', pretest: true }]
         ]);
       });
     });
@@ -487,7 +539,7 @@ describe('Fugl', () => {
         package: 'somepackage',
         folder: __dirname,
         reporter: 'none',
-        projects: ['FOO']
+        projects: ['https://service.tld/foo.git']
       });
       sinon.stub(fugl, 'installDependent').resolves();
       const testDependentStub = sinon.stub(fugl, 'testDependent').resolves({
@@ -515,13 +567,17 @@ describe('Fugl', () => {
               reportDir: path.join(__dirname, 'breakage'),
               tmpDir: path.join(__dirname, 'builds'),
               packageInstaller: expect.it('to be a', NpmStrategy),
-              moduleName: 'FOO',
-              toFolder: path.join(__dirname, 'builds', 'foo')
+              moduleName: 'https://service.tld/foo.git',
+              toFolder: path.join(
+                __dirname,
+                'builds',
+                'https-service-tld-foo-git'
+              )
             },
             {
               pretest: true,
-              projects: [{ name: 'FOO' }],
-              name: 'FOO'
+              projects: [{ name: 'https://service.tld/foo.git' }],
+              name: 'https://service.tld/foo.git'
             }
           ]
         ]);
@@ -533,7 +589,7 @@ describe('Fugl', () => {
         package: 'somepackage',
         folder: __dirname,
         reporter: 'none',
-        projects: ['FOO']
+        projects: ['https://service.tld/foo.git']
       });
       sinon.stub(fugl, 'installDependent').resolves();
       const testDependentStub = sinon.stub(fugl, 'testDependent').resolves({
@@ -561,13 +617,17 @@ describe('Fugl', () => {
               reportDir: path.join(__dirname, 'breakage'),
               tmpDir: path.join(__dirname, 'builds'),
               packageInstaller: expect.it('to be a', NpmStrategy),
-              moduleName: 'FOO',
-              toFolder: path.join(__dirname, 'builds', 'foo')
+              moduleName: 'https://service.tld/foo.git',
+              toFolder: path.join(
+                __dirname,
+                'builds',
+                'https-service-tld-foo-git'
+              )
             },
             {
               pretest: true,
-              projects: [{ name: 'FOO' }],
-              name: 'FOO'
+              projects: [{ name: 'https://service.tld/foo.git' }],
+              name: 'https://service.tld/foo.git'
             }
           ]
         ]);
@@ -579,7 +639,7 @@ describe('Fugl', () => {
         package: 'somepackage',
         folder: __dirname,
         reporter: 'none',
-        projects: ['FOO']
+        projects: ['https://service.tld/foo.git']
       });
       const emitSpy = sinon.spy(fugl, 'emit');
       sinon.stub(fugl, 'installDependent').resolves();
@@ -598,9 +658,11 @@ describe('Fugl', () => {
         passes: 0,
         failures: 1
       }).then(() => {
-        expect(emitSpy, 'to have a call satisfying', {
-          args: ['fail', { title: 'FOO (pretest)' }, pretestError]
-        });
+        expect(emitSpy, 'to have a call satisfying', [
+          'fail',
+          { title: 'https://service.tld/foo.git (pretest)' },
+          pretestError
+        ]);
       });
     });
   });
@@ -611,7 +673,7 @@ describe('Fugl', () => {
         package: 'somepackage',
         folder: __dirname,
         reporter: 'none',
-        projects: [{ name: 'FOO', pretest: true }],
+        projects: [{ name: 'https://service.tld/foo.git', pretest: true }],
         pretest: false
       });
       sinon.stub(fugl, 'installDependent').resolves();
@@ -629,7 +691,7 @@ describe('Fugl', () => {
           [
             {},
             {
-              name: 'FOO',
+              name: 'https://service.tld/foo.git',
               pretest: true
             }
           ]

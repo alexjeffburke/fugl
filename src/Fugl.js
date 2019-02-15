@@ -3,6 +3,7 @@ var la = require('./la');
 var check = require('check-more-types');
 var debug = require('./debug');
 var EventEmitter = require('events');
+var isRepoUrl = require('./is-repo-url');
 var path = require('path');
 var mkdirp = require('mkdirp');
 var fs = require('fs-extra');
@@ -37,10 +38,16 @@ function checkConfig(loadedConfig) {
 
   const projects = dependents.map(project => {
     if (typeof project === 'string') {
-      return { name: project.trim() };
-    } else {
-      return project;
+      project = { name: project.trim() };
     }
+
+    if (!project.name) {
+      throw new Error('Fugl: project exists with no name');
+    } else if (!isRepoUrl(project.name)) {
+      throw new Error(`Fugl: project ${project.name} is not a repository`);
+    }
+
+    return project;
   });
 
   const config = { projects };
