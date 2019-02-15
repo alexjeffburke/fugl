@@ -172,9 +172,6 @@ module.exports = function dontBreak(options) {
     options.config = config;
     options.projects = config.projects;
 
-    if (config.projects) {
-      options.projects = config.projects;
-    }
     if (typeof config.pretest === 'boolean') {
       options.pretest = config.pretest;
     }

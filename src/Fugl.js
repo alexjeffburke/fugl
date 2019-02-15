@@ -32,7 +32,7 @@ function checkConfig(loadedConfig) {
       check.arrayOfStrings(dependents)
     )
   ) {
-    la(false, 'invalid dependents');
+    throw new Error('Fugl: invalid projects');
   }
 
   const projects = dependents.map(project => {
@@ -51,7 +51,7 @@ function checkConfig(loadedConfig) {
     }
   });
 
-  return config;
+  return Object.assign({}, loadedConfig, config);
 }
 
 class Fugl extends EventEmitter {
@@ -72,12 +72,8 @@ class Fugl extends EventEmitter {
       throw new Error('Fugl: missing folder');
     }
 
-    let projects;
     if (!Array.isArray(options.projects)) {
       throw new Error('Fugl: missing projects');
-    } else {
-      projects = options.projects;
-      delete options.projects;
     }
 
     options.noClean = !!options.noClean;
@@ -96,8 +92,12 @@ class Fugl extends EventEmitter {
       throw new Error('Fugl: cannot pretestOrIgnore without pretest');
     }
 
-    this.config = options.config ? Object.assign({}, options.config) : {};
-    this.config.projects = projects || this.config.projects;
+    const config = options.config ? Object.assign({}, options.config) : {};
+    if (!config.projects) {
+      config.projects = options.projects;
+      delete options.projects;
+    }
+    this.config = checkConfig(config);
 
     this.packageInstaller = null;
 
@@ -297,9 +297,6 @@ class Fugl extends EventEmitter {
     debug('working in folder %s', options.folder);
 
     return Promise.resolve().then(() => {
-      // update configuration
-      this.config = Object.assign({}, this.config, checkConfig(this.config));
-
       return this.testDependents();
     });
   }

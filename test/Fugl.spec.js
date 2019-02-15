@@ -56,13 +56,23 @@ describe('Fugl', () => {
     );
   });
 
-  it('should error with invalid projects', () => {
+  it('should error with missing projects (non-array)', () => {
     return expect(
       () => {
         new Fugl({ package: 'somepackage', folder: __dirname, projects: {} });
       },
       'to throw',
       'Fugl: missing projects'
+    );
+  });
+
+  it('should error with invalid projects', () => {
+    return expect(
+      () => {
+        new Fugl({ package: 'somepackage', folder: __dirname, projects: [1] });
+      },
+      'to throw',
+      'Fugl: invalid projects'
     );
   });
 
