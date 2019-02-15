@@ -136,6 +136,7 @@ class Fugl extends EventEmitter {
       body: '',
       duration: 0,
       fullTitle: () => dependent.name,
+      isPending: () => false,
       slow: () => 0
     };
 
@@ -151,6 +152,7 @@ class Fugl extends EventEmitter {
       moduleName,
       toFolder
     };
+    const startTime = Date.now();
 
     emitter.emit('test begin', test);
 
@@ -169,6 +171,14 @@ class Fugl extends EventEmitter {
           executionResult = pretestResult;
         } else {
           executionResult = executionResults.packagetest;
+        }
+
+        if (executionResult.status === 'pending') {
+          // identify it as such
+          test.isPending = () => true;
+          // update how long the test took
+          const endTime = Date.now();
+          test.duration = endTime - startTime;
         }
 
         switch (executionResult.status) {

@@ -9,6 +9,8 @@ const Fugl = require('../src/Fugl');
 const LinkStrategy = require('../src/LinkStrategy');
 const NpmStrategy = require('../src/NpmStrategy');
 
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 describe('Fugl', () => {
   beforeEach(() => {
     rimraf.sync(path.join(__dirname, 'scratch', 'builds'));
@@ -170,7 +172,8 @@ describe('Fugl', () => {
       reporter: 'none',
       projects: ['FOO']
     });
-    sinon.stub(fugl, 'installDependent').resolves();
+    const delayByMs = 100;
+    sinon.stub(fugl, 'installDependent').returns(delay(delayByMs));
     sinon.stub(fugl, 'testDependent').resolves({
       pretest: { status: 'pass' },
       packagetest: { status: 'pass' }
@@ -181,7 +184,14 @@ describe('Fugl', () => {
       expect(emitSpy, 'to have calls satisfying', [
         ['start'],
         ['test begin', {}],
-        ['pass', {}],
+        [
+          'pass',
+          {
+            title: 'FOO',
+            duration: 0,
+            isPending: expect.it('when called', 'to equal', false)
+          }
+        ],
         ['test end', {}],
         ['end']
       ]);
@@ -368,7 +378,8 @@ describe('Fugl', () => {
         pretestOrIgnore: true
       });
       const emitSpy = sinon.spy(fugl, 'emit');
-      sinon.stub(fugl, 'installDependent').resolves();
+      const delayByMs = 100;
+      sinon.stub(fugl, 'installDependent').returns(delay(delayByMs));
       sinon.stub(fugl, 'testDependent').resolves({
         pretest: {
           status: 'pending'
@@ -381,7 +392,14 @@ describe('Fugl', () => {
         skipped: 1
       }).then(() => {
         expect(emitSpy, 'to have a call satisfying', {
-          args: ['pending', { title: 'FOO (skipped)' }]
+          args: [
+            'pending',
+            {
+              title: 'FOO (skipped)',
+              duration: expect.it('to be greater than or equal to', delayByMs),
+              isPending: expect.it('when called', 'to equal', true)
+            }
+          ]
         });
       });
     });
