@@ -181,12 +181,13 @@ class Fugl extends EventEmitter {
           executionResult = executionResults.packagetest;
         }
 
+        // update how long the test took
+        const endTime = Date.now();
+        test.duration = endTime - startTime;
+
         if (executionResult.status === 'pending') {
           // identify it as such
           test.isPending = () => true;
-          // update how long the test took
-          const endTime = Date.now();
-          test.duration = endTime - startTime;
         }
 
         switch (executionResult.status) {

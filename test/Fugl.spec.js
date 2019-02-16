@@ -245,7 +245,7 @@ describe('Fugl', () => {
           'pass',
           {
             title: 'https://service.tld/foo.git',
-            duration: 0,
+            duration: expect.it('to be within', 95, 105),
             isPending: expect.it('when called', 'to equal', false)
           }
         ],
