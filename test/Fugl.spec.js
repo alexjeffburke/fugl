@@ -67,13 +67,13 @@ describe('Fugl', () => {
     );
   });
 
-  it('should error with invalid projects', () => {
+  it('should error with invalid project', () => {
     return expect(
       () => {
         new Fugl({ package: 'somepackage', folder: __dirname, projects: [1] });
       },
       'to throw',
-      'Fugl: invalid projects'
+      'Fugl: project supplied without name'
     );
   });
 
@@ -202,6 +202,21 @@ describe('Fugl', () => {
       },
       'to throw',
       'Fugl: unsupported package installer other'
+    );
+  });
+
+  it('should error when run() is called with no projects', () => {
+    const fugl = new Fugl({
+      package: 'somepackage',
+      folder: __dirname,
+      reporter: 'none',
+      projects: []
+    });
+
+    return expect(
+      () => fugl.run(),
+      'to be rejected with',
+      'Fugl: no projects specified'
     );
   });
 

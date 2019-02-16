@@ -1,6 +1,4 @@
 var _ = require('lodash');
-var la = require('./la');
-var check = require('check-more-types');
 var debug = require('./debug');
 var EventEmitter = require('events');
 var path = require('path');
@@ -25,18 +23,7 @@ var MOCHA_HTML_DOCUMENT = `<html>
 `;
 
 function checkConfig(loadedConfig) {
-  const dependents = loadedConfig.projects;
-
-  if (
-    !(
-      check.arrayOf(check.object, dependents) ||
-      check.arrayOfStrings(dependents)
-    )
-  ) {
-    throw new Error('Fugl: invalid projects');
-  }
-
-  const projects = dependents.map(project => {
+  const projects = loadedConfig.projects.map(project => {
     try {
       return new Project(project);
     } catch (e) {
@@ -229,7 +216,9 @@ class Fugl extends EventEmitter {
       skipped: 0
     };
 
-    la(check.array(config.projects), 'expected dependents', config.projects);
+    if (config.projects.length === 0) {
+      throw new Error('Fugl: no projects specified');
+    }
 
     const emitter = this;
     emitter.on('pass', () => (stats.passes += 1));
