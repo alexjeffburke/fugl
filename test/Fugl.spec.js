@@ -93,11 +93,11 @@ describe('Fugl', () => {
         new Fugl({
           package: 'somepackage',
           folder: __dirname,
-          projects: ['FOO']
+          projects: ['@FOO']
         });
       },
       'to throw',
-      'Fugl: project FOO is not a repository'
+      'Fugl: project @FOO is not a repository'
     );
   });
 
@@ -224,7 +224,7 @@ describe('Fugl', () => {
     });
   });
 
-  it('should emit on a pass', () => {
+  it('should emit on a pass (git)', () => {
     const fugl = new Fugl({
       package: 'somepackage',
       folder: __dirname,
@@ -247,6 +247,55 @@ describe('Fugl', () => {
           {
             title: 'https://service.tld/foo.git',
             duration: expect.it('to be within', 95, 105),
+            isPending: expect.it('when called', 'to equal', false)
+          }
+        ],
+        ['test end', {}],
+        ['end']
+      ]);
+    });
+  });
+
+  it('should emit on a pass (npm)', () => {
+    const fugl = new Fugl({
+      package: 'somepackage',
+      folder: __dirname,
+      reporter: 'none',
+      projects: ['somepackage-plugin-foo']
+    });
+    // fake the project repoUrl baing updated on verification
+    const repoUrl = 'https://service.tld/plugin.git';
+    fugl.config.projects[0].repoUrl = repoUrl;
+    sinon.stub(fugl, 'checkProject').resolves();
+    const installDependent = sinon.stub(fugl, 'installDependent').resolves();
+    sinon.stub(fugl, 'testDependent').resolves({
+      pretest: { status: 'pass' },
+      packagetest: { status: 'pass' }
+    });
+    const emitSpy = sinon.spy(fugl, 'emit');
+
+    return expect(() => fugl.run(), 'to be fulfilled').then(() => {
+      expect(installDependent, 'to have a call satisfying', [
+        {
+          moduleName: repoUrl,
+          toFolder: path.join(
+            __dirname,
+            'builds',
+            'https-service-tld-plugin-git'
+          )
+        },
+        {
+          name: repoUrl
+        }
+      ]);
+      expect(emitSpy, 'to have calls satisfying', [
+        ['start'],
+        ['test begin', {}],
+        [
+          'pass',
+          {
+            title: 'somepackage-plugin-foo',
+            duration: expect.it('to be within', 0, 5),
             isPending: expect.it('when called', 'to equal', false)
           }
         ],
@@ -372,6 +421,34 @@ describe('Fugl', () => {
           projects: expect.it('to equal', fugl.config.projects),
           name: 'https://service.tld/foo.git'
         }
+      ]);
+    });
+  });
+
+  it('should emit failure on a fail (checkProject)', () => {
+    const fugl = new Fugl({
+      package: 'somepackage',
+      folder: __dirname,
+      reporter: 'none',
+      projects: ['somepackage']
+    });
+    const error = new Error('bad times');
+    const checkProject = sinon.stub(fugl, 'checkProject').rejects(error);
+    const emitSpy = sinon.spy(fugl, 'emit');
+
+    return expect(fugl.run(), 'to be fulfilled with', {
+      passes: 0,
+      failures: 1
+    }).then(() => {
+      expect(checkProject, 'to have a call satisfying', [
+        new Project({ name: 'somepackage', kind: 'npm', repoUrl: null })
+      ]);
+      expect(emitSpy, 'to have calls satisfying', [
+        ['start'],
+        ['test begin', {}],
+        ['fail', { title: 'somepackage' }, error],
+        ['test end', {}],
+        ['end']
       ]);
     });
   });

@@ -129,14 +129,14 @@ class Fugl extends EventEmitter {
     );
   }
 
-  executeDependent(emitter, options, dependent) {
+  executeDependent(emitter, options, project, dependent) {
     const { packageInstaller } = this;
 
     const test = {
-      title: dependent.name,
+      title: project.name,
       body: '',
       duration: 0,
-      fullTitle: () => dependent.name,
+      fullTitle: () => project.name,
       isPending: () => false,
       currentRetry: () => 0,
       slow: () => 0
@@ -159,6 +159,7 @@ class Fugl extends EventEmitter {
     emitter.emit('test begin', test);
 
     return Promise.resolve()
+      .then(() => this.checkProject(project))
       .then(() => this.installDependent(dependentOptions, dependent))
       .then(() => this.testDependent(dependentOptions, dependent))
       .catch(error => ({ packagetest: { status: 'fail', error } }))
@@ -205,6 +206,10 @@ class Fugl extends EventEmitter {
 
         emitter.emit('test end', test);
       });
+  }
+
+  checkProject(project) {
+    return project.verify();
   }
 
   installDependent(options, dependent) {
@@ -262,12 +267,13 @@ class Fugl extends EventEmitter {
 
     // TODO switch to parallel testing!
     return config.projects
-      .reduce((prev, dependent) => {
+      .reduce((prev, project) => {
         return prev.then(() => {
           return this.executeDependent(
             emitter,
             options,
-            this.configForDependent(dependent)
+            project,
+            this.configForDependent(project)
           );
         });
       }, Promise.resolve(true))
