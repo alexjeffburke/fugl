@@ -26,6 +26,8 @@ function isRepoUrl(url) {
 }
 
 function parsePackageRepo(packageInfo) {
+  const name = packageInfo.name;
+
   if (packageInfo.repository) {
     let repository = packageInfo.repository;
     if (typeof repository !== 'string') {
@@ -34,10 +36,10 @@ function parsePackageRepo(packageInfo) {
     if (isRepoUrl(repository)) {
       return repository;
     } else {
-      throw new Error('project repository is invalid');
+      throw new Error(`project ${name} repository is invalid`);
     }
   } else {
-    throw new Error('project repository is missing');
+    throw new Error(`project ${name} repository is missing`);
   }
 }
 

@@ -93,26 +93,26 @@ describe('Project', () => {
     it('should error missing repository', () => {
       const project = new Project('somepackage');
       const moduleStats = {
-        fetchInfo: sinon.stub().resolves({})
+        fetchInfo: sinon.stub().resolves({ name: 'somepackage' })
       };
 
       return expect(
         () => project.queryNpmForPackageAndUpdate('somepackage', moduleStats),
         'to be rejected with',
-        'project repository is missing'
+        'project somepackage repository is missing'
       );
     });
 
     it('should error on bad repository', () => {
       const project = new Project('somepackage');
       const moduleStats = {
-        fetchInfo: sinon.stub().resolves({ repository: { url: 'baz' } })
+        fetchInfo: sinon.stub().resolves({ name: 'somepackage', repository: { url: 'baz' } })
       };
 
       return expect(
         () => project.queryNpmForPackageAndUpdate('somepackage', moduleStats),
         'to be rejected with',
-        'project repository is invalid'
+        'project somepackage repository is invalid'
       );
     });
 
