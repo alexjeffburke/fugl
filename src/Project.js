@@ -1,9 +1,15 @@
 const isGitUrl = require('is-git-url');
 const urlModule = require('url');
+const validateNpmPackageName = require('validate-npm-package-name');
 
 const ModuleStats = require('./ModuleStats');
 
 const GIT_REPO_SUFFIX = '.git';
+
+function isPackageName(name) {
+  const result = validateNpmPackageName(name);
+  return result.validForNewPackages || result.validForOldPackages;
+}
 
 function isRepoUrl(url) {
   const parsedUrl = urlModule.parse(url);
@@ -17,6 +23,22 @@ function isRepoUrl(url) {
   }
 
   return isGitUrl(url);
+}
+
+function parsePackageRepo(packageInfo) {
+  if (packageInfo.repository) {
+    let repository = packageInfo.repository;
+    if (typeof repository !== 'string') {
+      repository = repository.url;
+    }
+    if (isRepoUrl(repository)) {
+      return repository;
+    } else {
+      throw new Error('project repository is invalid');
+    }
+  } else {
+    throw new Error('project repository is missing');
+  }
 }
 
 class Project {
@@ -38,6 +60,8 @@ class Project {
     } else if (isRepoUrl(name)) {
       this.kind = 'git';
       this.repoUrl = name;
+    } else if (isPackageName(name)) {
+      this.kind = 'npm';
     } else {
       throw new Error(`project ${name} is not a repository`);
     }
@@ -51,7 +75,32 @@ class Project {
     const dependent = Object.assign({}, this);
     delete dependent.kind;
     delete dependent.repoUrl;
+    dependent.name = this.repoUrl;
     return dependent;
+  }
+
+  queryNpmForPackageAndUpdate(name, _moduleStats) {
+    const moduleStats = _moduleStats || new ModuleStats(name);
+
+    return moduleStats
+      .fetchInfo()
+      .catch(() => {
+        throw new Error(`unable to access package ${name}`);
+      })
+      .then(packageInfo => {
+        this.repoUrl = parsePackageRepo(packageInfo);
+      });
+  }
+
+  verify() {
+    switch (this.kind) {
+      case 'git':
+        return Promise.resolve();
+      case 'npm':
+        return this.queryNpmForPackageAndUpdate(this.name);
+      default:
+        throw new Error('Invalid kind');
+    }
   }
 }
 
