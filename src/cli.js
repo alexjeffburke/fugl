@@ -24,7 +24,7 @@ module.exports = function main(cwd, yargv) {
       process.exit(1);
     } else {
       console.warn('completed');
-      process.exit(1);
+      process.exit(0);
     }
   });
 };
