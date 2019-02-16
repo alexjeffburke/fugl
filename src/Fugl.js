@@ -106,19 +106,17 @@ class Fugl extends EventEmitter {
     }
   }
 
-  configForDependent(dependent) {
+  configForDependent(project) {
     return Object.assign(
       {
         pretest: this.options.pretest
       },
       this.config,
-      dependent.toDependent()
+      project.toDependent()
     );
   }
 
-  executeDependent(emitter, options, project, dependent) {
-    const { packageInstaller } = this;
-
+  executeDependent(emitter, project) {
     const test = {
       title: project.name,
       body: '',
@@ -129,24 +127,32 @@ class Fugl extends EventEmitter {
       slow: () => 0
     };
 
-    const moduleName = dependent.name;
-    const safeName = _.kebabCase(_.deburr(moduleName));
-    debug('original name "%s", safe "%s"', moduleName, safeName);
-    const toFolder = path.join(options.tmpDir, safeName);
-    debug('testing folder %s', toFolder);
-
-    const dependentOptions = {
-      ...options,
-      packageInstaller,
-      moduleName,
-      toFolder
-    };
+    let dependent;
+    let dependentOptions;
     const startTime = Date.now();
 
     emitter.emit('test begin', test);
 
     return Promise.resolve()
       .then(() => this.checkProject(project))
+      .then(() => {
+        const { options, packageInstaller } = this;
+
+        const moduleName = project.repoUrl;
+        const safeName = _.kebabCase(_.deburr(moduleName));
+        debug('original name "%s", safe "%s"', moduleName, safeName);
+
+        const toFolder = path.join(options.tmpDir, safeName);
+        debug('testing folder %s', toFolder);
+
+        dependent = this.configForDependent(project);
+        dependentOptions = {
+          ...options,
+          packageInstaller,
+          moduleName,
+          toFolder
+        };
+      })
       .then(() => this.installDependent(dependentOptions, dependent))
       .then(() => this.testDependent(dependentOptions, dependent))
       .catch(error => ({ packagetest: { status: 'fail', error } }))
@@ -174,19 +180,19 @@ class Fugl extends EventEmitter {
 
         switch (executionResult.status) {
           case 'pass':
-            debug('testDependent passed for %s', dependent.name);
+            debug('testDependent passed for %s', project.name);
             emitter.emit('pass', test);
             break;
           case 'fail':
             debug(
               'testDependent failed for %s: %s',
-              dependent.name,
+              project.name,
               executionResult.error
             );
             emitter.emit('fail', test, executionResult.error);
             break;
           case 'pending':
-            debug('testDependent skipped for %s', dependent.name);
+            debug('testDependent skipped for %s', project.name);
             emitter.emit('pending', test);
             break;
         }
@@ -258,12 +264,7 @@ class Fugl extends EventEmitter {
     return config.projects
       .reduce((prev, project) => {
         return prev.then(() => {
-          return this.executeDependent(
-            emitter,
-            options,
-            project,
-            this.configForDependent(project)
-          );
+          return this.executeDependent(emitter, project);
         });
       }, Promise.resolve(true))
       .then(() => {

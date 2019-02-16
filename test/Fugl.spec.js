@@ -278,10 +278,13 @@ describe('Fugl', () => {
       reporter: 'none',
       projects: ['somepackage-plugin-foo']
     });
-    // fake the project repoUrl baing updated on verification
     const repoUrl = 'https://service.tld/plugin.git';
-    fugl.config.projects[0].repoUrl = repoUrl;
-    sinon.stub(fugl, 'checkProject').resolves();
+    sinon.stub(fugl, 'checkProject').callsFake(() => {
+      // fake the project repoUrl baing updated on verification
+      fugl.config.projects[0].repoUrl = repoUrl;
+      // now complete the operation
+      return Promise.resolve();
+    });
     const installDependent = sinon.stub(fugl, 'installDependent').resolves();
     sinon.stub(fugl, 'testDependent').resolves({
       pretest: { status: 'pass' },
@@ -597,7 +600,7 @@ describe('Fugl', () => {
   });
 
   describe('with customised test execution config', () => {
-    it('should include script overrides', () => {
+    it('should include script overrides in config', () => {
       const fugl = new Fugl({
         package: 'package-and-overrides',
         folder: __dirname,
@@ -620,6 +623,67 @@ describe('Fugl', () => {
           postinstall: 'POSTINSTALL',
           test: 'TEST'
         });
+      });
+    });
+
+    it('should pass script overrides to installDependent', () => {
+      const fugl = new Fugl({
+        package: 'package-and-overrides',
+        folder: __dirname,
+        projects: ['https://service.tld/foo'],
+        reporter: 'none',
+        config: {
+          install: 'INSTALL',
+          postinstall: 'POSTINSTALL',
+          test: 'TEST'
+        }
+      });
+      sinon.stub(fugl, 'checkProject').resolves();
+      const installDependentStub = sinon
+        .stub(fugl, 'installDependent')
+        .rejects(new Error());
+
+      return expect(() => fugl.run(), 'to be fulfilled').then(() => {
+        expect(installDependentStub, 'to have a call satisfying', [
+          {},
+          {
+            name: 'https://service.tld/foo',
+            install: 'INSTALL',
+            postinstall: 'POSTINSTALL',
+            test: 'TEST'
+          }
+        ]);
+      });
+    });
+
+    it('should pass script overrides to testDependent', () => {
+      const fugl = new Fugl({
+        package: 'package-and-overrides',
+        folder: __dirname,
+        projects: ['https://service.tld/foo'],
+        reporter: 'none',
+        config: {
+          install: 'INSTALL',
+          postinstall: 'POSTINSTALL',
+          test: 'TEST'
+        }
+      });
+      sinon.stub(fugl, 'checkProject').resolves();
+      sinon.stub(fugl, 'installDependent').resolves();
+      const testDependentStub = sinon
+        .stub(fugl, 'testDependent')
+        .rejects(new Error());
+
+      return expect(() => fugl.run(), 'to be fulfilled').then(() => {
+        expect(testDependentStub, 'to have a call satisfying', [
+          {},
+          {
+            name: 'https://service.tld/foo',
+            install: 'INSTALL',
+            postinstall: 'POSTINSTALL',
+            test: 'TEST'
+          }
+        ]);
       });
     });
   });
