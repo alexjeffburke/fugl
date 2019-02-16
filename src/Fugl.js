@@ -1,10 +1,10 @@
 var _ = require('lodash');
+var copyFileSync = require('fs-copy-file-sync');
 var debug = require('./debug');
 var EventEmitter = require('events');
+var fs = require('fs');
 var path = require('path');
 var mkdirp = require('mkdirp');
-var fs = require('fs-extra');
-var exists = require('fs').existsSync;
 
 var installDependent = require('./install-dependent');
 var LinkStrategy = require('./LinkStrategy');
@@ -272,8 +272,10 @@ class Fugl extends EventEmitter {
       })
       .then(() => {
         if (options.reporter === 'html') {
-          fs.ensureDirSync(options.reportDir);
-          fs.copyFileSync(
+          if (!fs.existsSync(options.reportDir)) {
+            mkdirp.sync(options.reportDir);
+          }
+          copyFileSync(
             require.resolve('mocha/mocha.css'),
             path.join(options.reportDir, 'index.css')
           );
@@ -289,7 +291,7 @@ class Fugl extends EventEmitter {
   run() {
     const options = this.options;
 
-    if (!exists(options.folder)) {
+    if (!fs.existsSync(options.folder)) {
       mkdirp.sync(options.folder);
     }
 
