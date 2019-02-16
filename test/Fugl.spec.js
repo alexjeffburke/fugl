@@ -230,8 +230,7 @@ describe('Fugl', () => {
       reporter: 'none',
       projects: ['https://service.tld/foo.git']
     });
-    const delayByMs = 100;
-    sinon.stub(fugl, 'installDependent').returns(delay(delayByMs));
+    sinon.stub(fugl, 'installDependent').returns(delay(100));
     sinon.stub(fugl, 'testDependent').resolves({
       pretest: { status: 'pass' },
       packagetest: { status: 'pass' }
@@ -436,8 +435,7 @@ describe('Fugl', () => {
         pretestOrIgnore: true
       });
       const emitSpy = sinon.spy(fugl, 'emit');
-      const delayByMs = 100;
-      sinon.stub(fugl, 'installDependent').returns(delay(delayByMs));
+      sinon.stub(fugl, 'installDependent').returns(delay(100));
       sinon.stub(fugl, 'testDependent').resolves({
         pretest: {
           status: 'pending'
@@ -454,7 +452,7 @@ describe('Fugl', () => {
             'pending',
             {
               title: 'https://service.tld/foo.git (skipped)',
-              duration: expect.it('to be greater than or equal to', delayByMs),
+              duration: expect.it('to be within', 95, 105),
               isPending: expect.it('when called', 'to equal', true)
             }
           ]
