@@ -106,7 +106,9 @@ describe('Project', () => {
     it('should error on bad repository', () => {
       const project = new Project('somepackage');
       const moduleStats = {
-        fetchInfo: sinon.stub().resolves({ name: 'somepackage', repository: { url: 'baz' } })
+        fetchInfo: sinon
+          .stub()
+          .resolves({ name: 'somepackage', repository: { url: 'baz' } })
       };
 
       return expect(
