@@ -8,6 +8,7 @@ const sinon = require('sinon');
 const Fugl = require('../src/Fugl');
 const LinkStrategy = require('../src/LinkStrategy');
 const NpmStrategy = require('../src/NpmStrategy');
+const Project = require('../src/Project');
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -82,7 +83,7 @@ describe('Fugl', () => {
         new Fugl({ package: 'somepackage', folder: __dirname, projects: [{}] });
       },
       'to throw',
-      'Fugl: project exists with no name'
+      'Fugl: project supplied without name'
     );
   });
 
@@ -140,7 +141,7 @@ describe('Fugl', () => {
     });
 
     return expect(fugl.config, 'to equal', {
-      projects: [{ name: 'https://host/foo.git' }]
+      projects: [new Project({ name: 'https://host/foo.git' })]
     });
   });
 
@@ -152,7 +153,7 @@ describe('Fugl', () => {
     });
 
     return expect(fugl.config, 'to equal', {
-      projects: [{ name: 'https://host/foo' }]
+      projects: [new Project({ name: 'https://host/foo' })]
     });
   });
 
@@ -287,7 +288,7 @@ describe('Fugl', () => {
         },
         {
           pretest: true,
-          projects: [{ name: 'https://service.tld/foo.git' }],
+          projects: expect.it('to equal', fugl.config.projects),
           name: 'https://service.tld/foo.git'
         }
       ]);
@@ -325,7 +326,7 @@ describe('Fugl', () => {
         },
         {
           pretest: true,
-          projects: [{ name: 'https://service.tld/foo.git' }],
+          projects: expect.it('to equal', fugl.config.projects),
           name: 'https://service.tld/foo.git'
         }
       ]);
@@ -368,7 +369,7 @@ describe('Fugl', () => {
         },
         {
           pretest: false,
-          projects: [{ name: 'https://service.tld/foo.git' }],
+          projects: expect.it('to equal', fugl.config.projects),
           name: 'https://service.tld/foo.git'
         }
       ]);
@@ -574,7 +575,7 @@ describe('Fugl', () => {
             },
             {
               pretest: true,
-              projects: [{ name: 'https://service.tld/foo.git' }],
+              projects: expect.it('to equal', fugl.config.projects),
               name: 'https://service.tld/foo.git'
             }
           ]
@@ -624,7 +625,7 @@ describe('Fugl', () => {
             },
             {
               pretest: true,
-              projects: [{ name: 'https://service.tld/foo.git' }],
+              projects: expect.it('to equal', fugl.config.projects),
               name: 'https://service.tld/foo.git'
             }
           ]

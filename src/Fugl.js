@@ -3,7 +3,6 @@ var la = require('./la');
 var check = require('check-more-types');
 var debug = require('./debug');
 var EventEmitter = require('events');
-var isRepoUrl = require('./is-repo-url');
 var path = require('path');
 var mkdirp = require('mkdirp');
 var fs = require('fs-extra');
@@ -12,6 +11,7 @@ var exists = require('fs').existsSync;
 var installDependent = require('./install-dependent');
 var LinkStrategy = require('./LinkStrategy');
 var NpmStrategy = require('./NpmStrategy');
+var Project = require('./Project');
 var testDependent = require('./test-dependent');
 
 var MOCHA_HTML_DOCUMENT = `<html>
@@ -37,17 +37,11 @@ function checkConfig(loadedConfig) {
   }
 
   const projects = dependents.map(project => {
-    if (typeof project === 'string') {
-      project = { name: project.trim() };
+    try {
+      return new Project(project);
+    } catch (e) {
+      throw new Error(`Fugl: ${e.message}`);
     }
-
-    if (!project.name) {
-      throw new Error('Fugl: project exists with no name');
-    } else if (!isRepoUrl(project.name)) {
-      throw new Error(`Fugl: project ${project.name} is not a repository`);
-    }
-
-    return project;
   });
 
   const config = { projects };
@@ -131,7 +125,7 @@ class Fugl extends EventEmitter {
         pretest: this.options.pretest
       },
       this.config,
-      dependent
+      dependent.toDependent()
     );
   }
 
