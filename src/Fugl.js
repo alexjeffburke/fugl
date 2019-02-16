@@ -144,6 +144,7 @@ class Fugl extends EventEmitter {
       duration: 0,
       fullTitle: () => dependent.name,
       isPending: () => false,
+      currentRetry: () => 0,
       slow: () => 0
     };
 
