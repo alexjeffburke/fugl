@@ -50,6 +50,10 @@ class ModuleStats {
       return Promise.resolve(this.dependents);
     }
 
+    return this.fetchNpmDependents();
+  }
+
+  fetchNpmDependents() {
     return ModuleStats.createPackageRequest(this.moduleName, 'dependents').then(
       result => {
         this.dependents = result;

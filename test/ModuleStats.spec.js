@@ -48,16 +48,21 @@ describe('ModuleStats', () => {
       createPackageRequestStub.restore();
     });
 
-    it('should fetch and record dependents', () => {
-      createPackageRequestStub.resolves(['foo', 'bar', 'baz']);
+    it('should fetch and record npm dependents', () => {
       const moduleStats = new ModuleStats('sompackage');
+      const fetchNpmDependentsStub = sinon.stub(
+        moduleStats,
+        'fetchNpmDependents'
+      );
+      fetchNpmDependentsStub.resolves(['foo', 'bar', 'baz']);
+      createPackageRequestStub.resolves();
 
       return expect(moduleStats.fetchDependents(), 'to be fulfilled with', [
         'foo',
         'bar',
         'baz'
       ]).then(() => {
-        expect(moduleStats.dependents, 'to equal', ['foo', 'bar', 'baz']);
+        expect(fetchNpmDependentsStub, 'was called');
       });
     });
 
@@ -70,6 +75,34 @@ describe('ModuleStats', () => {
         'quux'
       ]).then(() => {
         expect(createPackageRequestStub, 'was not called');
+      });
+    });
+  });
+
+  describe('#fetchNpmDependents', () => {
+    let createPackageRequestStub;
+
+    beforeEach(() => {
+      createPackageRequestStub = sinon.stub(
+        ModuleStats,
+        'createPackageRequest'
+      );
+    });
+
+    afterEach(() => {
+      createPackageRequestStub.restore();
+    });
+
+    it('should fetch and record dependents', () => {
+      createPackageRequestStub.resolves(['foo', 'bar', 'baz']);
+      const moduleStats = new ModuleStats('sompackage');
+
+      return expect(moduleStats.fetchNpmDependents(), 'to be fulfilled with', [
+        'foo',
+        'bar',
+        'baz'
+      ]).then(() => {
+        expect(moduleStats.dependents, 'to equal', ['foo', 'bar', 'baz']);
       });
     });
   });
