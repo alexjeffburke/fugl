@@ -19,10 +19,16 @@ confidence that forward progress does not come at the expense of compatibility.
 ## Interactively with npx
 
 To check a project currently being worked on the Fugl binary can be invoked via `npx`.
-The current directory is scanned for package.json and testde against the listed projects:
+The current directory is scanned for package.json and tested against the listed projects:
 
 ```
 npx fugl --projects https://github.com/alexjeffburke/jest-unexpected
+```
+
+You can also specify the npm name of projects and Fugl will try to discover the repository:
+
+```
+npx fugl --projects assert-the-unexpected
 ```
 
 ## Installed as a CLI
@@ -53,8 +59,8 @@ open breakage/index.html
 ## Architecture
 
 Internally Fugl is implemented as a [mocha](https://mochajs.org/)-esque test runner. As checks are
-executued events are emitted which are passed into [reporters](https://mochajs.org/#reporters) that
-generate output information. A default reporter is included twhich outputs to the console.
+executed events are emitted which are passed into [reporters](https://mochajs.org/#reporters) that
+generate output information. A default reporter is included which outputs to the console.
 
 In the case of the HTML reporter, we use JSDOM as the output document and serialise a report on exit.
 
