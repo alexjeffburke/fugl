@@ -109,6 +109,50 @@ describe('ModuleStats', () => {
     });
   });
 
+  describe('#fetchInfo', () => {
+    let createPackageRequestStub;
+
+    beforeEach(() => {
+      createPackageRequestStub = sinon.stub(
+        ModuleStats,
+        'createPackageRequest'
+      );
+    });
+
+    afterEach(() => {
+      createPackageRequestStub.restore();
+    });
+
+    it('should fetch and record package.json', () => {
+      const result = { name: 'fugl', foo: 'bar' };
+      createPackageRequestStub.resolves(result);
+      const moduleStats = new ModuleStats('fugl');
+
+      return expect(
+        moduleStats.fetchInfo(),
+        'to be fulfilled with',
+        result
+      ).then(() => {
+        expect(moduleStats.packageJson, 'to equal', result);
+      });
+    });
+
+    it('should return previously fetched package.json', () => {
+      createPackageRequestStub.resolves({ name: 'fugl', foo: 'baz' });
+      const moduleStats = new ModuleStats('fugl');
+      const result = { name: 'fugl', foo: 'bar' };
+      moduleStats.packageJson = result;
+
+      return expect(
+        moduleStats.fetchInfo(),
+        'to be fulfilled with',
+        result
+      ).then(() => {
+        expect(createPackageRequestStub, 'was not called');
+      });
+    });
+  });
+
   describe('ModuleStats.createPackageRequest', () => {
     function createFakeRegistry() {
       const moduleNamespace = {

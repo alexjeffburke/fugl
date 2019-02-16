@@ -42,6 +42,7 @@ class ModuleStats {
     this.moduleName = moduleName;
 
     this.dependents = null;
+    this.packageJson = null;
   }
 
   fetchDependents() {
@@ -99,6 +100,19 @@ class ModuleStats {
           new Error(`${metric} is not a supported metric.`)
         );
     }
+  }
+
+  fetchInfo() {
+    if (this.packageJson !== null) {
+      return Promise.resolve(this.packageJson);
+    }
+
+    return ModuleStats.createPackageRequest(this.moduleName, 'latest').then(
+      result => {
+        this.packageJson = result;
+        return result;
+      }
+    );
   }
 }
 
