@@ -133,6 +133,22 @@ describe('Project', () => {
         expect(project.repoUrl, 'to equal', 'https://service.tld/foo');
       });
     });
+
+    it('should normalise repoUrl', () => {
+      const project = new Project('somepackage');
+      const moduleStats = {
+        fetchInfo: sinon
+          .stub()
+          .resolves({ repository: { url: 'git+https://service.tld/foo' } })
+      };
+
+      return expect(
+        () => project.queryNpmForPackageAndUpdate('somepackage', moduleStats),
+        'to be fulfilled'
+      ).then(() => {
+        expect(project.repoUrl, 'to equal', 'https://service.tld/foo');
+      });
+    });
   });
 
   describe('#toDependent', () => {

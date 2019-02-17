@@ -1,4 +1,5 @@
 const isGitUrl = require('is-git-url');
+const normalizeGitUrl = require('normalize-git-url');
 const urlModule = require('url');
 const validateNpmPackageName = require('validate-npm-package-name');
 
@@ -31,7 +32,7 @@ function parsePackageRepo(packageInfo) {
   if (packageInfo.repository) {
     let repository = packageInfo.repository;
     if (typeof repository !== 'string') {
-      repository = repository.url;
+      repository = normalizeGitUrl(repository.url).url;
     }
     if (isRepoUrl(repository)) {
       return repository;
