@@ -12,11 +12,15 @@ class LinkStrategy {
   }
 
   installTo(options) {
-    const modulePackagePath = path.join(
-      options.toFolder,
-      'node_modules',
-      this.packageName
-    );
+    const nodeModulesPath = path.join(options.toFolder, 'node_modules');
+
+    if (!fs.existsSync(nodeModulesPath)) {
+      return Promise.reject(
+        new Error('Link Failure: cannot link into missing node_modules')
+      );
+    }
+
+    const modulePackagePath = path.join(nodeModulesPath, this.packageName);
 
     try {
       rimraf.sync(modulePackagePath);
