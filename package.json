@@ -32,7 +32,7 @@
     "normalize-git-url": "^3.0.2",
     "npm-stats": "^1.2.0",
     "os-tmpdir": "1.0.2",
-    "rimraf": "2.6.3",
+    "rimraf": "^2.6.3",
     "simple-git": "^1.107.0",
     "strip-json-comments": "2.0.1",
     "validate-npm-package-name": "^3.0.0",
