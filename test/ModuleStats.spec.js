@@ -34,6 +34,24 @@ describe('ModuleStats', () => {
     );
   });
 
+  it('should default to npm', () => {
+    const moduleStats = new ModuleStats('somepackage');
+
+    return expect(moduleStats, 'to satisfy', {
+      fetchSource: 'npm'
+    });
+  });
+
+  it('should set libraries.io in the presence of an API key', () => {
+    const moduleStats = new ModuleStats('somepackage', {
+      librariesIoApiKey: 'SOME_KEY'
+    });
+
+    return expect(moduleStats, 'to satisfy', {
+      fetchSource: 'libraries.io'
+    });
+  });
+
   describe('#fetchDependents', () => {
     let createPackageRequestStub;
 
@@ -46,6 +64,18 @@ describe('ModuleStats', () => {
 
     afterEach(() => {
       createPackageRequestStub.restore();
+    });
+
+    it('should reject on unsupported fetch source', () => {
+      const moduleStats = new ModuleStats('somepackage');
+
+      moduleStats.fetchSource = 'other';
+
+      return expect(
+        () => moduleStats.fetchDependents(),
+        'to be rejected with',
+        'unsupported fetch source'
+      );
     });
 
     it('should fetch and record npm dependents', () => {
@@ -66,6 +96,23 @@ describe('ModuleStats', () => {
       });
     });
 
+    it('should fetch and record libraries.io dependents', () => {
+      const moduleStats = new ModuleStats('sompackage', {
+        librariesIoApiKey: 'SOME_KEY'
+      });
+      const fetchLibrariesIoDependentsStub = sinon
+        .stub(moduleStats, 'fetchLibrariesIoDependents')
+        .resolves([]);
+
+      return expect(
+        moduleStats.fetchDependents(),
+        'to be fulfilled with',
+        []
+      ).then(() => {
+        expect(fetchLibrariesIoDependentsStub, 'was called');
+      });
+    });
+
     it('should return previously fetched dependents', () => {
       createPackageRequestStub.resolves(['foo', 'bar', 'baz']);
       const moduleStats = new ModuleStats('sompackage');
@@ -75,6 +122,58 @@ describe('ModuleStats', () => {
         'quux'
       ]).then(() => {
         expect(createPackageRequestStub, 'was not called');
+      });
+    });
+  });
+
+  describe('#fetchLibrariesIoDependents', () => {
+    let fetchStub;
+
+    beforeEach(() => {
+      fetchStub = sinon.stub(ModuleStats, 'fetch');
+    });
+
+    afterEach(() => {
+      fetchStub.restore();
+    });
+
+    it('should fetch and record dependents', () => {
+      fetchStub.resolves({
+        json: () => [{ full_name: 'someorg/somepackage' }]
+      });
+      const moduleStats = new ModuleStats('sompackage', {
+        librariesIoApiKey: 'SOME_KEY'
+      });
+
+      return expect(
+        moduleStats.fetchLibrariesIoDependents(),
+        'to be fulfilled with',
+        ['somepackage']
+      ).then(() => {
+        expect(fetchStub, 'to have a call satisfying', [
+          'https://libraries.io/api/NPM/sompackage/dependent_repositories?api_key=SOME_KEY'
+        ]);
+        expect(moduleStats.dependents, 'to equal', ['somepackage']);
+      });
+    });
+
+    it('should fetch and record namespaced dependent', () => {
+      fetchStub.resolves({
+        json: () => [{ full_name: '@someorg/somepackage' }]
+      });
+      const moduleStats = new ModuleStats('sompackage', {
+        librariesIoApiKey: 'SOME_KEY'
+      });
+
+      return expect(
+        moduleStats.fetchLibrariesIoDependents(),
+        'to be fulfilled with',
+        ['@someorg/somepackage']
+      ).then(() => {
+        expect(fetchStub, 'to have a call satisfying', [
+          'https://libraries.io/api/NPM/sompackage/dependent_repositories?api_key=SOME_KEY'
+        ]);
+        expect(moduleStats.dependents, 'to equal', ['@someorg/somepackage']);
       });
     });
   });

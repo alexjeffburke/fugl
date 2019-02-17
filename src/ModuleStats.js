@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const fetch = require('node-fetch');
 const Registry = require('npm-stats')();
 
 const WEEK_IN_MILLISECONDS = 604800000; // 7 * 24 * 60 * 60 * 1000
@@ -33,16 +34,38 @@ function createPackageRequest(moduleName, methodName, options) {
   });
 }
 
+function parseLibrariesIoItem(item) {
+  const fullName = item.full_name;
+
+  if (fullName.indexOf('@') === 0) {
+    return fullName;
+  } else {
+    return fullName.split('/')[1];
+  }
+}
+
 class ModuleStats {
-  constructor(moduleName) {
+  constructor(moduleName, options) {
     if (!(typeof moduleName === 'string' && moduleName.trim().length)) {
       throw new Error('Invalid module name.');
     }
 
     this.moduleName = moduleName;
-
     this.dependents = null;
     this.packageJson = null;
+
+    options = options || {};
+    this.librariesIoApiKey = options.librariesIoApiKey || null;
+
+    this.fetchSource = this.librariesIoApiKey !== null ? 'libraries.io' : 'npm';
+  }
+
+  makeDependentRepoUrl() {
+    const what = encodeURIComponent(this.moduleName);
+
+    return `https://libraries.io/api/NPM/${what}/dependent_repositories?api_key=${
+      this.librariesIoApiKey
+    }`;
   }
 
   fetchDependents() {
@@ -50,7 +73,30 @@ class ModuleStats {
       return Promise.resolve(this.dependents);
     }
 
-    return this.fetchNpmDependents();
+    switch (this.fetchSource) {
+      case 'libraries.io':
+        return this.fetchLibrariesIoDependents();
+      case 'npm':
+        return this.fetchNpmDependents();
+      default:
+        return Promise.reject(new Error('unsupported fetch source'));
+    }
+  }
+
+  fetchLibrariesIoDependents() {
+    const url = this.makeDependentRepoUrl();
+
+    return ModuleStats.fetch(url)
+      .then(res => {
+        return res.json();
+      })
+      .then(results => {
+        return results.map(item => parseLibrariesIoItem(item));
+      })
+      .then(result => {
+        this.dependents = result;
+        return result;
+      });
   }
 
   fetchNpmDependents() {
@@ -121,6 +167,8 @@ class ModuleStats {
 }
 
 ModuleStats.createPackageRequest = createPackageRequest;
+
+ModuleStats.fetch = fetch;
 
 ModuleStats.packageNamesByMagnitude = metricResult =>
   _.chain(metricResult)
