@@ -70,7 +70,7 @@ This tool started began as a fork of [dont-break](https://github.com/bahmutov/do
 drift of use-cases required a substantial rework and thus Fugl was born. Since then almost the entire
 codebase has been rewritten.
 
-### Compabibility with dont-break
+### Compatibility with dont-break
 
 Some effort was made to continue to support users of `dont-break`. The fugl binary accept a config
 parameter which can be used to load dont-btrak JSON config files:
