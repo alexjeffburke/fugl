@@ -1,11 +1,22 @@
 const expect = require('unexpected')
   .clone()
   .use(require('unexpected-sinon'));
+const mkdirp = require('mkdirp');
+const path = require('path');
+const rimraf = require('rimraf');
 const sinon = require('sinon');
 
 const NpmStrategy = require('../src/NpmStrategy');
 
 describe('NpmStrategy', () => {
+  const moduleDir = path.join(__dirname, 'module');
+  const buildsFolder = path.join(moduleDir, 'builds');
+  const toFolder = path.join(buildsFolder, 'example');
+
+  beforeEach(() => {
+    rimraf.sync(buildsFolder);
+  });
+
   it('should parse the version', () => {
     const packageInstaller = new NpmStrategy('somepackage@beta');
 
@@ -19,15 +30,17 @@ describe('NpmStrategy', () => {
     const packageInstaller = new NpmStrategy('somepackage');
     const runInFolderSpy = sinon.stub().resolves();
 
+    mkdirp.sync(toFolder);
+
     return expect(
       packageInstaller.installTo({
-        toFolder: '/some/path',
+        toFolder,
         _runInFolder: runInFolderSpy
       }),
       'to be fulfilled'
     ).then(() => {
       expect(runInFolderSpy, 'to have a call satisfying', [
-        '/some/path',
+        toFolder,
         'npm install somepackage@latest'
       ]);
     });
@@ -37,10 +50,12 @@ describe('NpmStrategy', () => {
     const packageInstaller = new NpmStrategy('somepackage');
     const runInFolderSpy = sinon.stub().resolves();
 
+    mkdirp.sync(toFolder);
+
     return expect(
       packageInstaller.installTo(
         {
-          toFolder: '/some/path',
+          toFolder,
           _runInFolder: runInFolderSpy
         },
         { postinstall: 'OTHER_POSTINSTALL' }
@@ -48,9 +63,33 @@ describe('NpmStrategy', () => {
       'to be fulfilled'
     ).then(() => {
       expect(runInFolderSpy, 'to have a call satisfying', [
-        '/some/path',
+        toFolder,
         'OTHER_POSTINSTALL'
       ]);
     });
+  });
+
+  it('should reject if no toFolder is supplied', () => {
+    return expect(
+      () => new NpmStrategy('somepackage').installTo({}),
+      'to be rejected with',
+      'Install Failure: cannot npm install into missing folder'
+    );
+  });
+
+  it('should reject if execution fails', () => {
+    const runInFolderSpy = sinon.stub().rejects(new Error('fail'));
+
+    mkdirp.sync(toFolder);
+
+    return expect(
+      () =>
+        new NpmStrategy('somepackage').installTo({
+          toFolder,
+          _runInFolder: runInFolderSpy
+        }),
+      'to be rejected with',
+      'Install Failure: unable to npm install package'
+    );
   });
 });

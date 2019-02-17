@@ -1,4 +1,6 @@
 const debug = require('./debug').extend('NpmStrategy');
+const fs = require('fs');
+
 const runInFolder = require('./run-in-folder');
 
 function parsePackage(packageString) {
@@ -39,6 +41,12 @@ class NpmStrategy {
     const performInstall = options._runInFolder || runInFolder;
     const installDir = options.toFolder;
 
+    if (!fs.existsSync(installDir)) {
+      return Promise.reject(
+        new Error('Install Failure: cannot npm install into missing folder')
+      );
+    }
+
     overrides = overrides || {};
     const installCommand =
       overrides.postinstall ||
@@ -50,7 +58,7 @@ class NpmStrategy {
       })
       .catch(err => {
         debug('postinstall failed', err);
-        throw err;
+        throw new Error('Install Failure: unable to npm install package');
       });
   }
 }
