@@ -28,8 +28,7 @@ describe('NpmStrategy', () => {
     ).then(() => {
       expect(runInFolderSpy, 'to have a call satisfying', [
         '/some/path',
-        'npm install somepackage@latest',
-        {}
+        'npm install somepackage@latest'
       ]);
     });
   });
@@ -50,8 +49,7 @@ describe('NpmStrategy', () => {
     ).then(() => {
       expect(runInFolderSpy, 'to have a call satisfying', [
         '/some/path',
-        'OTHER_POSTINSTALL',
-        {}
+        'OTHER_POSTINSTALL'
       ]);
     });
   });

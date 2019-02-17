@@ -1,3 +1,4 @@
+const debug = require('./debug').extend('LinkStrategy');
 const fs = require('fs');
 const path = require('path');
 const rimraf = require('rimraf');
@@ -26,6 +27,8 @@ class LinkStrategy {
     try {
       fs.symlinkSync(this.packagePath, modulePackagePath);
 
+      debug('package linking succeeded');
+
       return Promise.resolve();
     } catch (err) {
       let error;
@@ -34,6 +37,9 @@ class LinkStrategy {
       } else {
         error = err;
       }
+
+      debug('package linking failed', err);
+
       return Promise.reject(error);
     }
   }

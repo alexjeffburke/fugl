@@ -1,3 +1,4 @@
+const debug = require('./debug').extend('NpmStrategy');
 const runInFolder = require('./run-in-folder');
 
 function parsePackage(packageString) {
@@ -43,10 +44,14 @@ class NpmStrategy {
       overrides.postinstall ||
       `npm install ${this.packageName}@${this.packageVersion}`;
 
-    return performInstall(installDir, installCommand, {
-      success: 'postinstall succeeded',
-      failure: 'postinstall did not work'
-    });
+    return performInstall(installDir, installCommand)
+      .then(() => {
+        debug('postinstall succeeded');
+      })
+      .catch(err => {
+        debug('postinstall failed', err);
+        throw err;
+      });
   }
 }
 
