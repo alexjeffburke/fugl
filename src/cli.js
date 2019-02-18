@@ -1,8 +1,8 @@
 const Fugl = require('../src/Fugl');
 const ModuleStats = require('../src/ModuleStats');
 
-exports.check = function check(cwd, yargv) {
-  const options = {
+exports.check = function check(cwd, yargv, options) {
+  const fuglOptions = {
     package: yargv.package,
     folder: yargv.folder || cwd,
     projects: yargv.projects,
@@ -14,18 +14,23 @@ exports.check = function check(cwd, yargv) {
 
   if (!yargv.package && !yargv.folder) {
     // we may be running via npx
-    options.package = cwd;
-    options.packageInstaller = 'link';
+    fuglOptions.package = cwd;
+    fuglOptions.packageInstaller = 'link';
   }
 
-  return new Fugl(options).run().then(stats => {
-    console.warn();
+  options = options || {};
+  const FuglConstructor = options._Fugl || Fugl;
+  const exit = options._exit || process.exit;
+  const warn = options._warn || console.warn;
+
+  return new FuglConstructor(fuglOptions).run().then(stats => {
+    warn();
     if (stats.failures > 0) {
-      console.error('completed with failures');
-      process.exit(1);
+      warn('completed with failures');
+      exit(1);
     } else {
-      console.warn('completed');
-      process.exit(0);
+      warn('completed');
+      exit(0);
     }
   });
 };
