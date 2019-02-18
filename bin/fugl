@@ -1,40 +1,73 @@
 #!/usr/bin/env node
 
 const yargs = require('yargs');
-const main = require('../src/cli');
+const cli = require('../src/cli');
 const wrap = require('@gustavnikolaj/async-main-wrap');
 
-const argv = yargs
-  .config()
-  .option('package', {
-    type: 'string',
-    describe:
-      'The package to install for testing: <packageName>@<packageVersion>'
-  })
-  .option('projects', {
-    type: 'array',
-    demandOption: true,
-    describe: 'The projects depending on the package to be tested.'
-  })
-  .option('reporter', {
-    type: 'string',
-    describe: 'The name of the reporter to use for the output.'
-  })
-  .option('pretest', {
-    type: 'boolean',
-    describe:
-      'Toggle whether the tests pass in a project prior to package installation.'
-  })
-  .option('pretest-or-ignore', {
-    alias: 'pretestOrIgnore',
-    type: 'boolean',
-    describe:
-      'Toggle whether to ignore a module package test on a pretest failure.'
-  })
-  .option('quick', {
-    type: 'boolean',
-    describe:
-      'Switch to allow fetching changes to project repositories instead of freshly cloning.'
-  }).argv;
+const configureCheck = yargs =>
+  yargs
+    .config()
+    .option('package', {
+      type: 'string',
+      describe:
+        'The package to install for testing: <packageName>@<packageVersion>'
+    })
+    .option('projects', {
+      type: 'array',
+      demandOption: true,
+      describe: 'The projects depending on the package to be tested.'
+    })
+    .option('reporter', {
+      type: 'string',
+      describe: 'The name of the reporter to use for the output.'
+    })
+    .option('pretest', {
+      type: 'boolean',
+      describe:
+        'Toggle whether the tests pass in a project prior to package installation.'
+    })
+    .option('pretest-or-ignore', {
+      alias: 'pretestOrIgnore',
+      type: 'boolean',
+      describe:
+        'Toggle whether to ignore a module package test on a pretest failure.'
+    })
+    .option('quick', {
+      type: 'boolean',
+      describe:
+        'Switch to allow fetching changes to project repositories instead of freshly cloning.'
+    });
 
-wrap(main)(process.cwd(), argv);
+const configureFetch = yargs =>
+  yargs
+    .option('package', {
+      type: 'string',
+      describe: 'The package for which to fetch dependents.'
+    })
+    .positional('metric', {
+      type: 'string',
+      choices: ['downloads'],
+      demandOption: true,
+      describe: 'The metric to use when ordering retrieved dependents.'
+    })
+    .option('librariesio', {
+      type: 'string',
+      describe: 'An API key for accessing dependents data via Libraries.IO.'
+    });
+
+const argv = yargs
+  .usage('$0 <cmd> [args]')
+  .command(
+    ['*', 'check'],
+    'Run tests of the dependent projects checking for breakage.',
+    configureCheck
+  )
+  .command(
+    'fetch <metric>',
+    'Automatically find dependent projects to be checked.',
+    configureFetch
+  )
+  .help().argv;
+
+const command = argv._[0] || 'check';
+wrap(cli[command])(process.cwd(), argv);
