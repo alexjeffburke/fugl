@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const debug = require('./debug').extend('ModuleStats');
 const fetch = require('node-fetch');
 const Registry = require('npm-stats')();
 
@@ -34,14 +35,15 @@ function createPackageRequest(moduleName, methodName, options) {
   });
 }
 
-function parseLibrariesIoItem(item) {
+function parseLibrariesIoItemToRepoUrl(item) {
   const fullName = item.full_name;
+  const hostType = item.host_type;
 
-  if (fullName.indexOf('@') === 0) {
-    return fullName;
-  } else {
-    return fullName.split('/')[1];
+  if (hostType !== 'GitHub') {
+    throw new Error(`Hosting was not by GitHub for ${fullName}`);
   }
+
+  return `https://github.com/${fullName}`;
 }
 
 class ModuleStats {
@@ -60,7 +62,7 @@ class ModuleStats {
     this.fetchSource = this.librariesIoApiKey !== null ? 'libraries.io' : 'npm';
   }
 
-  makeDependentRepoUrl() {
+  makeLibrariesIoUrl() {
     const what = encodeURIComponent(this.moduleName);
 
     return `https://libraries.io/api/NPM/${what}/dependent_repositories?api_key=${
@@ -84,18 +86,29 @@ class ModuleStats {
   }
 
   fetchLibrariesIoDependents() {
-    const url = this.makeDependentRepoUrl();
+    const url = this.makeLibrariesIoUrl();
 
     return ModuleStats.fetch(url)
       .then(res => {
         return res.json();
       })
       .then(results => {
-        return results.map(item => parseLibrariesIoItem(item));
+        const depdendents = [];
+
+        return results.reduce((prev, item) => {
+          return prev.then(() => {
+            return Promise.resolve()
+              .then(() => parseLibrariesIoItemToRepoUrl(item))
+              .then(repoUrl => this.fetchPackageJsonFromGitHub(repoUrl))
+              .then(depdendent => depdendents.push(depdendent))
+              .catch(error => debug(error))
+              .then(() => depdendents);
+          });
+        }, Promise.resolve(depdendents));
       })
-      .then(result => {
-        this.dependents = result;
-        return result;
+      .then(dependents => {
+        this.dependents = dependents;
+        return dependents;
       });
   }
 
@@ -163,6 +176,26 @@ class ModuleStats {
         return result;
       }
     );
+  }
+
+  fetchPackageJsonFromGitHub(repoUrl) {
+    const userContentUrl = repoUrl.replace(
+      'github.com',
+      'raw.githubusercontent.com'
+    );
+
+    return ModuleStats.fetch(`${userContentUrl}/master/package.json`)
+      .then(res => res.json())
+      .catch(() => {
+        throw new Error(`Error feching package.json for ${repoUrl}`);
+      })
+      .then(packageJson => {
+        if (packageJson.name) {
+          return packageJson.name;
+        } else {
+          throw new Error(`Missing name in package.json for ${repoUrl}`);
+        }
+      });
   }
 }
 

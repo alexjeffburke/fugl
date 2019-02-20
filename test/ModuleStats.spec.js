@@ -138,9 +138,20 @@ describe('ModuleStats', () => {
     });
 
     it('should fetch and record dependents', () => {
-      fetchStub.resolves({
-        json: () => [{ full_name: 'someorg/somepackage' }]
-      });
+      fetchStub
+        .onFirstCall()
+        .resolves({
+          json: () => [
+            {
+              full_name: 'someorg/somepackage',
+              host_type: 'GitHub'
+            }
+          ]
+        })
+        .onSecondCall()
+        .resolves({
+          json: () => ({ name: 'somepackage' })
+        });
       const moduleStats = new ModuleStats('sompackage', {
         librariesIoApiKey: 'SOME_KEY'
       });
@@ -150,16 +161,26 @@ describe('ModuleStats', () => {
         'to be fulfilled with',
         ['somepackage']
       ).then(() => {
-        expect(fetchStub, 'to have a call satisfying', [
-          'https://libraries.io/api/NPM/sompackage/dependent_repositories?api_key=SOME_KEY'
+        expect(fetchStub, 'to have calls satisfying', [
+          [
+            'https://libraries.io/api/NPM/sompackage/dependent_repositories?api_key=SOME_KEY'
+          ],
+          [
+            'https://raw.githubusercontent.com/someorg/somepackage/master/package.json'
+          ]
         ]);
         expect(moduleStats.dependents, 'to equal', ['somepackage']);
       });
     });
 
-    it('should fetch and record namespaced dependent', () => {
+    it('should ignore dependents not hosted on GitHub', () => {
       fetchStub.resolves({
-        json: () => [{ full_name: '@someorg/somepackage' }]
+        json: () => [
+          {
+            full_name: 'someorg/somepackage',
+            host_type: 'FooBar'
+          }
+        ]
       });
       const moduleStats = new ModuleStats('sompackage', {
         librariesIoApiKey: 'SOME_KEY'
@@ -168,12 +189,66 @@ describe('ModuleStats', () => {
       return expect(
         moduleStats.fetchLibrariesIoDependents(),
         'to be fulfilled with',
-        ['@someorg/somepackage']
+        []
       ).then(() => {
-        expect(fetchStub, 'to have a call satisfying', [
-          'https://libraries.io/api/NPM/sompackage/dependent_repositories?api_key=SOME_KEY'
-        ]);
-        expect(moduleStats.dependents, 'to equal', ['@someorg/somepackage']);
+        expect(fetchStub, 'was called times', 1);
+        expect(moduleStats.dependents, 'to equal', []);
+      });
+    });
+
+    it('should ignore dependents with no name', () => {
+      fetchStub
+        .onFirstCall()
+        .resolves({
+          json: () => [
+            {
+              full_name: 'someorg/somepackage',
+              host_type: 'GitHub'
+            }
+          ]
+        })
+        .onSecondCall()
+        .resolves({
+          json: () => ({})
+        });
+      const moduleStats = new ModuleStats('sompackage', {
+        librariesIoApiKey: 'SOME_KEY'
+      });
+
+      return expect(
+        moduleStats.fetchLibrariesIoDependents(),
+        'to be fulfilled with',
+        []
+      ).then(() => {
+        expect(fetchStub, 'was called times', 2);
+        expect(moduleStats.dependents, 'to equal', []);
+      });
+    });
+
+    it('should ignore dependents without package.json', () => {
+      fetchStub
+        .onFirstCall()
+        .resolves({
+          json: () => [
+            {
+              full_name: 'someorg/somepackage',
+              host_type: 'GitHub'
+            }
+          ]
+        })
+        .onSecondCall()
+        .rejects(new Error('fail'));
+      const moduleStats = new ModuleStats('sompackage', {
+        librariesIoApiKey: 'SOME_KEY'
+      });
+
+      return expect(
+        moduleStats.fetchLibrariesIoDependents(),
+        'to be fulfilled with',
+        []
+      ).then(() => {
+        expect(fetchStub, 'was called times', 2);
+        expect(moduleStats.dependents, 'to equal', []);
       });
     });
   });
