@@ -28,6 +28,12 @@ function createMockModuleStats() {
   return MockModuleStats.callsFake(() => MockModuleStats._instance);
 }
 
+expect.addAssertion('<string> to be JSON', (expect, subject) => {
+  expect(() => {
+    return JSON.parse(subject);
+  }, 'not to error');
+});
+
 describe('cli', () => {
   describe('check', () => {
     it('should construct Fugl with passes', () => {
@@ -193,14 +199,13 @@ describe('cli', () => {
         foo: 'bar'
       });
       MockModuleStats.packageNamesByMagnitude.resolves(['somedependent']);
-      const log = sinon.stub().named('console.log');
       const args = {};
 
       return expect(
         () =>
           cli.fetch(null, args, {
             _ModuleStats: MockModuleStats,
-            _log: log
+            _log: () => {}
           }),
         'to be fulfilled'
       ).then(() => {
@@ -214,7 +219,29 @@ describe('cli', () => {
           'to have a call satisfying',
           [{ foo: 'bar' }]
         );
-        expect(log, 'to have a call satisfying', [expect.it('to be a string')]);
+      });
+    });
+
+    it('should output dependents data to stdout', () => {
+      const MockModuleStats = createMockModuleStats();
+      MockModuleStats._instance.fetchDepedentsWithMetric.resolves({
+        foo: 'bar'
+      });
+      MockModuleStats.packageNamesByMagnitude.resolves(['somedependent']);
+      const log = sinon.stub().named('console.log');
+      const args = {};
+
+      return expect(
+        () =>
+          cli.fetch(null, args, {
+            _ModuleStats: MockModuleStats,
+            _log: log
+          }),
+        'to be fulfilled'
+      ).then(() => {
+        expect(log, 'to have a call satisfying', [
+          expect.it('to be a string').and('to be JSON')
+        ]);
       });
     });
   });
