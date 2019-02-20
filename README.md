@@ -56,6 +56,29 @@ fugl --package unexpected --projects https://github.com/alexjeffburke/jest-unexp
 open breakage/index.html
 ```
 
+## Automatic dependent fetching
+
+### npm
+
+Fugl also incldues the ability to query npm for the most downloaded depdendents of a particular
+package. This uses the npm API and requires use of the `fetch` command:
+
+```
+fugl fetch downloads --package assert-the-unexpected
+```
+
+### Liraries.IO
+
+One limitation of the npm depedents data is that it only includes information about those packages
+listed as direct depedents. In order to fetch `devDependents`, the tool is also integrated with
+[Libraries.IO](https://libraries.io).
+
+Signing up for this tool will provide you with an API key which can be used with Fugl as follows:
+
+```
+fugl fetch downloads --package assert-the-unexpected --librariesio <api_key>
+```
+
 ## Architecture
 
 Internally Fugl is implemented as a [mocha](https://mochajs.org/)-esque test runner. As checks are
