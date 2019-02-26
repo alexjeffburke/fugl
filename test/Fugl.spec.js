@@ -530,6 +530,28 @@ describe('Fugl', () => {
     });
   });
 
+  describe('#checkProject', () => {
+    it('should call verify the project has a repoUrl', () => {
+      const fugl = new Fugl({
+        package: 'somepackage',
+        folder: __dirname,
+        reporter: 'none',
+        projects: ['https://service.tld/foo.git'],
+        pretest: false
+      });
+      const project = {
+        verify: sinon
+          .stub()
+          .named('verify')
+          .resolves()
+      };
+
+      return expect(fugl.checkProject(project), 'to be fulfilled').then(() => {
+        expect(project.verify, 'to have a call satisfying', ['repoUrl']);
+      });
+    });
+  });
+
   describe('when using pretestOrIgnore', () => {
     it('should throw if missing pretest', () => {
       return expect(

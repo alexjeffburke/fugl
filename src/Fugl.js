@@ -202,7 +202,7 @@ class Fugl extends EventEmitter {
   }
 
   checkProject(project) {
-    return project.verify();
+    return project.verify('repoUrl');
   }
 
   installDependent(options, dependent) {
