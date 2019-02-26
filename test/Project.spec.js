@@ -60,8 +60,8 @@ describe('Project', () => {
     const project = new Project('https://service.tld/foo');
 
     return expect(project, 'to exhaustively satisfy', {
-      name: 'https://service.tld/foo',
       kind: 'git',
+      npmName: null,
       repoUrl: 'https://service.tld/foo'
     });
   });
@@ -70,9 +70,70 @@ describe('Project', () => {
     const project = new Project('somepackage');
 
     return expect(project, 'to exhaustively satisfy', {
-      name: 'somepackage',
       kind: 'npm',
+      npmName: 'somepackage',
       repoUrl: null
+    });
+  });
+
+  describe('#queryGitHubForPackageAndUpdate', () => {
+    it('should error on GitHub query failure', () => {
+      const project = new Project('https://service.tld/foo');
+      const moduleStats = {
+        fetchPackageJsonFromGitHub: sinon.stub().rejects(new Error())
+      };
+
+      return expect(
+        () =>
+          project.queryGitHubForPackageAndUpdate(
+            'https://service.tld/foo',
+            moduleStats
+          ),
+        'to be rejected with',
+        'unable to access repo https://service.tld/foo'
+      );
+    });
+
+    it('should call the fetching method', () => {
+      const project = new Project('https://service.tld/foo');
+      const moduleStats = {
+        fetchPackageJsonFromGitHub: sinon
+          .stub()
+          .resolves({ name: '@service.tld/foo' })
+      };
+
+      return expect(
+        () =>
+          project.queryGitHubForPackageAndUpdate(
+            'https://service.tld/foo',
+            moduleStats
+          ),
+        'to be fulfilled'
+      ).then(() => {
+        expect(
+          moduleStats.fetchPackageJsonFromGitHub,
+          'to have a call satisfying',
+          ['https://service.tld/foo']
+        );
+      });
+    });
+
+    it('should update npmName', () => {
+      const project = new Project('https://service.tld/foo');
+      const moduleStats = {
+        fetchPackageJsonFromGitHub: sinon.stub().resolves('@service.tld/foo')
+      };
+
+      return expect(
+        () =>
+          project.queryGitHubForPackageAndUpdate(
+            'https://service.tld/foo',
+            moduleStats
+          ),
+        'to be fulfilled'
+      ).then(() => {
+        expect(project.npmName, 'to equal', '@service.tld/foo');
+      });
     });
   });
 
@@ -174,11 +235,26 @@ describe('Project', () => {
   describe('#verify', () => {
     it('should verify git', () => {
       const project = new Project('https://service.tld/foo');
-      sinon.stub(project, 'queryNpmForPackageAndUpdate');
+      sinon.stub(project, 'queryGitHubForPackageAndUpdate');
 
       return expect(() => project.verify(), 'to be fulfilled').then(() => {
-        expect(project.queryNpmForPackageAndUpdate, 'was not called');
+        expect(
+          project.queryGitHubForPackageAndUpdate,
+          'to have a call satisfying',
+          ['https://service.tld/foo']
+        );
       });
+    });
+
+    it('should ignore git when it is set', () => {
+      const project = new Project('https://service.tld/foo');
+      sinon.stub(project, 'queryGitHubForPackageAndUpdate');
+
+      return expect(() => project.verify('repoUrl'), 'to be fulfilled').then(
+        () => {
+          expect(project.queryGitHubForPackageAndUpdate, 'was not called');
+        }
+      );
     });
 
     it('should verify npm', () => {
@@ -194,6 +270,17 @@ describe('Project', () => {
           ['package']
         );
       });
+    });
+
+    it('should ignore npm when it is set', () => {
+      const project = new Project('somepackage');
+      sinon.stub(project, 'queryNpmForPackageAndUpdate');
+
+      return expect(() => project.verify('npmName'), 'to be fulfilled').then(
+        () => {
+          expect(project.queryNpmForPackageAndUpdate, 'was not called');
+        }
+      );
     });
   });
 

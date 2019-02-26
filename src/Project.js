@@ -58,8 +58,8 @@ class Project {
     const otherOptions = Object.assign({}, optionsOrString);
     delete otherOptions.name;
 
-    this.name = null;
     this.kind = null;
+    this.npmName = null;
     this.repoUrl = null;
 
     if (!name) {
@@ -69,21 +69,45 @@ class Project {
       this.repoUrl = name;
     } else if (isPackageName(name)) {
       this.kind = 'npm';
+      this.npmName = name;
     } else {
       throw new Error(`project ${name} is not a repository`);
     }
 
-    this.name = name;
-
     Object.assign(this, otherOptions);
+  }
+
+  get name() {
+    switch (this.kind) {
+      case 'git':
+        return this.repoUrl;
+      case 'npm':
+        return this.npmName;
+      default:
+        return null;
+    }
   }
 
   toDependent() {
     const dependent = Object.assign({}, this);
     delete dependent.kind;
+    delete dependent.npmName;
     delete dependent.repoUrl;
     dependent.name = this.repoUrl;
     return dependent;
+  }
+
+  queryGitHubForPackageAndUpdate(name, _moduleStats) {
+    const moduleStats = _moduleStats || new ModuleStats(name);
+
+    return moduleStats
+      .fetchPackageJsonFromGitHub(name)
+      .then(npmName => {
+        this.npmName = npmName;
+      })
+      .catch(() => {
+        throw new Error(`unable to access repo ${name}`);
+      });
   }
 
   queryNpmForPackageAndUpdate(name, _moduleStats) {
@@ -99,12 +123,16 @@ class Project {
       });
   }
 
-  verify() {
+  verify(requirement) {
+    if (requirement && this[requirement] !== null) {
+      return Promise.resolve();
+    }
+
     switch (this.kind) {
       case 'git':
-        return Promise.resolve();
+        return this.queryGitHubForPackageAndUpdate(this.repoUrl);
       case 'npm':
-        return this.queryNpmForPackageAndUpdate(this.name);
+        return this.queryNpmForPackageAndUpdate(this.npmName);
       default:
         throw new Error('Invalid kind');
     }
