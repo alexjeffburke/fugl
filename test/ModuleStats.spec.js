@@ -4,6 +4,7 @@ const expect = require('unexpected')
 const sinon = require('sinon');
 
 const ModuleStats = require('../src/ModuleStats');
+const Project = require('../src/Project');
 
 describe('ModuleStats', () => {
   it('should throw on missing module name', () => {
@@ -28,7 +29,7 @@ describe('ModuleStats', () => {
 
   it('should error on unsupported metric', () => {
     return expect(
-      new ModuleStats('somepackage').fetchDepedentsWithMetric('unknown'),
+      new ModuleStats('somepackage').fetchMetricForProjects('unknown', []),
       'to be rejected with',
       'unknown is not a supported metric.'
     );
@@ -281,7 +282,7 @@ describe('ModuleStats', () => {
     });
   });
 
-  describe('#fetchDepedentsWithDownloads', () => {
+  describe('#fetchMetricForProjects', () => {
     let createPackageRequestStub;
 
     beforeEach(() => {
@@ -303,10 +304,13 @@ describe('ModuleStats', () => {
         .resolves([]);
 
       const moduleStats = new ModuleStats('sompackage');
-      moduleStats.dependents = ['somedependent', 'otherdependent'];
+      const projects = [
+        new Project('somedependent'),
+        new Project('otherdependent')
+      ];
 
       return expect(
-        moduleStats.fetchDepedentsWithDownloads(),
+        moduleStats.fetchMetricForProjects('downloads', projects),
         'to be fulfilled with',
         {
           somedependent: 5,

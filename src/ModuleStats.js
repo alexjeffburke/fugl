@@ -127,7 +127,7 @@ class ModuleStats {
     );
   }
 
-  fetchDepedentsWithDownloads() {
+  fetchDownloadsForProjects(projects) {
     const statsPromises = {};
 
     const until = Date.now();
@@ -136,30 +136,28 @@ class ModuleStats {
       since: until - WEEK_IN_MILLISECONDS
     };
 
-    return this.fetchDependents().then(result => {
-      result.forEach(packageName => {
-        statsPromises[packageName] = ModuleStats.createPackageRequest(
-          packageName,
-          'downloads',
-          durationOptions
-        ).then(dataPoints => {
-          statsPromises[packageName] = 0;
-          dataPoints.forEach(
-            ({ value }) => (statsPromises[packageName] += value)
-          );
-        });
+    projects.forEach(({ npmName: packageName }) => {
+      statsPromises[packageName] = ModuleStats.createPackageRequest(
+        packageName,
+        'downloads',
+        durationOptions
+      ).then(dataPoints => {
+        statsPromises[packageName] = 0;
+        dataPoints.forEach(
+          ({ value }) => (statsPromises[packageName] += value)
+        );
       });
+    });
 
-      return Promise.all(objectValues(statsPromises)).then(() => {
-        return statsPromises;
-      });
+    return Promise.all(objectValues(statsPromises)).then(() => {
+      return statsPromises;
     });
   }
 
-  fetchDepedentsWithMetric(metric) {
+  fetchMetricForProjects(metric, projects) {
     switch (metric) {
       case 'downloads':
-        return this.fetchDepedentsWithDownloads();
+        return this.fetchDownloadsForProjects(projects);
       case 'stars':
         return Promise.reject(
           new Error('The stars metric is currently disabled.')

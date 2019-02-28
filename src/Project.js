@@ -104,6 +104,8 @@ class Project {
       .fetchPackageJsonFromGitHub(name)
       .then(npmName => {
         this.npmName = npmName;
+
+        return this;
       })
       .catch(() => {
         throw new Error(`unable to access repo ${name}`);
@@ -120,6 +122,8 @@ class Project {
       })
       .then(packageInfo => {
         this.repoUrl = parsePackageRepo(packageInfo);
+
+        return this;
       });
   }
 

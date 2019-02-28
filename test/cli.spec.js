@@ -4,6 +4,7 @@ const expect = require('unexpected')
 const sinon = require('sinon');
 
 const cli = require('../src/cli');
+const Project = require('../src/Project');
 
 function createMockFugl() {
   const MockFugl = sinon.stub().named('MockFugl');
@@ -19,7 +20,8 @@ function createMockModuleStats() {
   const MockModuleStats = sinon.stub().named('MockModuleStats');
 
   MockModuleStats._instance = {
-    fetchDepedentsWithMetric: sinon.stub().named('fetchDependentsWithMetric')
+    fetchDependents: sinon.stub().named('fetchDependents'),
+    fetchMetricForProjects: sinon.stub().named('fetchMetricForProjects')
   };
   MockModuleStats.packageNamesByMagnitude = sinon
     .stub()
@@ -192,9 +194,7 @@ describe('cli', () => {
   describe('fetch', () => {
     it('should construct ModuleStats', () => {
       const MockModuleStats = createMockModuleStats();
-      MockModuleStats._instance.fetchDepedentsWithMetric.rejects(
-        new Error('fail')
-      );
+      MockModuleStats._instance.fetchDependents.rejects(new Error('fail'));
       const args = {
         package: 'somepackage',
         librariesio: 'SOME_KEY'
@@ -216,7 +216,8 @@ describe('cli', () => {
 
     it('should execute the dependents fetch', () => {
       const MockModuleStats = createMockModuleStats();
-      MockModuleStats._instance.fetchDepedentsWithMetric.resolves({
+      MockModuleStats._instance.fetchDependents.resolves(['foo']);
+      MockModuleStats._instance.fetchMetricForProjects.resolves({
         foo: 'bar'
       });
       MockModuleStats.packageNamesByMagnitude.resolves(['somedependent']);
@@ -231,9 +232,12 @@ describe('cli', () => {
         'to be fulfilled'
       ).then(() => {
         expect(
-          MockModuleStats._instance.fetchDepedentsWithMetric,
+          MockModuleStats._instance.fetchMetricForProjects,
           'to have a call satisfying',
-          ['downloads']
+          [
+            'downloads',
+            expect.it('to have items satisfying', 'to be a', Project)
+          ]
         );
         expect(
           MockModuleStats.packageNamesByMagnitude,
@@ -245,7 +249,8 @@ describe('cli', () => {
 
     it('should output dependents data to stdout', () => {
       const MockModuleStats = createMockModuleStats();
-      MockModuleStats._instance.fetchDepedentsWithMetric.resolves({
+      MockModuleStats._instance.fetchDependents.resolves(['foo']);
+      MockModuleStats._instance.fetchMetricForProjects.resolves({
         foo: 'bar'
       });
       MockModuleStats.packageNamesByMagnitude.resolves(['somedependent']);

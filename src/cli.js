@@ -1,5 +1,6 @@
 const Fugl = require('../src/Fugl');
 const ModuleStats = require('../src/ModuleStats');
+const Project = require('../src/Project');
 
 exports.check = function check(cwd, yargv, options) {
   const fuglOptions = {
@@ -36,6 +37,10 @@ exports.check = function check(cwd, yargv, options) {
   });
 };
 
+function verifyProjects(metric, projects) {
+  return Promise.all(projects.map(project => project.verify(metric)));
+}
+
 exports.fetch = function fetch(cwd, yargv, options) {
   const packageName = yargv.package;
   const statsOptions = {
@@ -46,8 +51,12 @@ exports.fetch = function fetch(cwd, yargv, options) {
   const ModuleStatsConstructor = options._ModuleStats || ModuleStats;
   const log = options._log || console.log;
 
-  return new ModuleStatsConstructor(packageName, statsOptions)
-    .fetchDepedentsWithMetric('downloads')
+  const moduleStats = new ModuleStatsConstructor(packageName, statsOptions);
+  return moduleStats
+    .fetchDependents()
+    .then(dependents => dependents.map(dependent => new Project(dependent)))
+    .then(projects => verifyProjects('npmName', projects))
+    .then(projects => moduleStats.fetchMetricForProjects('downloads', projects))
     .then(metricResult =>
       ModuleStatsConstructor.packageNamesByMagnitude(metricResult)
     )
