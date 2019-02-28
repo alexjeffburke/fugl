@@ -125,7 +125,7 @@ class Project {
 
   verify(requirement) {
     if (requirement && this[requirement] !== null) {
-      return Promise.resolve();
+      return Promise.resolve(this);
     }
 
     switch (this.kind) {
