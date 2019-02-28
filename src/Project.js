@@ -108,7 +108,7 @@ class Project {
         return this;
       })
       .catch(() => {
-        throw new Error(`unable to access repo ${name}`);
+        throw new Error(`unable to access repository ${name}`);
       });
   }
 
@@ -117,13 +117,13 @@ class Project {
 
     return moduleStats
       .fetchInfo()
-      .catch(() => {
-        throw new Error(`unable to access package ${name}`);
-      })
       .then(packageInfo => {
         this.repoUrl = parsePackageRepo(packageInfo);
 
         return this;
+      })
+      .catch(() => {
+        throw new Error(`unable to access package ${name}`);
       });
   }
 

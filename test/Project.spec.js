@@ -90,7 +90,7 @@ describe('Project', () => {
             moduleStats
           ),
         'to be rejected with',
-        'unable to access repo https://service.tld/foo'
+        'unable to access repository https://service.tld/foo'
       );
     });
 
@@ -160,7 +160,7 @@ describe('Project', () => {
       return expect(
         () => project.queryNpmForPackageAndUpdate('somepackage', moduleStats),
         'to be rejected with',
-        'project somepackage repository is missing'
+        'unable to access package somepackage'
       );
     });
 
@@ -175,7 +175,7 @@ describe('Project', () => {
       return expect(
         () => project.queryNpmForPackageAndUpdate('somepackage', moduleStats),
         'to be rejected with',
-        'project somepackage repository is invalid'
+        'unable to access package somepackage'
       );
     });
 
