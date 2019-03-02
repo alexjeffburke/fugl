@@ -4,7 +4,7 @@ var la = require('./la');
 var debug = require('./debug');
 var check = require('check-more-types');
 var chdir = require('chdir-promise');
-var spawn = require('child_process').spawn;
+var spawn = require('cross-spawn');
 
 function createError(prefix, output, defaultMessageFn) {
   let message = `${prefix} Failure\n`;
