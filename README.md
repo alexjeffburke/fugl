@@ -1,6 +1,8 @@
 # Fugl
 
-[![Coverage Status](https://img.shields.io/coveralls/alexjeffburke/fugl.svg?style=flat)](https://coveralls.io/r/alexjeffburke/fugl?branch=master)
+[![NPM version](https://img.shields.io/npm/v/fugl.svg)](https://www.npmjs.com/package/fugl)
+[![Build Status](https://img.shields.io/travis/alexjeffburke/fugl/master.svg)](https://travis-ci.org/alexjeffburke/fugl)
+[![Coverage Status](https://img.shields.io/coveralls/alexjeffburke/fugl/master.svg)](https://coveralls.io/r/alexjeffburke/fugl?branch=master)
 
 A tool for verifying that changes to a package do not affect projects dependent upon it.
 
