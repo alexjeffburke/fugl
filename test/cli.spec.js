@@ -214,14 +214,16 @@ describe('cli', () => {
       });
     });
 
-    it('should execute the dependents fetch', () => {
+    it('should execute dependents fetch for "downloads"', () => {
       const MockModuleStats = createMockModuleStats();
       MockModuleStats._instance.fetchDependents.resolves(['foo']);
       MockModuleStats._instance.fetchMetricForProjects.resolves({
         foo: 'bar'
       });
       MockModuleStats.packageNamesByMagnitude.resolves(['somedependent']);
-      const args = {};
+      const args = {
+        metric: 'downloads'
+      };
 
       return expect(
         () =>
@@ -247,6 +249,40 @@ describe('cli', () => {
       });
     });
 
+    it('should execute dependents fetch for "stars"', () => {
+      const MockModuleStats = createMockModuleStats();
+      MockModuleStats._instance.fetchDependents.resolves([
+        'https://service.tld/foo.git'
+      ]);
+      MockModuleStats._instance.fetchMetricForProjects.resolves({
+        foo: 'bar'
+      });
+      MockModuleStats.packageNamesByMagnitude.resolves(['somedependent']);
+      const args = {
+        metric: 'stars'
+      };
+
+      return expect(
+        () =>
+          cli.fetch(null, args, {
+            _ModuleStats: MockModuleStats,
+            _log: () => {}
+          }),
+        'to be fulfilled'
+      ).then(() => {
+        expect(
+          MockModuleStats._instance.fetchMetricForProjects,
+          'to have a call satisfying',
+          ['stars', expect.it('to have items satisfying', 'to be a', Project)]
+        );
+        expect(
+          MockModuleStats.packageNamesByMagnitude,
+          'to have a call satisfying',
+          [{ foo: 'bar' }]
+        );
+      });
+    });
+
     it('should output dependents data to stdout', () => {
       const MockModuleStats = createMockModuleStats();
       MockModuleStats._instance.fetchDependents.resolves(['foo']);
@@ -255,7 +291,9 @@ describe('cli', () => {
       });
       MockModuleStats.packageNamesByMagnitude.resolves(['somedependent']);
       const log = sinon.stub().named('console.log');
-      const args = {};
+      const args = {
+        metric: 'downloads'
+      };
 
       return expect(
         () =>

@@ -47,6 +47,7 @@ const configureFetch = yargs =>
   yargs
     .option('package', {
       type: 'string',
+      demandOption: true,
       describe: 'The package for which to fetch dependents.'
     })
     .positional('metric', {
