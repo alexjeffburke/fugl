@@ -166,6 +166,27 @@ describe('cli', () => {
         expect(exitStub, 'to have a call satisfying', [1]);
       });
     });
+
+    describe('with options', () => {
+      it('should handle --ci', () => {
+        const MockFugl = createMockFugl();
+        MockFugl._instance.run.rejects(new Error('bail'));
+        const args = {
+          package: 'somepackage',
+          ci: true
+        };
+
+        return expect(
+          () =>
+            cli.check('/some/path', args, {
+              _Fugl: MockFugl
+            }),
+          'to be rejected'
+        ).then(() => {
+          expect(MockFugl, 'to have a call satisfying', [{ ci: true }]);
+        });
+      });
+    });
   });
 
   describe('fetch', () => {

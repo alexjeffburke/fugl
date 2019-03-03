@@ -9,7 +9,8 @@ exports.check = function check(cwd, yargv, options) {
     reporter: yargv.reporter,
     pretest: yargv.pretest,
     pretestOrIgnore: yargv.pretestOrIgnore,
-    noClean: yargv.quick
+    noClean: yargv.quick,
+    ci: yargv.ci
   };
 
   if (!yargv.package && !yargv.folder) {
