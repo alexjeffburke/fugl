@@ -145,22 +145,6 @@ describe('Fugl', () => {
     });
   });
 
-  it('should error if reporter and ci conflict', () => {
-    expect(
-      () => {
-        new Fugl({
-          package: 'somepackage',
-          folder: __dirname,
-          projects: [],
-          reporter: 'json',
-          ci: true
-        });
-      },
-      'to throw error',
-      'Fugl: the JSON reporter conflicts with CI mode'
-    );
-  });
-
   it('should populate config', () => {
     const fugl = new Fugl({
       package: 'somepackage',
