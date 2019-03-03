@@ -17,8 +17,30 @@ describe('NpmStrategy', () => {
     rimraf.sync(buildsFolder);
   });
 
-  it('should parse the version', () => {
+  it('should default the "latest" version', () => {
+    const packageInstaller = new NpmStrategy('somepackage');
+
+    return expect(packageInstaller, 'to satisfy', {
+      packageName: 'somepackage',
+      packageVersion: 'latest'
+    });
+  });
+
+  it('should parse any supplied version', () => {
     const packageInstaller = new NpmStrategy('somepackage@beta');
+
+    return expect(packageInstaller, 'to satisfy', {
+      packageName: 'somepackage',
+      packageVersion: 'beta'
+    });
+  });
+
+  it('should allow overriding the version via process.env.FUGL_PACKAGE_VERSION', () => {
+    process.env.FUGL_PACKAGE_VERSION = 'beta';
+
+    const packageInstaller = new NpmStrategy('somepackage@1.0.0');
+
+    delete process.env.FUGL_PACKAGE_VERSION;
 
     return expect(packageInstaller, 'to satisfy', {
       packageName: 'somepackage',

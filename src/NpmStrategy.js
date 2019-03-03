@@ -34,7 +34,15 @@ class NpmStrategy {
   constructor(packageString) {
     const packageInfo = parsePackage(packageString);
     this.packageName = packageInfo.name;
-    this.packageVersion = packageInfo.version || 'latest';
+    this.packageVersion = null;
+
+    if (process.env.FUGL_PACKAGE_VERSION) {
+      this.packageVersion = process.env.FUGL_PACKAGE_VERSION;
+    } else if (packageInfo.version) {
+      this.packageVersion = packageInfo.version;
+    } else {
+      this.packageVersion = 'latest';
+    }
   }
 
   installTo(options, overrides) {
