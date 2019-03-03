@@ -113,7 +113,31 @@ describe('Fugl', () => {
       package: 'somepackage',
       reporter: 'console',
       folder: baseDir,
+      ci: false,
       noClean: false,
+      pretest: true,
+      pretestOrIgnore: false,
+      reportDir: path.join(baseDir, 'breakage'),
+      tmpDir: path.join(baseDir, 'builds')
+    });
+  });
+
+  it('should allow options', () => {
+    const baseDir = path.resolve(__dirname);
+    const fugl = new Fugl({
+      package: 'somepackage',
+      folder: baseDir,
+      projects: [],
+      ci: true,
+      noClean: true
+    });
+
+    return expect(fugl.options, 'to equal', {
+      package: 'somepackage',
+      reporter: 'console',
+      folder: baseDir,
+      ci: true,
+      noClean: true,
       pretest: true,
       pretestOrIgnore: false,
       reportDir: path.join(baseDir, 'breakage'),
@@ -344,6 +368,7 @@ describe('Fugl', () => {
           package: 'somepackage',
           folder: __dirname,
           reporter: 'none',
+          ci: false,
           noClean: false,
           pretest: true,
           pretestOrIgnore: false,
@@ -382,6 +407,7 @@ describe('Fugl', () => {
           package: 'somepackage',
           folder: __dirname,
           reporter: 'none',
+          ci: false,
           noClean: false,
           pretest: true,
           pretestOrIgnore: false,
@@ -425,6 +451,7 @@ describe('Fugl', () => {
           package: 'somepackage',
           folder: __dirname,
           reporter: 'none',
+          ci: false,
           noClean: false,
           pretest: false,
           pretestOrIgnore: false,
@@ -716,6 +743,7 @@ describe('Fugl', () => {
               package: 'somepackage',
               folder: __dirname,
               reporter: 'none',
+              ci: false,
               noClean: false,
               pretest: true,
               pretestOrIgnore: false,
@@ -766,6 +794,7 @@ describe('Fugl', () => {
               package: 'somepackage',
               folder: __dirname,
               reporter: 'none',
+              ci: false,
               noClean: false,
               pretest: true,
               pretestOrIgnore: false,

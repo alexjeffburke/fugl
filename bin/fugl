@@ -36,6 +36,11 @@ const configureCheck = yargs =>
       type: 'boolean',
       describe:
         'Switch to allow fetching changes to project repositories instead of freshly cloning.'
+    })
+    .option('ci', {
+      type: 'boolean',
+      describe:
+        'Switch to force output to the console to support running in CI.'
     });
 
 const configureFetch = yargs =>

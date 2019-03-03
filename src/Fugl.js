@@ -64,6 +64,7 @@ class Fugl extends EventEmitter {
       throw new Error('Fugl: missing projects');
     }
 
+    options.ci = !!options.ci;
     options.noClean = !!options.noClean;
     options.pretest =
       typeof options.pretest === 'undefined' ? true : !!options.pretest;
@@ -249,12 +250,14 @@ class Fugl extends EventEmitter {
       }
     }
 
-    if (!reporter && options.reporter === 'console') {
-      emitter.once('start', () => console.log());
-      emitter.on('pass', test => console.log(`  ${test.title} PASSED`));
-      emitter.on('fail', test => console.log(`  ${test.title} FAILED`));
-      emitter.on('fail', (_, error) => console.log(`${error}\n`));
-      emitter.on('pending', test => console.log(`  ${test.title} SKIPPED`));
+    if ((!reporter && options.reporter === 'console') || options.ci) {
+      const print = options.ci ? console.warn : console.log;
+
+      emitter.once('start', () => print());
+      emitter.on('pass', test => print(`  ${test.title} PASSED`));
+      emitter.on('fail', test => print(`  ${test.title} FAILED`));
+      emitter.on('fail', (_, error) => print(`${error}\n`));
+      emitter.on('pending', test => print(`  ${test.title} SKIPPED`));
     }
 
     emitter.emit('start');
