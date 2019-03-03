@@ -4,7 +4,8 @@ var runInFolder = require('./run-in-folder');
 
 var DEFAULT_TEST_COMMAND = 'npm test';
 
-function testDependent({ moduleName, toFolder, ...options }, dependent) {
+function testDependent(options, dependent) {
+  const { moduleName, toFolder } = options;
   var packageInstaller = options.packageInstaller;
   var performDependentTest = options._testInFolder || runInFolder;
   var moduleTestCommand = dependent.test || DEFAULT_TEST_COMMAND;

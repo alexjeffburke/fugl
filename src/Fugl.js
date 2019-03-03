@@ -146,12 +146,11 @@ class Fugl extends EventEmitter {
         debug('testing folder %s', toFolder);
 
         dependent = this.configForDependent(project);
-        dependentOptions = {
-          ...options,
+        dependentOptions = Object.assign({}, options, {
           packageInstaller,
           moduleName,
           toFolder
-        };
+        });
       })
       .then(() => this.installDependent(dependentOptions, dependent))
       .then(() => this.testDependent(dependentOptions, dependent))

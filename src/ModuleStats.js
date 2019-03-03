@@ -35,6 +35,12 @@ function createPackageRequest(moduleName, methodName, options) {
   });
 }
 
+const objectValues =
+  Object.values ||
+  function objectValues(object) {
+    return Object.keys(object).map(key => object[key]);
+  };
+
 function parseLibrariesIoItemToRepoUrl(item) {
   const fullName = item.full_name;
   const hostType = item.host_type;
@@ -144,7 +150,7 @@ class ModuleStats {
         });
       });
 
-      return Promise.all(Object.values(statsPromises)).then(() => {
+      return Promise.all(objectValues(statsPromises)).then(() => {
         return statsPromises;
       });
     });

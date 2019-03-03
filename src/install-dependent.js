@@ -25,7 +25,9 @@ function removeFolder(folder) {
   }
 }
 
-function moduleProvision({ moduleName, toFolder, ...options }) {
+function moduleProvision(options) {
+  const { moduleName, toFolder } = options;
+
   if (options.noClean && fs.existsSync(toFolder)) {
     debug('updating repo %s', moduleName);
 
@@ -54,12 +56,13 @@ function moduleInstall({ toFolder }, dependent) {
   }).then(() => toFolder);
 }
 
-function install({ moduleName, toFolder, ...options }, dependent) {
+function install(options, dependent) {
+  const { moduleName, toFolder } = options;
   var timeoutSeconds = options.timeout || INSTALL_TIMEOUT_SECONDS;
 
   function _install() {
     return Promise.resolve()
-      .then(() => moduleProvision({ moduleName, toFolder, ...options }))
+      .then(() => moduleProvision(options))
       .then(() => moduleInstall({ moduleName, toFolder }, dependent));
   }
 

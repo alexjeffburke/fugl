@@ -52,7 +52,11 @@ class Project {
       optionsOrString = {};
     }
 
-    const { name, ...otherOptions } = optionsOrString;
+    const { name } = optionsOrString;
+
+    // now grab any remaining options excluding the name
+    const otherOptions = Object.assign({}, optionsOrString);
+    delete otherOptions.name;
 
     this.name = null;
     this.kind = null;
