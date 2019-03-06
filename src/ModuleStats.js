@@ -3,8 +3,6 @@ const debug = require('./debug').extend('ModuleStats');
 const fetch = require('node-fetch');
 const Registry = require('npm-stats')();
 
-const WEEK_IN_MILLISECONDS = 604800000; // 7 * 24 * 60 * 60 * 1000
-
 function createPackageRequest(moduleName, methodName, options) {
   options = options || {};
 
@@ -34,12 +32,6 @@ function createPackageRequest(moduleName, methodName, options) {
     registry.module(moduleName)[methodName](...args);
   });
 }
-
-const objectValues =
-  Object.values ||
-  function objectValues(object) {
-    return Object.keys(object).map(key => object[key]);
-  };
 
 function parseLibrariesIoItemToRepoUrl(item) {
   const fullName = item.full_name;
@@ -125,48 +117,6 @@ class ModuleStats {
         return result;
       }
     );
-  }
-
-  fetchDownloadsForProjects(projects) {
-    const statsPromises = {};
-
-    const until = Date.now();
-    const durationOptions = {
-      until,
-      since: until - WEEK_IN_MILLISECONDS
-    };
-
-    projects.forEach(({ npmName: packageName }) => {
-      statsPromises[packageName] = ModuleStats.createPackageRequest(
-        packageName,
-        'downloads',
-        durationOptions
-      ).then(dataPoints => {
-        statsPromises[packageName] = 0;
-        dataPoints.forEach(
-          ({ value }) => (statsPromises[packageName] += value)
-        );
-      });
-    });
-
-    return Promise.all(objectValues(statsPromises)).then(() => {
-      return statsPromises;
-    });
-  }
-
-  fetchMetricForProjects(metric, projects) {
-    switch (metric) {
-      case 'downloads':
-        return this.fetchDownloadsForProjects(projects);
-      case 'stars':
-        return Promise.reject(
-          new Error('The stars metric is currently disabled.')
-        );
-      default:
-        return Promise.reject(
-          new Error(`${metric} is not a supported metric.`)
-        );
-    }
   }
 
   fetchInfo() {

@@ -4,7 +4,6 @@ const expect = require('unexpected')
 const sinon = require('sinon');
 
 const ModuleStats = require('../src/ModuleStats');
-const Project = require('../src/Project');
 
 describe('ModuleStats', () => {
   it('should throw on missing module name', () => {
@@ -24,14 +23,6 @@ describe('ModuleStats', () => {
       },
       'to throw',
       'Invalid module name.'
-    );
-  });
-
-  it('should error on unsupported metric', () => {
-    return expect(
-      new ModuleStats('somepackage').fetchMetricForProjects('unknown', []),
-      'to be rejected with',
-      'unknown is not a supported metric.'
     );
   });
 
@@ -279,44 +270,6 @@ describe('ModuleStats', () => {
       ]).then(() => {
         expect(moduleStats.dependents, 'to equal', ['foo', 'bar', 'baz']);
       });
-    });
-  });
-
-  describe('#fetchMetricForProjects', () => {
-    let createPackageRequestStub;
-
-    beforeEach(() => {
-      createPackageRequestStub = sinon.stub(
-        ModuleStats,
-        'createPackageRequest'
-      );
-    });
-
-    afterEach(() => {
-      createPackageRequestStub.restore();
-    });
-
-    it('should total and return the stats for each package', () => {
-      createPackageRequestStub
-        .onFirstCall()
-        .resolves([{ value: 2 }, { value: 3 }])
-        .onSecondCall()
-        .resolves([]);
-
-      const moduleStats = new ModuleStats('sompackage');
-      const projects = [
-        new Project('somedependent'),
-        new Project('otherdependent')
-      ];
-
-      return expect(
-        moduleStats.fetchMetricForProjects('downloads', projects),
-        'to be fulfilled with',
-        {
-          somedependent: 5,
-          otherdependent: 0
-        }
-      );
     });
   });
 

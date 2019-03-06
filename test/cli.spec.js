@@ -30,6 +30,16 @@ function createMockModuleStats() {
   return MockModuleStats.callsFake(() => MockModuleStats._instance);
 }
 
+function createMockProjectStats() {
+  const MockProjectStats = sinon.stub().named('MockProjectStats');
+
+  MockProjectStats._instance = {
+    fetchMetricForProjects: sinon.stub().named('fetchMetricForProjects')
+  };
+
+  return MockProjectStats.callsFake(() => MockProjectStats._instance);
+}
+
 expect.addAssertion('<string> to be JSON', (expect, subject) => {
   expect(() => {
     return JSON.parse(subject);
@@ -217,10 +227,11 @@ describe('cli', () => {
     it('should execute dependents fetch for "downloads"', () => {
       const MockModuleStats = createMockModuleStats();
       MockModuleStats._instance.fetchDependents.resolves(['foo']);
-      MockModuleStats._instance.fetchMetricForProjects.resolves({
+      MockModuleStats.packageNamesByMagnitude.resolves(['somedependent']);
+      const MockProjectStats = createMockProjectStats();
+      MockProjectStats._instance.fetchMetricForProjects.resolves({
         foo: 'bar'
       });
-      MockModuleStats.packageNamesByMagnitude.resolves(['somedependent']);
       const args = {
         metric: 'downloads'
       };
@@ -229,17 +240,15 @@ describe('cli', () => {
         () =>
           cli.fetch(null, args, {
             _ModuleStats: MockModuleStats,
+            _ProjectStats: MockProjectStats,
             _log: () => {}
           }),
         'to be fulfilled'
       ).then(() => {
         expect(
-          MockModuleStats._instance.fetchMetricForProjects,
+          MockProjectStats._instance.fetchMetricForProjects,
           'to have a call satisfying',
-          [
-            'downloads',
-            expect.it('to have items satisfying', 'to be a', Project)
-          ]
+          ['downloads']
         );
         expect(
           MockModuleStats.packageNamesByMagnitude,
@@ -254,10 +263,11 @@ describe('cli', () => {
       MockModuleStats._instance.fetchDependents.resolves([
         'https://service.tld/foo.git'
       ]);
-      MockModuleStats._instance.fetchMetricForProjects.resolves({
+      MockModuleStats.packageNamesByMagnitude.resolves(['somedependent']);
+      const MockProjectStats = createMockProjectStats();
+      MockProjectStats._instance.fetchMetricForProjects.resolves({
         foo: 'bar'
       });
-      MockModuleStats.packageNamesByMagnitude.resolves(['somedependent']);
       const args = {
         metric: 'stars'
       };
@@ -266,14 +276,18 @@ describe('cli', () => {
         () =>
           cli.fetch(null, args, {
             _ModuleStats: MockModuleStats,
+            _ProjectStats: MockProjectStats,
             _log: () => {}
           }),
         'to be fulfilled'
       ).then(() => {
+        expect(MockProjectStats, 'to have a call satisfying', [
+          expect.it('to have items satisfying', 'to be a', Project)
+        ]);
         expect(
-          MockModuleStats._instance.fetchMetricForProjects,
+          MockProjectStats._instance.fetchMetricForProjects,
           'to have a call satisfying',
-          ['stars', expect.it('to have items satisfying', 'to be a', Project)]
+          ['stars']
         );
         expect(
           MockModuleStats.packageNamesByMagnitude,
@@ -286,10 +300,11 @@ describe('cli', () => {
     it('should output dependents data to stdout', () => {
       const MockModuleStats = createMockModuleStats();
       MockModuleStats._instance.fetchDependents.resolves(['foo']);
-      MockModuleStats._instance.fetchMetricForProjects.resolves({
+      MockModuleStats.packageNamesByMagnitude.resolves(['somedependent']);
+      const MockProjectStats = createMockProjectStats();
+      MockProjectStats._instance.fetchMetricForProjects.resolves({
         foo: 'bar'
       });
-      MockModuleStats.packageNamesByMagnitude.resolves(['somedependent']);
       const log = sinon.stub().named('console.log');
       const args = {
         metric: 'downloads'
