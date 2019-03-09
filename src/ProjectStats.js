@@ -40,14 +40,30 @@ class ProjectStats {
     });
   }
 
+  fetchStarsForProjects() {
+    const statsPromises = {};
+
+    return this.projects
+      .reduce((prev, { repoUrl: packageName }) => {
+        return prev.then(() =>
+          ModuleStats.createRepositoryRequest(packageName).then(
+            repositoryInfo => {
+              statsPromises[packageName] = repositoryInfo.stargazers_count;
+            }
+          )
+        );
+      }, Promise.resolve())
+      .then(() => {
+        return statsPromises;
+      });
+  }
+
   fetchMetricForProjects(metric) {
     switch (metric) {
       case 'downloads':
         return this.fetchDownloadsForProjects();
       case 'stars':
-        return Promise.reject(
-          new Error('The stars metric is currently disabled.')
-        );
+        return this.fetchStarsForProjects();
       default:
         return Promise.reject(
           new Error(`${metric} is not a supported metric.`)
