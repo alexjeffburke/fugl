@@ -52,7 +52,7 @@ const configureFetch = yargs =>
     })
     .positional('metric', {
       type: 'string',
-      choices: ['downloads'],
+      choices: ['downloads', 'stars'],
       demandOption: true,
       describe: 'The metric to use when ordering retrieved dependents.'
     })

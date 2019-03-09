@@ -60,25 +60,39 @@ open breakage/index.html
 
 ## Automatic dependent fetching
 
-### npm
+Fugl includes the ability to use various external services to deduce a set of dependents for
+a package. There are two supported metrics: "downloads" and "stars". These two metrics
+can be selected by the `fetch` command.
 
-Fugl also incldues the ability to query npm for the most downloaded depdendents of a particular
-package. This uses the npm API and requires use of the `fetch` command:
+### Downloads
+
+#### npm
+
+Fugl will query the npm API for information about package dependents:
 
 ```
 fugl fetch downloads --package assert-the-unexpected
 ```
 
-### Liraries.IO
+#### Liraries.IO
 
 One limitation of the npm depedents data is that it only includes information about those packages
-listed as direct depedents. In order to fetch `devDependents`, the tool is also integrated with
+listed as direct depedents. In order to fetch `devDependencies`, the tool is also integrated with
 [Libraries.IO](https://libraries.io).
 
 Signing up for this tool will provide you with an API key which can be used with Fugl as follows:
 
 ```
 fugl fetch downloads --package assert-the-unexpected --librariesio <api_key>
+```
+
+### Stars
+
+Fugl will try to derive the repositories for any supplied projects and then issue queries to
+GitHub to retrieve the number of stars each project has. Using this is as simple as:
+
+```
+fugl fetch stars --package unexpected
 ```
 
 ## Architecture
