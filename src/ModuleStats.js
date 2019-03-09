@@ -48,7 +48,7 @@ function createRepositoryRequest(repoUrl) {
   })
     .then(res => res.json())
     .catch(() => {
-      throw new Error(`Error feching repository for ${repoUrl}`);
+      throw new Error(`Error fetching repository for ${repoUrl}`);
     });
 }
 

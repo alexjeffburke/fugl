@@ -370,13 +370,28 @@ describe('ModuleStats', () => {
               'https://github.com/org/somepackage.git'
             ),
           'to be rejected with',
-          'Error feching repository for https://github.com/org/somepackage.git'
+          'Error fetching repository for https://github.com/org/somepackage.git'
         ).then(() => {
           expect(fetchStub, 'to have a call satisfying', [
             'https://api.github.com/repos/org/somepackage',
             { headers: { Accept: 'application/vnd.github.v3+json' } }
           ]);
         });
+      });
+
+      it('should resolve with repository info', () => {
+        fetchStub.resolves({
+          json: () => ({ stargazers_count: 45 })
+        });
+
+        return expect(
+          () =>
+            ModuleStats.createRepositoryRequest(
+              'https://github.com/org/somepackage.git'
+            ),
+          'to be fulfilled with',
+          { stargazers_count: 45 }
+        );
       });
     });
   });
