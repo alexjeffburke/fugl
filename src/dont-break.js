@@ -1,15 +1,10 @@
-var _ = require('lodash');
 var chdir = require('chdir-promise');
-var check = require('check-more-types');
 var debug = require('./debug');
 var fs = require('fs-extra');
 var mkdirp = require('mkdirp');
-var path = require('path');
 var stripComments = require('strip-json-comments');
-var la = require('./la');
 
 var Fugl = require('./Fugl');
-var ModuleStats = require('./ModuleStats');
 var packageCheck = require('./package-check');
 
 var dontBreakFilename = './.dont-break.json';
@@ -27,27 +22,15 @@ function getDependents(options) {
     return Promise.resolve({ projects });
   }
 
-  var configFile = path.join(options.folder, dontBreakFilename);
-  var forName = options.package;
-  debug('getting dependents for %s', forName);
+  return Promise.resolve().then(() => {
+    if (typeof options.topDownloads === 'number') {
+      throw new Error('Use `fugl fetch downloads`');
+    } else if (typeof options.topStarred === 'number') {
+      throw new Error('Use `fugl fetch stars`');
+    }
 
-  var metric, n;
-  if (check.number(options.topDownloads)) {
-    metric = 'downloads';
-    n = options.topDownloads;
-  } else if (check.number(options.topStarred)) {
-    metric = 'stars';
-    n = options.topStarred;
-  }
-
-  var firstStep;
-  if (check.unemptyString(metric) && check.number(n)) {
-    firstStep = saveTopDependents(configFile, forName, metric, n);
-  } else {
-    firstStep = Promise.resolve();
-  }
-
-  return firstStep.then(() => getDependentsFromFile(options));
+    return getDependentsFromFile(options);
+  });
 }
 
 function getDependentsFromFile(options) {
@@ -83,62 +66,6 @@ function getDependentsFromFile(options) {
         } else {
           return data;
         }
-      });
-    });
-}
-
-function saveTopDependents(file, name, metric, n) {
-  la(check.unemptyString(name), 'invalid package name', name);
-  la(check.unemptyString(metric), 'invalid metric', metric);
-  la(check.positiveNumber(n), 'invalid top number', n);
-
-  return new ModuleStats(name)
-    .fetchDepedentsWithMetric(metric)
-    .then(metricResult => {
-      const dependents = ModuleStats.packageNamesByMagnitude(metricResult);
-      debug(dependents);
-      la(
-        check.array(dependents),
-        'cannot select top n, not a list',
-        dependents
-      );
-      debug(
-        'limiting top downloads to first',
-        n,
-        'from the list of',
-        dependents.length
-      );
-      return _.take(dependents, n);
-    })
-    .then(function saveToFile(topDependents) {
-      la(
-        check.arrayOfStrings(topDependents),
-        'expected list of top strings',
-        topDependents
-      );
-      // TODO use template library instead of manual concat
-      var str =
-        '// top ' +
-        n +
-        ' most dependent modules by ' +
-        metric +
-        ' for ' +
-        name +
-        '\n';
-      str += '// data from NPM registry on ' + new Date().toDateString() + '\n';
-      str += JSON.stringify(topDependents, null, 2) + '\n';
-      return fs.writeFile(file, str, 'utf-8').then(() => {
-        debug(
-          'saved top',
-          n,
-          'dependents for',
-          name,
-          'by',
-          metric,
-          'to',
-          dontBreakFilename
-        );
-        return topDependents;
       });
     });
 }

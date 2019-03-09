@@ -165,18 +165,8 @@ describe('when used with top-downloads', () => {
       reporter: 'none',
       folder: dir,
       topDownloads: 25
-    }).then(() => {
-      assert.ok(fs.existsSync(path.join(dir, '.dont-break.json')));
-
-      expect(fuglStub, 'to have a call satisfying', [
-        {
-          package: 'unexpected',
-          reporter: 'none',
-          folder: dir,
-          topDownloads: 25,
-          projects: expect.it('not to be empty')
-        }
-      ]);
+    }).catch(error => {
+      expect(error, 'to have message', 'Use `fugl fetch downloads`');
     });
   });
 });
@@ -201,11 +191,7 @@ describe('when used with top-starred', () => {
       folder: dir,
       topStarred: 25
     }).catch(error => {
-      expect(
-        error,
-        'to have message',
-        'The stars metric is currently disabled.'
-      );
+      expect(error, 'to have message', 'Use `fugl fetch stars`');
     });
   });
 });
