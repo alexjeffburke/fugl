@@ -121,7 +121,12 @@ class Project {
         throw new Error(`unable to access package ${name}`);
       })
       .then(packageInfo => {
-        this.repoUrl = parsePackageRepo(packageInfo);
+        try {
+          this.repoUrl = parsePackageRepo(packageInfo);
+        } catch (error) {
+          error.isNotFatal = true;
+          throw error;
+        }
 
         return this;
       });

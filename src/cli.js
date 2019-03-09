@@ -50,9 +50,20 @@ function makeRequirementFromMetric(metric) {
 function verifyProjects(requirement, projects, options) {
   const ProjectStatsConstructor = options._ProjectStats || ProjectStats;
 
-  return Promise.all(projects.map(project => project.verify(requirement))).then(
-    projects => new ProjectStatsConstructor(projects)
-  );
+  return Promise.all(
+    projects.map(project =>
+      project.verify(requirement).catch(error => {
+        if (error.isNotFatal) {
+          console.warn(error.message);
+          return null;
+        } else {
+          throw error;
+        }
+      })
+    )
+  )
+    .then(projects => projects.filter(Boolean))
+    .then(projects => new ProjectStatsConstructor(projects));
 }
 
 exports.fetch = function fetch(cwd, yargv, options) {
