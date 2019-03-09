@@ -33,6 +33,25 @@ function createPackageRequest(moduleName, methodName, options) {
   });
 }
 
+function createRepositoryRequest(repoUrl) {
+  let gitHubApiUrl = repoUrl.replace('github.com', 'api.github.com/repos');
+
+  // remove .git suffix
+  if (/\.git$/.test(gitHubApiUrl)) {
+    gitHubApiUrl = gitHubApiUrl.slice(0, -4);
+  }
+
+  return ModuleStats.fetch(gitHubApiUrl, {
+    headers: {
+      Accept: 'application/vnd.github.v3+json'
+    }
+  })
+    .then(res => res.json())
+    .catch(() => {
+      throw new Error(`Error feching repository for ${repoUrl}`);
+    });
+}
+
 function parseLibrariesIoItemToRepoUrl(item) {
   const fullName = item.full_name;
   const hostType = item.host_type;
@@ -154,6 +173,7 @@ class ModuleStats {
 }
 
 ModuleStats.createPackageRequest = createPackageRequest;
+ModuleStats.createRepositoryRequest = createRepositoryRequest;
 
 ModuleStats.fetch = fetch;
 

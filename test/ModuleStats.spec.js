@@ -349,6 +349,36 @@ describe('ModuleStats', () => {
         'failure'
       );
     });
+
+    describe('ModuleStats.createRepositoryRequest', () => {
+      let fetchStub;
+
+      beforeEach(() => {
+        fetchStub = sinon.stub(ModuleStats, 'fetch');
+      });
+
+      afterEach(() => {
+        fetchStub.restore();
+      });
+
+      it('should reject on request error', () => {
+        fetchStub.rejects(new Error('failure'));
+
+        return expect(
+          () =>
+            ModuleStats.createRepositoryRequest(
+              'https://github.com/org/somepackage.git'
+            ),
+          'to be rejected with',
+          'Error feching repository for https://github.com/org/somepackage.git'
+        ).then(() => {
+          expect(fetchStub, 'to have a call satisfying', [
+            'https://api.github.com/repos/org/somepackage',
+            { headers: { Accept: 'application/vnd.github.v3+json' } }
+          ]);
+        });
+      });
+    });
   });
 
   describe('ModuleStats.packageNamesByMagnitude', () => {
