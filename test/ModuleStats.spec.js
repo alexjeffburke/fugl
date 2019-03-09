@@ -457,6 +457,24 @@ describe('ModuleStats', () => {
           ]);
         });
       });
+
+      it('should handle repoUrl prefixed with ssh://', () => {
+        fetchStub.resolves({
+          json: () => ({ name: 'some_old_package' })
+        });
+
+        return expect(
+          () =>
+            ModuleStats.createGitHubPackageJsonRequest(
+              'ssh://github.com/org/somepackage.git'
+            ),
+          'to be fulfilled'
+        ).then(() => {
+          expect(fetchStub, 'to have a call satisfying', [
+            'https://raw.githubusercontent.com/org/somepackage/master/package.json'
+          ]);
+        });
+      });
     });
 
     describe('ModuleStats.createGitHubRepositoryRequest', () => {
@@ -512,6 +530,25 @@ describe('ModuleStats', () => {
           () =>
             ModuleStats.createGitHubRepositoryRequest(
               'git://github.com/org/somepackage.git'
+            ),
+          'to be fulfilled'
+        ).then(() => {
+          expect(fetchStub, 'to have a call satisfying', [
+            'https://api.github.com/repos/org/somepackage',
+            { headers: { Accept: 'application/vnd.github.v3+json' } }
+          ]);
+        });
+      });
+
+      it('should handle repoUrl prefixed with ssh://', () => {
+        fetchStub.resolves({
+          json: () => ({})
+        });
+
+        return expect(
+          () =>
+            ModuleStats.createGitHubRepositoryRequest(
+              'ssh://github.com/org/somepackage.git'
             ),
           'to be fulfilled'
         ).then(() => {

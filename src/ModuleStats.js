@@ -92,6 +92,9 @@ function toGitHubHttpsUrl(url) {
   if (/^git:\/\//.test(url)) {
     url = url.replace('git://', 'https://');
   }
+  if (/^ssh:\/\//.test(url)) {
+    url = url.replace('ssh://', 'https://');
+  }
 
   return url;
 }
