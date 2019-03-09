@@ -439,6 +439,24 @@ describe('ModuleStats', () => {
           'some_old_package'
         );
       });
+
+      it('should handle repoUrl prefixed with git://', () => {
+        fetchStub.resolves({
+          json: () => ({ name: 'some_old_package' })
+        });
+
+        return expect(
+          () =>
+            ModuleStats.createGitHubPackageJsonRequest(
+              'git://github.com/org/somepackage.git'
+            ),
+          'to be fulfilled'
+        ).then(() => {
+          expect(fetchStub, 'to have a call satisfying', [
+            'https://raw.githubusercontent.com/org/somepackage/master/package.json'
+          ]);
+        });
+      });
     });
 
     describe('ModuleStats.createGitHubRepositoryRequest', () => {
@@ -483,6 +501,25 @@ describe('ModuleStats', () => {
           'to be fulfilled with',
           { stargazers_count: 45 }
         );
+      });
+
+      it('should handle repoUrl prefixed with git://', () => {
+        fetchStub.resolves({
+          json: () => ({})
+        });
+
+        return expect(
+          () =>
+            ModuleStats.createGitHubRepositoryRequest(
+              'git://github.com/org/somepackage.git'
+            ),
+          'to be fulfilled'
+        ).then(() => {
+          expect(fetchStub, 'to have a call satisfying', [
+            'https://api.github.com/repos/org/somepackage',
+            { headers: { Accept: 'application/vnd.github.v3+json' } }
+          ]);
+        });
       });
     });
   });

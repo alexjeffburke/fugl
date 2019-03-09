@@ -39,10 +39,7 @@ function createGitHubPackageJsonRequest(repoUrl) {
     'raw.githubusercontent.com'
   );
 
-  // remove .git suffix
-  if (/\.git$/.test(userContentUrl)) {
-    userContentUrl = userContentUrl.slice(0, -4);
-  }
+  userContentUrl = toGitHubHttpsUrl(userContentUrl);
 
   return ModuleStats.fetch(`${userContentUrl}/master/package.json`)
     .then(res => res.json())
@@ -61,10 +58,7 @@ function createGitHubPackageJsonRequest(repoUrl) {
 function createGitHubRepositoryRequest(repoUrl) {
   let gitHubApiUrl = repoUrl.replace('github.com', 'api.github.com/repos');
 
-  // remove .git suffix
-  if (/\.git$/.test(gitHubApiUrl)) {
-    gitHubApiUrl = gitHubApiUrl.slice(0, -4);
-  }
+  gitHubApiUrl = toGitHubHttpsUrl(gitHubApiUrl);
 
   return ModuleStats.fetch(gitHubApiUrl, {
     headers: {
@@ -86,6 +80,20 @@ function parseLibrariesIoItemToRepoUrl(item) {
   }
 
   return `https://github.com/${fullName}`;
+}
+
+function toGitHubHttpsUrl(url) {
+  // remove .git suffix
+  if (/\.git$/.test(url)) {
+    url = url.slice(0, -4);
+  }
+
+  // convert to https
+  if (/^git:\/\//.test(url)) {
+    url = url.replace('git://', 'https://');
+  }
+
+  return url;
 }
 
 class ModuleStats {
