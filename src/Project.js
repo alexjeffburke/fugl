@@ -37,10 +37,10 @@ function parsePackageRepo(packageInfo) {
     if (isRepoUrl(repository)) {
       return repository;
     } else {
-      throw new Error(`project ${name} repository is invalid`);
+      throw new Error(`repository is invalid for project ${name}`);
     }
   } else {
-    throw new Error(`project ${name} repository is missing`);
+    throw new Error(`repository is missing for project ${name}`);
   }
 }
 
@@ -117,13 +117,13 @@ class Project {
 
     return moduleStats
       .fetchInfo()
+      .catch(() => {
+        throw new Error(`unable to access package ${name}`);
+      })
       .then(packageInfo => {
         this.repoUrl = parsePackageRepo(packageInfo);
 
         return this;
-      })
-      .catch(() => {
-        throw new Error(`unable to access package ${name}`);
       });
   }
 

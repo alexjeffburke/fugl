@@ -158,7 +158,7 @@ describe('Project', () => {
       return expect(
         () => project.queryNpmForPackageAndUpdate('somepackage', moduleStats),
         'to be rejected with',
-        'unable to access package somepackage'
+        'repository is missing for project somepackage'
       );
     });
 
@@ -173,7 +173,7 @@ describe('Project', () => {
       return expect(
         () => project.queryNpmForPackageAndUpdate('somepackage', moduleStats),
         'to be rejected with',
-        'unable to access package somepackage'
+        'repository is invalid for project somepackage'
       );
     });
 
