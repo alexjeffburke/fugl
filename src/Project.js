@@ -1,3 +1,4 @@
+const debug = require('./debug').extend('Project');
 const isGitUrl = require('is-git-url');
 const normalizeGitUrl = require('normalize-git-url');
 const urlModule = require('url');
@@ -98,11 +99,14 @@ class Project {
   }
 
   queryGitHubForPackageAndUpdate(name, _moduleStats) {
-    const moduleStats = _moduleStats || new ModuleStats(name);
+    debug(`querying GitHub for ${this.name}`);
 
+    const moduleStats = _moduleStats || new ModuleStats(name);
     return moduleStats
       .fetchPackageJsonFromGitHub()
       .then(npmName => {
+        debug(`retrieved GitHub result for ${this.name}: ${npmName}`);
+
         this.npmName = npmName;
 
         return this;
@@ -113,14 +117,21 @@ class Project {
   }
 
   queryNpmForPackageAndUpdate(name, _moduleStats) {
-    const moduleStats = _moduleStats || new ModuleStats(name);
+    debug(`querying Npm for ${this.name}`);
 
+    const moduleStats = _moduleStats || new ModuleStats(name);
     return moduleStats
       .fetchInfo()
       .catch(() => {
         throw new Error(`unable to access package ${name}`);
       })
       .then(packageInfo => {
+        debug(
+          `retrieved npm result for ${this.name}: ${JSON.stringify(
+            packageInfo
+          )}`
+        );
+
         try {
           this.repoUrl = parsePackageRepo(packageInfo);
         } catch (error) {
@@ -133,6 +144,8 @@ class Project {
   }
 
   verify(requirement) {
+    debug(`verifying ${this.name}`);
+
     if (requirement && this[requirement] !== null) {
       return Promise.resolve(this);
     }
