@@ -101,7 +101,7 @@ class Project {
     const moduleStats = _moduleStats || new ModuleStats(name);
 
     return moduleStats
-      .fetchPackageJsonFromGitHub(name)
+      .fetchPackageJsonFromGitHub()
       .then(npmName => {
         this.npmName = npmName;
 

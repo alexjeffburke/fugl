@@ -56,21 +56,21 @@ describe('ProjectStats', () => {
   });
 
   describe('#fetchMetricForProjects (stars)', () => {
-    let createRepositoryRequestStub;
+    let createGitHubRepositoryRequestStub;
 
     beforeEach(() => {
-      createRepositoryRequestStub = sinon.stub(
+      createGitHubRepositoryRequestStub = sinon.stub(
         ModuleStats,
-        'createRepositoryRequest'
+        'createGitHubRepositoryRequest'
       );
     });
 
     afterEach(() => {
-      createRepositoryRequestStub.restore();
+      createGitHubRepositoryRequestStub.restore();
     });
 
     it('should total and return the stats for each package', () => {
-      createRepositoryRequestStub
+      createGitHubRepositoryRequestStub
         .onFirstCall()
         .resolves({ stargazers_count: 5 })
         .onSecondCall()

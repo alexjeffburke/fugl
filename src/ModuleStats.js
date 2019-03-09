@@ -33,7 +33,32 @@ function createPackageRequest(moduleName, methodName, options) {
   });
 }
 
-function createRepositoryRequest(repoUrl) {
+function createGitHubPackageJsonRequest(repoUrl) {
+  let userContentUrl = repoUrl.replace(
+    'github.com',
+    'raw.githubusercontent.com'
+  );
+
+  // remove .git suffix
+  if (/\.git$/.test(userContentUrl)) {
+    userContentUrl = userContentUrl.slice(0, -4);
+  }
+
+  return ModuleStats.fetch(`${userContentUrl}/master/package.json`)
+    .then(res => res.json())
+    .catch(() => {
+      throw new Error(`Error feching package.json for ${repoUrl}`);
+    })
+    .then(packageJson => {
+      if (packageJson.name) {
+        return packageJson.name;
+      } else {
+        throw new Error(`Missing name in package.json for ${repoUrl}`);
+      }
+    });
+}
+
+function createGitHubRepositoryRequest(repoUrl) {
   let gitHubApiUrl = repoUrl.replace('github.com', 'api.github.com/repos');
 
   // remove .git suffix
@@ -116,7 +141,9 @@ class ModuleStats {
           return prev.then(() => {
             return Promise.resolve()
               .then(() => parseLibrariesIoItemToRepoUrl(item))
-              .then(repoUrl => this.fetchPackageJsonFromGitHub(repoUrl))
+              .then(repoUrl =>
+                ModuleStats.createGitHubPackageJsonRequest(repoUrl)
+              )
               .then(depdendent => depdendents.push(depdendent))
               .catch(error => debug(error))
               .then(() => depdendents);
@@ -151,29 +178,17 @@ class ModuleStats {
     );
   }
 
-  fetchPackageJsonFromGitHub(repoUrl) {
-    const userContentUrl = repoUrl.replace(
-      'github.com',
-      'raw.githubusercontent.com'
-    );
-
-    return ModuleStats.fetch(`${userContentUrl}/master/package.json`)
-      .then(res => res.json())
-      .catch(() => {
-        throw new Error(`Error feching package.json for ${repoUrl}`);
-      })
-      .then(packageJson => {
-        if (packageJson.name) {
-          return packageJson.name;
-        } else {
-          throw new Error(`Missing name in package.json for ${repoUrl}`);
-        }
-      });
+  fetchPackageJsonFromGitHub() {
+    return ModuleStats.createGitHubPackageJsonRequest(this.moduleName);
   }
 }
 
+// npm
 ModuleStats.createPackageRequest = createPackageRequest;
-ModuleStats.createRepositoryRequest = createRepositoryRequest;
+
+// GitHub
+ModuleStats.createGitHubRepositoryRequest = createGitHubRepositoryRequest;
+ModuleStats.createGitHubPackageJsonRequest = createGitHubPackageJsonRequest;
 
 ModuleStats.fetch = fetch;
 

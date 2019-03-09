@@ -97,9 +97,7 @@ describe('Project', () => {
     it('should call the fetching method', () => {
       const project = new Project('https://service.tld/foo');
       const moduleStats = {
-        fetchPackageJsonFromGitHub: sinon
-          .stub()
-          .resolves({ name: '@service.tld/foo' })
+        fetchPackageJsonFromGitHub: sinon.stub().resolves('@service.tld/foo')
       };
 
       return expect(
@@ -113,7 +111,7 @@ describe('Project', () => {
         expect(
           moduleStats.fetchPackageJsonFromGitHub,
           'to have a call satisfying',
-          ['https://service.tld/foo']
+          []
         );
       });
     });

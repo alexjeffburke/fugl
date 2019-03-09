@@ -317,6 +317,34 @@ describe('ModuleStats', () => {
     });
   });
 
+  describe('#fetchPackageJsonFromGitHub', () => {
+    let createGitHubPackageJsonRequestStub;
+
+    beforeEach(() => {
+      createGitHubPackageJsonRequestStub = sinon.stub(
+        ModuleStats,
+        'createGitHubPackageJsonRequest'
+      );
+    });
+
+    afterEach(() => {
+      createGitHubPackageJsonRequestStub.restore();
+    });
+
+    it('should fetch and record package.json', () => {
+      createGitHubPackageJsonRequestStub.resolves('some_old_package');
+      const moduleStats = new ModuleStats(
+        'https://github.com/org/some_old_package.git'
+      );
+
+      return expect(
+        moduleStats.fetchPackageJsonFromGitHub(),
+        'to be fulfilled with',
+        'some_old_package'
+      );
+    });
+  });
+
   describe('ModuleStats.createPackageRequest', () => {
     function createFakeRegistry() {
       const moduleNamespace = {
@@ -350,7 +378,7 @@ describe('ModuleStats', () => {
       );
     });
 
-    describe('ModuleStats.createRepositoryRequest', () => {
+    describe('ModuleStats.createGitHubPackageJsonRequest', () => {
       let fetchStub;
 
       beforeEach(() => {
@@ -366,7 +394,70 @@ describe('ModuleStats', () => {
 
         return expect(
           () =>
-            ModuleStats.createRepositoryRequest(
+            ModuleStats.createGitHubPackageJsonRequest(
+              'https://github.com/org/somepackage.git'
+            ),
+          'to be rejected with',
+          'Error feching package.json for https://github.com/org/somepackage.git'
+        ).then(() => {
+          expect(fetchStub, 'to have a call satisfying', [
+            'https://raw.githubusercontent.com/org/somepackage/master/package.json'
+          ]);
+        });
+      });
+
+      it('should reject on missing package name', () => {
+        fetchStub.resolves({
+          json: () => ({})
+        });
+
+        return expect(
+          () =>
+            ModuleStats.createGitHubPackageJsonRequest(
+              'https://github.com/org/somepackage.git'
+            ),
+          'to be rejected with',
+          'Missing name in package.json for https://github.com/org/somepackage.git'
+        ).then(() => {
+          expect(fetchStub, 'to have a call satisfying', [
+            'https://raw.githubusercontent.com/org/somepackage/master/package.json'
+          ]);
+        });
+      });
+
+      it('should resolve with repository info', () => {
+        fetchStub.resolves({
+          json: () => ({ name: 'some_old_package' })
+        });
+
+        return expect(
+          () =>
+            ModuleStats.createGitHubPackageJsonRequest(
+              'https://github.com/org/somepackage.git'
+            ),
+          'to be fulfilled with',
+          'some_old_package'
+        );
+      });
+    });
+
+    describe('ModuleStats.createGitHubRepositoryRequest', () => {
+      let fetchStub;
+
+      beforeEach(() => {
+        fetchStub = sinon.stub(ModuleStats, 'fetch');
+      });
+
+      afterEach(() => {
+        fetchStub.restore();
+      });
+
+      it('should reject on request error', () => {
+        fetchStub.rejects(new Error('failure'));
+
+        return expect(
+          () =>
+            ModuleStats.createGitHubRepositoryRequest(
               'https://github.com/org/somepackage.git'
             ),
           'to be rejected with',
@@ -386,7 +477,7 @@ describe('ModuleStats', () => {
 
         return expect(
           () =>
-            ModuleStats.createRepositoryRequest(
+            ModuleStats.createGitHubRepositoryRequest(
               'https://github.com/org/somepackage.git'
             ),
           'to be fulfilled with',

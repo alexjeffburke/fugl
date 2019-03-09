@@ -46,7 +46,7 @@ class ProjectStats {
     return this.projects
       .reduce((prev, { repoUrl: packageName }) => {
         return prev.then(() =>
-          ModuleStats.createRepositoryRequest(packageName).then(
+          ModuleStats.createGitHubRepositoryRequest(packageName).then(
             repositoryInfo => {
               statsPromises[packageName] = repositoryInfo.stargazers_count;
             }
