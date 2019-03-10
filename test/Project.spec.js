@@ -76,6 +76,20 @@ describe('Project', () => {
     });
   });
 
+  describe('#.name', () => {
+    it('should allow git', () => {
+      const project = new Project('https://service.tld/foo');
+
+      return expect(project.name, 'to equal', 'https://service.tld/foo');
+    });
+
+    it('should allow npm', () => {
+      const project = new Project('somepackage');
+
+      return expect(project.name, 'to equal', 'somepackage');
+    });
+  });
+
   describe('#queryGitHubForPackageAndUpdate', () => {
     it('should error on GitHub query failure', () => {
       const project = new Project('https://service.tld/foo');
