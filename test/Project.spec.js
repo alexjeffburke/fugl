@@ -193,12 +193,28 @@ describe('Project', () => {
       });
     });
 
-    it('should normalise repoUrl', () => {
+    it('should normalise repoUrl (object)', () => {
       const project = new Project('somepackage');
       const moduleStats = {
         fetchInfo: sinon
           .stub()
           .resolves({ repository: { url: 'git+https://service.tld/foo' } })
+      };
+
+      return expect(
+        () => project.queryNpmForPackageAndUpdate('somepackage', moduleStats),
+        'to be fulfilled'
+      ).then(() => {
+        expect(project.repoUrl, 'to equal', 'https://service.tld/foo');
+      });
+    });
+
+    it('should normalise repoUrl (string)', () => {
+      const project = new Project('somepackage');
+      const moduleStats = {
+        fetchInfo: sinon
+          .stub()
+          .resolves({ repository: 'git+https://service.tld/foo' })
       };
 
       return expect(

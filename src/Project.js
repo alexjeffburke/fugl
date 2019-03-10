@@ -34,6 +34,8 @@ function parsePackageRepo(packageInfo) {
     let repository = packageInfo.repository;
     if (typeof repository !== 'string') {
       repository = normalizeGitUrl(repository.url).url;
+    } else {
+      repository = normalizeGitUrl(repository).url;
     }
     if (isRepoUrl(repository)) {
       return repository;
