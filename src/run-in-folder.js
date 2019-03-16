@@ -6,6 +6,8 @@ var check = require('check-more-types');
 var chdir = require('chdir-promise');
 var spawn = require('cross-spawn');
 
+var isWindows = process.platform === 'win32';
+
 function createError(prefix, output, defaultMessageFn) {
   let message = `${prefix} Failure\n`;
   message += output.length > 0 ? output.join('') : defaultMessageFn();
@@ -26,6 +28,10 @@ function npmTest(cmd) {
 
   la(check.unemptyString(app), 'application name should be a string', app);
   la(check.arrayOfStrings(parts), 'arguments should be an array', parts);
+
+  if (isWindows && app === 'npm') {
+    app = 'npm.cmd';
+  }
 
   return new Promise((resolve, reject) => {
     const npm = spawn(app, parts);
