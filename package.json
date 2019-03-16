@@ -1,7 +1,7 @@
 {
   "name": "fugl",
   "description": "A tool for verifying that changes to a package do not affect projects dependent upon it.",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "main": "src/Fugl.js",
   "author": "Alex J Burke <alex@alexjeffburke.com>",
   "repository": {
