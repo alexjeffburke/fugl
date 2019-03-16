@@ -7,6 +7,7 @@ var rimraf = require('rimraf');
 var simpleGit = require('simple-git/promise')();
 
 var runInFolder = require('./run-in-folder');
+var withTimeout = require('./withTimeout');
 
 var DEFAULT_INSTALL_COMMAND = 'npm install';
 var INSTALL_TIMEOUT_SECONDS = 2 * 60 * 1000; // 2 minutes
@@ -47,7 +48,7 @@ function moduleProvision(options) {
   }
 }
 
-function moduleInstall({ toFolder }, dependent) {
+function moduleInstall({ toFolder, dependent }) {
   const cmd = dependent.install || DEFAULT_INSTALL_COMMAND;
 
   return runInFolder(toFolder, cmd, {
@@ -58,27 +59,24 @@ function moduleInstall({ toFolder }, dependent) {
 
 function install(options, dependent) {
   const { moduleName, toFolder } = options;
-  var timeoutSeconds = options.timeout || INSTALL_TIMEOUT_SECONDS;
+  const timeout = options.timeout || INSTALL_TIMEOUT_SECONDS;
 
-  function _install() {
-    return Promise.resolve()
-      .then(() => moduleProvision(options))
-      .then(() => moduleInstall({ moduleName, toFolder }, dependent));
+  function moduleInstallWithTimeout(installOptions) {
+    return withTimeout(moduleInstall(installOptions), timeout);
   }
 
-  return Promise.race([
-    _install().then(() => null),
-    new Promise(resolve =>
-      setTimeout(() => resolve({ timeout: true }), timeoutSeconds)
-    )
-  ]).then(result => {
-    if (result && result.timeout) {
-      const message = `install timed out for ${moduleName}`;
-      debug(message);
-      throw new Error(message);
-    }
-    return result;
-  });
+  return Promise.resolve()
+    .then(() => moduleProvision(options))
+    .then(() => moduleInstallWithTimeout({ toFolder, dependent }))
+    .catch(error => {
+      if (error.name === 'TimeoutError') {
+        const message = `install timed out for ${moduleName}`;
+        debug(message);
+        error = new Error(message);
+      }
+
+      throw error;
+    });
 }
 
 module.exports = install;
