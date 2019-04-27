@@ -69,6 +69,10 @@ describe('cli - integration', () => {
     });
   });
 
+  function skipIf(bool, block, descr) {
+    (bool ? it.skip : it)(block, descr);
+  }
+
   describe('when used with a package', () => {
     const dir = path.join(path.join(__dirname, 'cli-package'));
     const buildsDir = path.join(path.join(dir, 'builds'));
@@ -81,7 +85,23 @@ describe('cli - integration', () => {
       rimraf.sync(buildsDir);
     });
 
-    it('should have created the module folder', () => {
+    it('should have created the module folder using npm', () => {
+      return spawnCli(dir, {
+        folder: dir,
+        reporter: 'none',
+        projects: ['https://github.com/bahmutov/dont-break-bar']
+      }).then(() => {
+        const stat = fs.lstatSync(
+          path.join(checkoutDir, 'node_modules', 'dont-break-foo')
+        );
+        expect(stat, 'to be an object');
+        expect(stat.isSymbolicLink(), 'to be true');
+      });
+    });
+
+    const isWin = process.platform === 'win32';
+
+    skipIf(isWin, 'should have created the module folder using link', () => {
       return spawnCli(dir, {
         reporter: 'none',
         projects: ['https://github.com/bahmutov/dont-break-bar']
