@@ -66,10 +66,18 @@ function moduleInstall({ toFolder, dependent }) {
 
 function install(options, dependent) {
   const { moduleName, toFolder } = options;
-  const timeout = options.timeout || INSTALL_TIMEOUT_SECONDS;
+  const timeout =
+    typeof options.timeout === 'number'
+      ? options.timeout
+      : INSTALL_TIMEOUT_SECONDS;
 
   function moduleInstallWithTimeout(installOptions) {
-    return withTimeout(moduleInstall(installOptions), timeout);
+    const installPromise = moduleInstall(installOptions);
+    if (timeout > 0) {
+      return withTimeout(installPromise, timeout);
+    } else {
+      return installPromise;
+    }
   }
 
   return Promise.resolve()

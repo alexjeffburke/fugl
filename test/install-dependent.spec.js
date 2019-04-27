@@ -35,6 +35,26 @@ describe('installDependent', () => {
     });
   });
 
+  it('should trigger installing the package in the dependent without timeout', () => {
+    return expect(
+      installDependent(
+        {
+          moduleName: 'https://github.com/bahmutov/dont-break-bar',
+          toFolder: toFolder,
+          timeout: 0
+        },
+        {
+          pretest: true,
+          packageName: 'somepackage',
+          packageVersion: 'latest'
+        }
+      ),
+      'to be fulfilled'
+    ).then(() => {
+      expect(fs.existsSync(path.join(toFolder, '.git')), 'to be true');
+    });
+  });
+
   it('should error when the installation timeout is exceeded', () => {
     return expect(
       installDependent(

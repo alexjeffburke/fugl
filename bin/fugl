@@ -32,6 +32,11 @@ const configureCheck = yargs =>
       describe:
         'Toggle whether to ignore a module package test on a pretest failure.'
     })
+    .option('timeout', {
+      type: 'number',
+      describe:
+        'Specify a timeout in ms that should apply to the installation phase; 0 will disable it completely.'
+    })
     .option('quick', {
       type: 'boolean',
       describe:

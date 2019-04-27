@@ -65,6 +65,10 @@ class Fugl extends EventEmitter {
       throw new Error('Fugl: missing projects');
     }
 
+    if (typeof options.timeout === 'number' && isNaN(options.timeout)) {
+      throw new Error('Fugl: invalid timeout');
+    }
+
     options.ci = !!options.ci;
     options.noClean = !!options.noClean;
     options.pretest =

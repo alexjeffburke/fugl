@@ -67,6 +67,21 @@ describe('Fugl', () => {
     );
   });
 
+  it('should error with an invalid timeout', () => {
+    return expect(
+      () => {
+        new Fugl({
+          package: 'somepackage',
+          folder: __dirname,
+          projects: [],
+          timeout: NaN
+        });
+      },
+      'to throw',
+      'Fugl: invalid timeout'
+    );
+  });
+
   it('should error with invalid project', () => {
     return expect(
       () => {
