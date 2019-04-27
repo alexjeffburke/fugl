@@ -19,7 +19,6 @@
   ],
   "dependencies": {
     "@gustavnikolaj/async-main-wrap": "^3.0.0",
-    "chdir-promise": "0.6.2",
     "check-more-types": "2.24.0",
     "cross-spawn": "^6.0.5",
     "debug": "^4.1.1",

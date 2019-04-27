@@ -3,7 +3,6 @@
 var la = require('./la');
 var debug = require('./debug');
 var check = require('check-more-types');
-var chdir = require('chdir-promise');
 var spawn = require('cross-spawn');
 
 var isWindows = process.platform === 'win32';
@@ -14,7 +13,7 @@ function createError(prefix, output, defaultMessageFn) {
   return new Error(message);
 }
 
-function npmTest(cmd) {
+function npmTest(cwd, cmd) {
   var app;
   var parts;
 
@@ -34,7 +33,7 @@ function npmTest(cmd) {
   }
 
   return new Promise((resolve, reject) => {
-    const npm = spawn(app, parts);
+    const npm = spawn(app, parts, { cwd });
     let output = [];
 
     npm.stdout.on('data', data => {
@@ -87,10 +86,9 @@ function runInFolder(folder, command, options) {
       la(check.unemptyString(folder), 'expected folder');
       la(check.unemptyString(command), 'expected command');
     })
-    .then(() => chdir.to(folder))
     .then(function() {
       debug(`running "${command}" from ${folder}`);
-      return npmTest(command);
+      return npmTest(folder, command);
     })
     .then(function() {
       if (typeof options.success === 'string') {
@@ -103,7 +101,6 @@ function runInFolder(folder, command, options) {
         debug(`${options.failure} in ${folder}`);
       }
     })
-    .then(() => chdir.from())
     .then(() => {
       if (sawError !== null) {
         throw sawError;
