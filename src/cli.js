@@ -15,7 +15,7 @@ exports.check = function check(cwd, yargv, options) {
     ci: yargv.ci
   };
 
-  if (!yargv.package && !yargv.folder) {
+  if (!yargv.package) {
     // we may be running via npx
     fuglOptions.package = cwd;
     fuglOptions.packageInstaller = 'link';

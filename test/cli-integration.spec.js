@@ -17,6 +17,11 @@ function spawnCli(cwd, options = {}) {
 
   return new Promise((resolve, reject) => {
     let sawExit = false;
+    let stderr = '';
+
+    spawnedCli.stderr.on('data', chunk => {
+      stderr += chunk.toString('utf8');
+    });
 
     spawnedCli.on('error', err => {
       if (sawExit) {
@@ -34,7 +39,7 @@ function spawnCli(cwd, options = {}) {
       sawExit = true;
 
       if (code) {
-        const error = new Error('spawnCli error');
+        const error = new Error(`spawnCli error\n\n${stderr}`);
         error.code = code;
         reject(error);
       } else {
