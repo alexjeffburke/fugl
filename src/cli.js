@@ -27,6 +27,7 @@ exports.check = function check(cwd, yargv, options) {
   let osTmpDir = false;
   if (!yargv.folder) {
     osTmpDir = true;
+    fuglOptions.osTmpDir = true;
     fuglOptions.tmpDir = path.join(os.tmpdir(), 'fugl');
   }
 

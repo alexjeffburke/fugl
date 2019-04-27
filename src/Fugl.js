@@ -12,6 +12,7 @@ var NpmStrategy = require('./NpmStrategy');
 var Project = require('./Project');
 var testDependent = require('./test-dependent');
 
+var IS_PLATFORM_WHIMSY = ['linux', 'darwin'].includes(process.platform);
 var MOCHA_HTML_DOCUMENT = `<html>
   <head>
     <link href="index.css" rel="stylesheet">
@@ -295,6 +296,16 @@ class Fugl extends EventEmitter {
 
     if (!fs.existsSync(options.folder)) {
       mkdirp.sync(options.folder);
+    }
+
+    if (options.osTmpDir) {
+      if (!fs.existsSync(options.tmpDir)) {
+        mkdirp.sync(options.tmpDir);
+      }
+
+      if (IS_PLATFORM_WHIMSY) {
+        fs.writeFileSync(path.join(options.tmpDir, '..', '🐦'));
+      }
     }
 
     debug('working in folder %s', options.folder);
