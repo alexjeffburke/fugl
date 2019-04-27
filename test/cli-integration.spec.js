@@ -15,10 +15,6 @@ function spawnCli(cwd, options = {}) {
 
   const spawnedCli = spawn(app, args, { cwd });
 
-  spawnedCli.stderr.on('data', data => {
-    console.log(data.toString('utf8'));
-  });
-
   return new Promise((resolve, reject) => {
     let sawExit = false;
 
