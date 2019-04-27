@@ -1,0 +1,6 @@
+{
+  "name": "dont-break-foo",
+  "bin": {
+    "bin1": "./bin1.js"
+  }
+}

@@ -55,4 +55,38 @@ describe('LinkStrategy', () => {
       'Link Failure: cannot link into missing node_modules'
     );
   });
+
+  describe('when the package has binaries', () => {
+    it('should link the binaries into node_modules', () => {
+      const moduleWithBinariesDir = path.join(
+        __dirname,
+        'module-with-binaries'
+      );
+      const buildsFolder = path.join(moduleWithBinariesDir, 'builds');
+      const toFolder = path.join(buildsFolder, 'example');
+      const nodeModulesDir = path.join(toFolder, 'node_modules');
+
+      mkdirp.sync(nodeModulesDir);
+
+      return expect(
+        () => new LinkStrategy(moduleWithBinariesDir).installTo({ toFolder }),
+        'to be fulfilled'
+      )
+        .then(() => {
+          // check the link was created
+          const linkedBinPath = path.join(nodeModulesDir, '.bin', 'bin1');
+          const stat = fs.lstatSync(linkedBinPath);
+          expect(stat, 'to be an object');
+          expect(stat.isSymbolicLink(), 'to be true');
+
+          // check the link was correct
+          const realPath = fs.realpathSync(linkedBinPath);
+          const originalBinPath = path.join(moduleWithBinariesDir, 'bin1.js');
+          expect(realPath, 'to equal', originalBinPath);
+        })
+        .finally(() => {
+          rimraf.sync(buildsFolder);
+        });
+    });
+  });
 });

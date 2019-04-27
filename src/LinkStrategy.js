@@ -8,7 +8,11 @@ const packageCheck = require('./package-check');
 class LinkStrategy {
   constructor(packagePath) {
     this.packagePath = packagePath;
-    this.packageName = packageCheck(packagePath).name;
+
+    const checkedPackages = packageCheck(packagePath);
+
+    this.packageName = checkedPackages.name;
+    this.packageBinaries = checkedPackages.bin || {};
   }
 
   installTo(options) {
@@ -32,8 +36,6 @@ class LinkStrategy {
       fs.symlinkSync(this.packagePath, modulePackagePath);
 
       debug('package linking succeeded');
-
-      return Promise.resolve();
     } catch (err) {
       let error;
       if (err.message.indexOf('ENOENT') !== -1) {
@@ -46,6 +48,31 @@ class LinkStrategy {
 
       return Promise.reject(error);
     }
+
+    const binaryNames = Object.keys(this.packageBinaries);
+    const moduleBinaryPath = path.join(nodeModulesPath, '.bin');
+    if (binaryNames.length > 0) {
+      if (!fs.existsSync(moduleBinaryPath)) {
+        fs.mkdirSync(moduleBinaryPath);
+      }
+    }
+
+    binaryNames.forEach(binaryName => {
+      const binaryRelativePath = this.packageBinaries[binaryName];
+      const binaryAbsolutePath = path.join(
+        this.packagePath,
+        binaryRelativePath
+      );
+      const targetBinaryPath = path.join(moduleBinaryPath, binaryName);
+
+      try {
+        fs.symlinkSync(binaryAbsolutePath, targetBinaryPath);
+      } catch (err) {
+        debug(`package linking failed for binary ${binaryName}`, err);
+      }
+    });
+
+    return Promise.resolve();
   }
 }
 
