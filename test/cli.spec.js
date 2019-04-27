@@ -123,6 +123,7 @@ describe('cli', () => {
       ).then(() => {
         expect(warnStub, 'to have calls satisfying', [
           [],
+          [expect.it('to begin with', 'builds located in')],
           ['completed with failures']
         ]);
       });

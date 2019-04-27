@@ -1,3 +1,6 @@
+const os = require('os');
+const path = require('path');
+
 const Fugl = require('../src/Fugl');
 const ModuleStats = require('../src/ModuleStats');
 const Project = require('../src/Project');
@@ -21,6 +24,12 @@ exports.check = function check(cwd, yargv, options) {
     fuglOptions.packageInstaller = 'link';
   }
 
+  let osTmpDir = false;
+  if (!yargv.folder) {
+    osTmpDir = true;
+    fuglOptions.tmpDir = path.join(os.tmpdir(), 'fugl');
+  }
+
   options = options || {};
   const FuglConstructor = options._Fugl || Fugl;
   const exit = options._exit || process.exit;
@@ -28,6 +37,9 @@ exports.check = function check(cwd, yargv, options) {
 
   return new FuglConstructor(fuglOptions).run().then(stats => {
     warn();
+    if (osTmpDir) {
+      warn(`builds located in ${fuglOptions.tmpDir}`);
+    }
     if (stats.failures > 0) {
       warn('completed with failures');
       exit(1);

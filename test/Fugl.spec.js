@@ -954,7 +954,9 @@ describe('Fugl', () => {
         tmpDir
       });
 
-      expect(fugl.options, 'to satisfy', { tmpDir });
+      expect(fugl.options, 'to satisfy', {
+        tmpDir: path.join(tmpDir, 'builds')
+      });
     });
   });
 });

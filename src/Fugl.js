@@ -74,7 +74,7 @@ class Fugl extends EventEmitter {
       ? path.resolve(options.reportDir)
       : path.resolve(options.folder, 'breakage');
     options.tmpDir = options.tmpDir
-      ? path.resolve(options.tmpDir)
+      ? path.resolve(options.tmpDir, 'builds')
       : path.resolve(options.folder, 'builds');
 
     if (!options.pretest && options.pretestOrIgnore) {

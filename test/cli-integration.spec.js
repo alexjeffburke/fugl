@@ -43,7 +43,7 @@ function spawnCli(cwd, options = {}) {
         error.code = code;
         reject(error);
       } else {
-        resolve();
+        resolve(stderr);
       }
     });
   });
@@ -74,23 +74,22 @@ describe('cli - integration', () => {
     });
   });
 
-  function skipIf(bool, block, descr) {
-    (bool ? it.skip : it)(block, descr);
-  }
+  const isWindows = process.platform === 'win32';
 
-  describe('when used with a package', () => {
+  describe('when used with a package', function() {
+    if (isWindows) {
+      this.skip();
+    }
+
     const dir = path.join(path.join(__dirname, 'cli-package'));
-    const buildsDir = path.join(path.join(dir, 'builds'));
-    const checkoutDir = path.join(
-      buildsDir,
-      'https-github-com-bahmutov-dont-break-bar'
-    );
 
-    beforeEach(() => {
-      rimraf.sync(buildsDir);
-    });
+    it('should have created the module folder in the specified folder', () => {
+      const buildsDir = path.join(path.join(dir, 'builds'));
+      const checkoutDir = path.join(
+        buildsDir,
+        'https-github-com-bahmutov-dont-break-bar'
+      );
 
-    it('should have created the module folder using npm', () => {
       return spawnCli(dir, {
         folder: dir,
         reporter: 'none',
@@ -99,23 +98,55 @@ describe('cli - integration', () => {
         const stat = fs.lstatSync(
           path.join(checkoutDir, 'node_modules', 'dont-break-foo')
         );
-        expect(stat, 'to be an object');
-        expect(stat.isSymbolicLink(), 'to be true');
+
+        let error;
+        try {
+          expect(stat, 'to be an object');
+          expect(stat.isSymbolicLink(), 'to be true');
+        } catch (e) {
+          error = e;
+        }
+
+        rimraf.sync(checkoutDir);
+
+        if (error) {
+          throw error;
+        }
       });
     });
 
-    const isWin = process.platform === 'win32';
-
-    skipIf(isWin, 'should have created the module folder using link', () => {
+    it('should have created the module folder in os.tmpdir()', () => {
       return spawnCli(dir, {
         reporter: 'none',
         projects: ['https://github.com/bahmutov/dont-break-bar']
-      }).then(() => {
+      }).then(stderr => {
+        const tmpDirMatch = stderr.match(/builds located in (.*)/);
+        if (!tmpDirMatch) {
+          throw new Error('unable to determine builds folder from stderr');
+        }
+        const buildsDir = path.join(tmpDirMatch[1], 'builds');
+        const checkoutDir = path.join(
+          buildsDir,
+          'https-github-com-bahmutov-dont-break-bar'
+        );
+
         const stat = fs.lstatSync(
           path.join(checkoutDir, 'node_modules', 'dont-break-foo')
         );
-        expect(stat, 'to be an object');
-        expect(stat.isSymbolicLink(), 'to be true');
+
+        let error;
+        try {
+          expect(stat, 'to be an object');
+          expect(stat.isSymbolicLink(), 'to be true');
+        } catch (e) {
+          error = e;
+        }
+
+        rimraf.sync(checkoutDir);
+
+        if (error) {
+          throw error;
+        }
       });
     });
   });
