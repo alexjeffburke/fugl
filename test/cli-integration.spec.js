@@ -1,0 +1,75 @@
+const spawn = require('cross-spawn');
+const expect = require('unexpected');
+const fs = require('fs');
+const path = require('path');
+const rimraf = require('rimraf');
+
+function spawnCli(cwd, options = {}) {
+  const app = path.join(__dirname, '..', 'bin', 'fugl');
+  const args = [];
+
+  Object.keys(options).forEach(key => {
+    args.push(`--${key}`);
+    args.push(options[key]);
+  });
+
+  const spawnedCli = spawn(app, args, { cwd });
+
+  spawnedCli.stderr.on('data', data => {
+    console.log(data.toString('utf8'));
+  });
+
+  return new Promise((resolve, reject) => {
+    let sawExit = false;
+
+    spawnedCli.on('error', err => {
+      if (sawExit) {
+        return;
+      }
+      sawExit = true;
+      reject(err);
+    });
+
+    spawnedCli.on('exit', code => {
+      if (sawExit) {
+        return;
+      }
+
+      sawExit = true;
+
+      if (code) {
+        const error = new Error('spawnCli error');
+        error.code = code;
+        reject(error);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
+describe('cli - integration', () => {
+  describe('when used with a file (projects)', () => {
+    const dir = path.join(path.join(__dirname, 'cli-projects'));
+    const buildsDir = path.join(path.join(dir, 'builds'));
+    const checkoutDir = path.join(
+      buildsDir,
+      'https-github-com-bahmutov-dont-break-bar'
+    );
+
+    beforeEach(() => {
+      rimraf.sync(buildsDir);
+    });
+
+    it('should have created the module folder', () => {
+      return spawnCli(dir, {
+        config: '.fugl.json',
+        package: 'dont-break-foo',
+        reporter: 'none',
+        folder: dir
+      }).then(() => {
+        expect(fs.existsSync(checkoutDir), 'to be true');
+      });
+    });
+  });
+});
