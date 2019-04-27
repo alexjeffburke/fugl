@@ -1,7 +1,7 @@
 'use strict';
 
 var la = require('./la');
-var debug = require('./debug');
+var debug = require('./debug').extend('runInFolder');
 var spawn = require('cross-spawn');
 
 var isWindows = process.platform === 'win32';
@@ -72,7 +72,6 @@ function npmTest(cwd, cmd) {
 
 function runInFolder(folder, command, options) {
   options = options || {};
-  let sawError = null;
 
   return Promise.resolve()
     .then(() => {
@@ -86,22 +85,12 @@ function runInFolder(folder, command, options) {
       return npmTest(folder, command);
     })
     .then(function() {
-      if (typeof options.success === 'string') {
-        debug(`${options.success} in ${folder}`);
-      }
+      debug(`running succeeded from ${folder}`);
+      return folder;
     })
     .catch(error => {
-      sawError = error;
-      if (typeof options.failure === 'string') {
-        debug(`${options.failure} in ${folder}`);
-      }
-    })
-    .then(() => {
-      if (sawError !== null) {
-        throw sawError;
-      } else {
-        return folder;
-      }
+      debug(`running failed from ${folder}`);
+      throw error;
     });
 }
 

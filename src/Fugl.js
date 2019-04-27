@@ -1,6 +1,6 @@
 var _ = require('lodash');
 var copyFileSync = require('fs-copy-file-sync');
-var debug = require('./debug');
+var debug = require('./debug').extend('Fugl');
 var EventEmitter = require('events');
 var fs = require('fs');
 var path = require('path');
@@ -181,19 +181,19 @@ class Fugl extends EventEmitter {
 
         switch (executionResult.status) {
           case 'pass':
-            debug('testDependent passed for %s', project.name);
+            debug('execution passed for %s', project.name);
             emitter.emit('pass', test);
             break;
           case 'fail':
             debug(
-              'testDependent failed for %s: %s',
+              'execution failed for %s: %s',
               project.name,
               executionResult.error
             );
             emitter.emit('fail', test, executionResult.error);
             break;
           case 'pending':
-            debug('testDependent skipped for %s', project.name);
+            debug('execution skipped for %s', project.name);
             emitter.emit('pending', test);
             break;
         }

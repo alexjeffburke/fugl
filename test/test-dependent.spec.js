@@ -98,7 +98,7 @@ describe('testDependent', () => {
     ).then(() => {
       expect(testInFolderSpy, 'was called times', 2).and(
         'to have all calls satisfying',
-        [toFolder, 'npm test', {}]
+        [toFolder, 'npm test']
       );
     });
   });

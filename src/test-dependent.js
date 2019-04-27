@@ -1,3 +1,4 @@
+var debug = require('./debug').extend('testDependent');
 var runInFolder = require('./run-in-folder');
 
 var DEFAULT_TEST_COMMAND = 'npm test';
@@ -12,10 +13,17 @@ function testDependent(options, dependent) {
   process.env.CURRENT_MODULE_DIR = options.folder;
 
   function testModuleInFolder(dependentFolder, testCommand) {
-    return performDependentTest(dependentFolder, testCommand, {
-      success: 'testing module succeeded',
-      failure: 'testing module failed'
-    }).then(() => dependentFolder);
+    debug('testing for %s', dependent.name);
+
+    return performDependentTest(dependentFolder, testCommand)
+      .then(() => {
+        debug('testing succeeded for %s', dependent.name);
+        return dependentFolder;
+      })
+      .catch(error => {
+        debug('testing failed for %s', dependent.name);
+        throw error;
+      });
   }
 
   var result = {};

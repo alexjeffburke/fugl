@@ -1,6 +1,6 @@
 'use strict';
 
-var debug = require('./debug');
+var debug = require('./debug').extend('installDependent');
 var fs = require('fs');
 var mkdirp = require('mkdirp');
 var rimraf = require('rimraf');
@@ -51,10 +51,17 @@ function moduleProvision(options) {
 function moduleInstall({ toFolder, dependent }) {
   const cmd = dependent.install || DEFAULT_INSTALL_COMMAND;
 
-  return runInFolder(toFolder, cmd, {
-    success: 'installing module succeeded',
-    failure: 'installing module failed'
-  }).then(() => toFolder);
+  debug('installing modules for %s', dependent.name);
+
+  return runInFolder(toFolder, cmd)
+    .then(() => {
+      debug('installing modules succeeded for %s', dependent.name);
+      return toFolder;
+    })
+    .catch(error => {
+      debug('installing modules failed for %s', dependent.name);
+      throw error;
+    });
 }
 
 function install(options, dependent) {
