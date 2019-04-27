@@ -292,7 +292,11 @@ describe('Fugl', () => {
     });
     const emitSpy = sinon.spy(fugl, 'emit');
 
-    return expect(() => fugl.run(), 'to be fulfilled').then(() => {
+    return expect(() => fugl.run(), 'to be fulfilled with', {
+      passes: 1,
+      failures: 0,
+      skipped: 0
+    }).then(() => {
       expect(emitSpy, 'to have calls satisfying', [
         ['start'],
         ['test begin', {}],
@@ -300,7 +304,7 @@ describe('Fugl', () => {
           'pass',
           {
             title: 'https://service.tld/foo.git',
-            duration: expect.it('to be within', 95, 105),
+            duration: expect.it('to be within', 95, 110),
             isPending: expect.it('when called', 'to equal', false)
           }
         ],
@@ -612,7 +616,7 @@ describe('Fugl', () => {
             'pending',
             {
               title: 'https://service.tld/foo.git (skipped)',
-              duration: expect.it('to be within', 95, 105),
+              duration: expect.it('to be within', 95, 110),
               isPending: expect.it('when called', 'to equal', true)
             }
           ]
