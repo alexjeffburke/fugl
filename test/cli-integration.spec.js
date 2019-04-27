@@ -74,16 +74,17 @@ describe('cli - integration', () => {
     });
   });
 
-  const isWindows = process.platform === 'win32';
+  const isTravisWindows =
+    process.env.TRAVIS === 'true' && process.platform === 'win32';
 
-  describe('when used with a package', function() {
-    if (isWindows) {
-      this.skip();
-    }
-
+  describe('when used with a package', () => {
     const dir = path.join(path.join(__dirname, 'cli-package'));
 
-    it('should have created the module folder in the specified folder', () => {
+    it('should have created the module folder in the specified folder', function() {
+      if (isTravisWindows) {
+        this.skip();
+      }
+
       const buildsDir = path.join(path.join(dir, 'builds'));
       const checkoutDir = path.join(
         buildsDir,
@@ -115,7 +116,11 @@ describe('cli - integration', () => {
       });
     });
 
-    it('should have created the module folder in os.tmpdir()', () => {
+    it('should have created the module folder in os.tmpdir()', function() {
+      if (isTravisWindows) {
+        this.skip();
+      }
+
       return spawnCli(dir, {
         reporter: 'none',
         projects: ['https://github.com/bahmutov/dont-break-bar']
