@@ -72,4 +72,30 @@ describe('cli - integration', () => {
       });
     });
   });
+
+  describe('when used with a package', () => {
+    const dir = path.join(path.join(__dirname, 'cli-package'));
+    const buildsDir = path.join(path.join(dir, 'builds'));
+    const checkoutDir = path.join(
+      buildsDir,
+      'https-github-com-bahmutov-dont-break-bar'
+    );
+
+    beforeEach(() => {
+      rimraf.sync(buildsDir);
+    });
+
+    it('should have created the module folder', () => {
+      return spawnCli(dir, {
+        reporter: 'none',
+        projects: ['https://github.com/bahmutov/dont-break-bar']
+      }).then(() => {
+        const stat = fs.lstatSync(
+          path.join(checkoutDir, 'node_modules', 'dont-break-foo')
+        );
+        expect(stat, 'to be an object');
+        expect(stat.isSymbolicLink(), 'to be true');
+      });
+    });
+  });
 });
