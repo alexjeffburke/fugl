@@ -112,8 +112,32 @@ codebase has been rewritten.
 ### Compatibility with dont-break
 
 Some effort was made to continue to support users of `dont-break`. The fugl binary accept a config
-parameter which can be used to load dont-btrak JSON config files:
+parameter which can be used to load a dont-break JSON config file:
 
 ```
 fugl --config .dont-break.json
+```
+
+As development has continued, previous configurations my require changes as functionality is replaced:
+
+- config files containing an array of projects at the top level
+
+```
+// .dont-break.json
+["project1", "project2"]
+
+// must be rewritten as:
+{
+  "projects": ["project1", "project2"]
+}
+```
+
+- config files containing topDownloads or topStarred
+
+```
+// for topDownloads
+fugl fetch downloads
+
+// for topStarred
+fugl fetch stars
 ```
