@@ -1,5 +1,3 @@
-var check = require('check-more-types');
-
 var runInFolder = require('./run-in-folder');
 
 var DEFAULT_TEST_COMMAND = 'npm test';
@@ -43,7 +41,7 @@ function testDependent(options, dependent) {
   var testWithPreviousVersion = dependent.pretest;
   if (testWithPreviousVersion) {
     var modulePretestCommand;
-    if (check.type('string', testWithPreviousVersion)) {
+    if (typeof testWithPreviousVersion === 'string') {
       modulePretestCommand = testWithPreviousVersion;
     } else {
       modulePretestCommand = moduleTestCommand;

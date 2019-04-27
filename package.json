@@ -19,7 +19,6 @@
   ],
   "dependencies": {
     "@gustavnikolaj/async-main-wrap": "^3.0.0",
-    "check-more-types": "2.24.0",
     "cross-spawn": "^6.0.5",
     "debug": "^4.1.1",
     "fs-copy-file-sync": "^1.1.1",

@@ -27,6 +27,16 @@ describe('runInFolder', () => {
     );
   });
 
+  it('should reject on empty command', () => {
+    return expect(
+      () => {
+        return runInFolder('/some/folder', ' ');
+      },
+      'to be rejected with',
+      new AssertionError({ message: 'expected command' })
+    );
+  });
+
   describe('when executed', () => {
     const baseDir = path.join(__dirname, 'scratch', 'builds');
     const toFolder = path.join(__dirname, 'scratch', 'builds', 'run-in-folder');

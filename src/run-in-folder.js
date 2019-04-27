@@ -2,10 +2,14 @@
 
 var la = require('./la');
 var debug = require('./debug');
-var check = require('check-more-types');
 var spawn = require('cross-spawn');
 
 var isWindows = process.platform === 'win32';
+
+function assertUnemptyString(subject, assertionMessage) {
+  const isValid = typeof subject === 'string' && subject.length > 0;
+  la(isValid, assertionMessage);
+}
 
 function createError(prefix, output, defaultMessageFn) {
   let message = `${prefix} Failure\n`;
@@ -14,26 +18,15 @@ function createError(prefix, output, defaultMessageFn) {
 }
 
 function npmTest(cwd, cmd) {
-  var app;
-  var parts;
-
-  if (check.unemptyString(cmd)) {
-    cmd = cmd.trim();
-    parts = cmd.split(' ');
-    app = parts.shift();
-  } else {
-    throw new Error('test command missing');
-  }
-
-  la(check.unemptyString(app), 'application name should be a string', app);
-  la(check.arrayOfStrings(parts), 'arguments should be an array', parts);
+  const args = cmd.split(' ');
+  let app = args.shift();
 
   if (isWindows && app === 'npm') {
     app = 'npm.cmd';
   }
 
   return new Promise((resolve, reject) => {
-    const npm = spawn(app, parts, { cwd });
+    const npm = spawn(app, args, { cwd });
     let output = [];
 
     npm.stdout.on('data', data => {
@@ -65,7 +58,7 @@ function npmTest(cwd, cmd) {
         const error = createError(
           'Test',
           output,
-          () => 'Could not execute ' + app + ' ' + parts.join(' ')
+          () => 'Could not execute ' + app + ' ' + args.join(' ')
         );
         error.code = code;
 
@@ -83,8 +76,10 @@ function runInFolder(folder, command, options) {
 
   return Promise.resolve()
     .then(() => {
-      la(check.unemptyString(folder), 'expected folder');
-      la(check.unemptyString(command), 'expected command');
+      assertUnemptyString(folder, 'expected folder');
+      assertUnemptyString(command, 'expected command');
+      command = command.trim();
+      assertUnemptyString(command, 'expected command');
     })
     .then(function() {
       debug(`running "${command}" from ${folder}`);
