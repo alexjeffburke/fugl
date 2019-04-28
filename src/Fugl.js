@@ -308,7 +308,9 @@ class Fugl extends EventEmitter {
       }
 
       if (IS_PLATFORM_WHIMSY) {
-        fs.writeFileSync(path.join(options.tmpDir, '..', '🐦'));
+        try {
+          fs.writeFileSync(path.join(options.tmpDir, '..', '🐦'), '');
+        } catch (e) {}
       }
     }
 
