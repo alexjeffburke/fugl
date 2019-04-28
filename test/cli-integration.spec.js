@@ -13,7 +13,7 @@ function spawnCli(cwd, options = {}) {
     args.push(options[key]);
   });
 
-  const spawnedCli = spawn(app, args, { cwd });
+  const spawnedCli = spawn(app, args, { cwd, stdio: ['ignore'] });
 
   return new Promise((resolve, reject) => {
     let sawExit = false;
