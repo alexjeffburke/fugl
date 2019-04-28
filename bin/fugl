@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 
-const yargs = require('yargs');
-const cli = require('../src/cli');
+const getStdin = require('get-stdin');
 const wrap = require('@gustavnikolaj/async-main-wrap');
+const yargs = require('yargs');
 
-const configureCheck = yargs =>
+const cli = require('../src/cli');
+
+const configureCheck = config => yargs =>
   yargs
-    .config()
+    .config(config)
     .option('package', {
       type: 'string',
       describe:
@@ -48,7 +50,7 @@ const configureCheck = yargs =>
         'Switch to force output to the console to support running in CI.'
     });
 
-const configureFetch = yargs =>
+const configureFetch = () => yargs =>
   yargs
     .option('package', {
       type: 'string',
@@ -66,19 +68,33 @@ const configureFetch = yargs =>
       describe: 'An API key for accessing dependents data via Libraries.IO.'
     });
 
-const argv = yargs
-  .usage('$0 <cmd> [args]')
-  .command(
-    ['*', 'check'],
-    'Run tests of the dependent projects checking for breakage.',
-    configureCheck
-  )
-  .command(
-    'fetch <metric>',
-    'Automatically find dependent projects to be checked.',
-    configureFetch
-  )
-  .help().argv;
+const processArgv = config =>
+  yargs
+    .usage('$0 <cmd> [args]')
+    .command(
+      ['*', 'check'],
+      'Run tests of the dependent projects checking for breakage.',
+      configureCheck(config)
+    )
+    .command(
+      'fetch <metric>',
+      'Automatically find dependent projects to be checked.',
+      configureFetch()
+    )
+    .help().argv;
 
-const command = argv._[0] || 'check';
-wrap(cli[command])(process.cwd(), argv);
+const processStdinThenArgvAndExecute = cwd =>
+  getStdin().then(value => {
+    let config;
+    if (value) {
+      try {
+        config = JSON.parse(value);
+      } catch (e) {}
+    }
+    const argv = processArgv(config);
+    const command = argv._[0] || 'check';
+
+    return cli[command](cwd, argv);
+  });
+
+wrap(processStdinThenArgvAndExecute)(process.cwd());
