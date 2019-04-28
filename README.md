@@ -18,7 +18,7 @@ confidence that forward progress does not come at the expense of compatibility.
 
 ## Use
 
-## Interactively with npx
+### Interactively with npx
 
 To check a project currently being worked on the Fugl binary can be invoked via `npx`.
 The current directory is scanned for package.json and tested against the listed projects:
@@ -33,7 +33,7 @@ You can also specify the npm name of projects and Fugl will try to discover the 
 npx fugl --projects assert-the-unexpected
 ```
 
-## Installed as a CLI
+### Installed as a CLI
 
 The module can also also installed globally or as a project dependency and provides a fugl binary.
 
@@ -66,24 +66,10 @@ can be selected by the `fetch` command.
 
 ### Downloads
 
-#### npm
-
 Fugl will query the npm API for information about package dependents:
 
 ```
 fugl fetch downloads --package assert-the-unexpected
-```
-
-#### Liraries.IO
-
-One limitation of the npm depedents data is that it only includes information about those packages
-listed as direct depedents. In order to fetch `devDependencies`, the tool is also integrated with
-[Libraries.IO](https://libraries.io).
-
-Signing up for this tool will provide you with an API key which can be used with Fugl as follows:
-
-```
-fugl fetch downloads --package assert-the-unexpected --librariesio <api_key>
 ```
 
 ### Stars
@@ -93,6 +79,18 @@ GitHub to retrieve the number of stars each project has. Using this is as simple
 
 ```
 fugl fetch stars --package unexpected
+```
+
+### Dependency information via Liraries.IO
+
+One limitation of the npm dependents data is that it only includes information about those packages
+listed as direct depedents. In order to fetch `devDependencies`, the tool is also integrated with
+[Libraries.IO](https://libraries.io).
+
+Signing up for this tool will provide you with an API key which can be used with Fugl as follows:
+
+```
+fugl fetch downloads --package assert-the-unexpected --librariesio <api_key>
 ```
 
 ## Architecture
