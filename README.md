@@ -93,6 +93,25 @@ Signing up for this tool will provide you with an API key which can be used with
 fugl fetch downloads --package assert-the-unexpected --librariesio <api_key>
 ```
 
+## Command line interface and chaining
+
+The Fugl CLI is desgined to be helpful and, in the absence of arguments, invocation of the supported
+commands will result in extensive explanation of supported options and their meaning. These include:
+
+- `fugl check`
+- `fugl fetch`
+
+> the Fugl CLI defaults to the command fugl when executed directly
+
+### Chaining via stdin
+
+Configuration for `check` can also be supplied via stdin. In practice, this means that the output of
+fetch can be directly piped into using the UNIX shell facilities:
+
+```
+fugl fetch downloads --package unexpected | fugl check
+```
+
 ## Architecture
 
 Internally Fugl is implemented as a [mocha](https://mochajs.org/)-esque test runner. As checks are
