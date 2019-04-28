@@ -5,6 +5,7 @@ const Fugl = require('../src/Fugl');
 const ModuleStats = require('../src/ModuleStats');
 const Project = require('../src/Project');
 const ProjectStats = require('../src/ProjectStats');
+const packageCheck = require('../src/package-check');
 
 exports.check = function check(cwd, yargv, options) {
   const fuglOptions = {
@@ -99,6 +100,19 @@ exports.fetch = function fetch(cwd, yargv, options) {
     .then(projects => verifyProjects(requirement, projects, options))
     .then(projectStats => projectStats.outputProjectNamesForMetric(metricName))
     .then(projects => {
-      log(JSON.stringify({ projects }, null, 2));
+      const output = {};
+
+      // include the package name in the output if:
+      // - we were an arbitrary call
+      // - we were called within a package that did not match
+      const cwdPackage = packageCheck.safe(cwd);
+      if (!cwdPackage || cwdPackage.name !== packageName) {
+        output.package = packageName;
+      }
+
+      // include the projects list
+      output.projects = projects;
+
+      log(JSON.stringify(output, null, 2));
     });
 };

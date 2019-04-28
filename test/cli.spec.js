@@ -1,6 +1,7 @@
 const expect = require('unexpected')
   .clone()
   .use(require('unexpected-sinon'));
+const path = require('path');
 const sinon = require('sinon');
 
 const cli = require('../src/cli');
@@ -306,6 +307,94 @@ describe('cli', () => {
         expect(log, 'to have a call satisfying', [
           expect.it('to be a string').and('to be JSON')
         ]);
+      });
+    });
+
+    describe('when writing JSON to stdout', () => {
+      it('should include the package name when not in a module', () => {
+        const MockModuleStats = createMockModuleStats();
+        MockModuleStats._instance.fetchDependents.resolves(['foo']);
+        const MockProjectStats = createMockProjectStats();
+        MockProjectStats._instance.outputProjectNamesForMetric.resolves([
+          'somedependent'
+        ]);
+        const args = {
+          package: 'somepackage',
+          metric: 'downloads'
+        };
+
+        let stdoutString;
+
+        return expect(
+          () =>
+            cli.fetch(null, args, {
+              _ModuleStats: MockModuleStats,
+              _log: str => (stdoutString = str)
+            }),
+          'to be fulfilled'
+        ).then(() => {
+          expect(JSON.parse(stdoutString), 'to only have keys', [
+            'package',
+            'projects'
+          ]);
+        });
+      });
+
+      it('should include the package name when in a different module', () => {
+        const MockModuleStats = createMockModuleStats();
+        MockModuleStats._instance.fetchDependents.resolves(['foo']);
+        const MockProjectStats = createMockProjectStats();
+        MockProjectStats._instance.outputProjectNamesForMetric.resolves([
+          'somedependent'
+        ]);
+        const cwd = path.join(__dirname, 'module');
+        const args = {
+          package: 'somepackage',
+          metric: 'downloads'
+        };
+
+        let stdoutString;
+
+        return expect(
+          () =>
+            cli.fetch(cwd, args, {
+              _ModuleStats: MockModuleStats,
+              _log: str => (stdoutString = str)
+            }),
+          'to be fulfilled'
+        ).then(() => {
+          expect(JSON.parse(stdoutString), 'to only have keys', [
+            'package',
+            'projects'
+          ]);
+        });
+      });
+    });
+
+    it('should exclude the package name when in the same module', () => {
+      const MockModuleStats = createMockModuleStats();
+      MockModuleStats._instance.fetchDependents.resolves(['foo']);
+      const MockProjectStats = createMockProjectStats();
+      MockProjectStats._instance.outputProjectNamesForMetric.resolves([
+        'somedependent'
+      ]);
+      const cwd = path.join(__dirname, 'module');
+      const args = {
+        package: 'dont-break-foo',
+        metric: 'downloads'
+      };
+
+      let stdoutString;
+
+      return expect(
+        () =>
+          cli.fetch(cwd, args, {
+            _ModuleStats: MockModuleStats,
+            _log: str => (stdoutString = str)
+          }),
+        'to be fulfilled'
+      ).then(() => {
+        expect(JSON.parse(stdoutString), 'to only have keys', ['projects']);
       });
     });
   });

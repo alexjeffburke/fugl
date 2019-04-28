@@ -1,6 +1,6 @@
 const path = require('path');
 
-module.exports = function packageCheck(packagePath) {
+function packageCheck(packagePath) {
   let pkg;
   try {
     pkg = require(path.join(packagePath, 'package.json'));
@@ -13,4 +13,15 @@ module.exports = function packageCheck(packagePath) {
   }
 
   return pkg;
-};
+}
+
+function packageCheckSafe(packagePath) {
+  try {
+    return packageCheck(packagePath);
+  } catch (e) {
+    return null;
+  }
+}
+
+module.exports = packageCheck;
+module.exports.safe = packageCheckSafe;
