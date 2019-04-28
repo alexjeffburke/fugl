@@ -14,9 +14,6 @@
   "bin": {
     "fugl": "./bin/fugl"
   },
-  "contributors": [
-    "Gleb Bahmutov <gleb.bahmutov@gmail.com>"
-  ],
   "dependencies": {
     "@gustavnikolaj/async-main-wrap": "^3.0.0",
     "cross-spawn": "^6.0.5",
