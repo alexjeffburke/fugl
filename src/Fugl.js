@@ -314,7 +314,8 @@ class Fugl extends EventEmitter {
       }
     }
 
-    debug('working in folder %s', options.folder);
+    debug('package: %s', options.package);
+    debug('folder: %s', options.folder);
 
     return Promise.resolve().then(() => {
       return this.testDependents();
