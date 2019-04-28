@@ -560,18 +560,4 @@ describe('ModuleStats', () => {
       });
     });
   });
-
-  describe('ModuleStats.packageNamesByMagnitude', () => {
-    it('should return an ordered set of package names', () => {
-      return expect(
-        ModuleStats.packageNamesByMagnitude({
-          foo: 3,
-          bar: 2,
-          baz: 4
-        }),
-        'to equal',
-        ['baz', 'foo', 'bar']
-      );
-    });
-  });
 });

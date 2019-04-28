@@ -1,3 +1,5 @@
+const _ = require('lodash');
+
 const ModuleStats = require('./ModuleStats');
 
 const WEEK_IN_MILLISECONDS = 604800000; // 7 * 24 * 60 * 60 * 1000
@@ -7,6 +9,13 @@ const objectValues =
   function objectValues(object) {
     return Object.keys(object).map(key => object[key]);
   };
+
+const packageNamesByMagnitude = metricResult =>
+  _.chain(metricResult)
+    .toPairs()
+    .orderBy(([, magnitude]) => magnitude, 'desc')
+    .map(([packageName]) => packageName)
+    .value();
 
 class ProjectStats {
   constructor(projects) {
@@ -70,6 +79,12 @@ class ProjectStats {
         );
     }
   }
+
+  outputProjectNamesForMetric(metric) {
+    return this.fetchMetricForProjects(metric).then(packageNamesByMagnitude);
+  }
 }
+
+ProjectStats.packageNamesByMagnitude = packageNamesByMagnitude;
 
 module.exports = ProjectStats;

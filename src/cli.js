@@ -97,10 +97,7 @@ exports.fetch = function fetch(cwd, yargv, options) {
     .fetchDependents()
     .then(dependents => dependents.map(dependent => new Project(dependent)))
     .then(projects => verifyProjects(requirement, projects, options))
-    .then(projectStats => projectStats.fetchMetricForProjects(metricName))
-    .then(metricResult =>
-      ModuleStatsConstructor.packageNamesByMagnitude(metricResult)
-    )
+    .then(projectStats => projectStats.outputProjectNamesForMetric(metricName))
     .then(projects => {
       log(JSON.stringify({ projects }, null, 2));
     });

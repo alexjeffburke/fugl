@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const debug = require('./debug').extend('ModuleStats');
 const fetch = require('node-fetch');
 const Registry = require('npm-stats')();
@@ -202,12 +201,5 @@ ModuleStats.createGitHubRepositoryRequest = createGitHubRepositoryRequest;
 ModuleStats.createGitHubPackageJsonRequest = createGitHubPackageJsonRequest;
 
 ModuleStats.fetch = fetch;
-
-ModuleStats.packageNamesByMagnitude = metricResult =>
-  _.chain(metricResult)
-    .toPairs()
-    .orderBy(([, magnitude]) => magnitude, 'desc')
-    .map(([packageName]) => packageName)
-    .value();
 
 module.exports = ModuleStats;
