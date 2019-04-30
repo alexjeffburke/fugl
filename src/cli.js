@@ -1,10 +1,9 @@
 const os = require('os');
 const path = require('path');
 
+const Shoulder = require('shoulder');
+
 const Fugl = require('../src/Fugl');
-const ModuleStats = require('../src/ModuleStats');
-const Project = require('../src/Project');
-const ProjectStats = require('../src/ProjectStats');
 const packageCheck = require('../src/package-check');
 
 exports.check = function check(cwd, yargv, options) {
@@ -53,65 +52,35 @@ exports.check = function check(cwd, yargv, options) {
   });
 };
 
-function makeRequirementFromMetric(metric) {
-  switch (metric) {
-    case 'downloads':
-      return 'npmName';
-    case 'stars':
-      return 'repoUrl';
-  }
-}
-
-function verifyProjects(requirement, projects, options) {
-  const ProjectStatsConstructor = options._ProjectStats || ProjectStats;
-
-  return Promise.all(
-    projects.map(project =>
-      project.verify(requirement).catch(error => {
-        if (error.isNotFatal) {
-          console.warn(error.message);
-          return null;
-        } else {
-          throw error;
-        }
-      })
-    )
-  )
-    .then(projects => projects.filter(Boolean))
-    .then(projects => new ProjectStatsConstructor(projects));
-}
-
 exports.fetch = function fetch(cwd, yargv, options) {
-  const packageName = yargv.package;
-  const metricName = yargv.metric;
-  const requirement = makeRequirementFromMetric(metricName);
-  const statsOptions = {
-    librariesIoApiKey: yargv.librariesio || null
+  const shoulderOptions = {
+    package: yargv.package
+  };
+  const runOptions = {
+    metric: yargv.metric,
+    librariesIoApiKey: yargv.librariesio
   };
 
   options = options || {};
-  const ModuleStatsConstructor = options._ModuleStats || ModuleStats;
+  const ShoulderConstructor = options._Shoulder || Shoulder;
   const log = options._log || console.log;
 
-  const moduleStats = new ModuleStatsConstructor(packageName, statsOptions);
-  return moduleStats
-    .fetchDependents()
-    .then(dependents => dependents.map(dependent => new Project(dependent)))
-    .then(projects => verifyProjects(requirement, projects, options))
-    .then(projectStats => projectStats.outputProjectNamesForMetric(metricName))
-    .then(projects => {
+  return new ShoulderConstructor(shoulderOptions)
+    .run(runOptions)
+    .then(projectNames => {
       const output = {};
 
       // include the package name in the output if:
       // - we were an arbitrary call
       // - we were called within a package that did not match
+      const packageName = shoulderOptions.package;
       const cwdPackage = packageCheck.safe(cwd);
       if (!cwdPackage || cwdPackage.name !== packageName) {
         output.package = packageName;
       }
 
       // include the projects list
-      output.projects = projects;
+      output.projects = projectNames;
 
       log(JSON.stringify(output, null, 2));
     });

@@ -323,8 +323,8 @@ describe('Fugl', () => {
     });
     const repoUrl = 'https://service.tld/plugin.git';
     sinon.stub(fugl, 'checkProject').callsFake(() => {
-      // fake the project repoUrl baing updated on verification
-      fugl.config.projects[0].repoUrl = repoUrl;
+      // fake the project repoUrl being updated on verification
+      fugl.config.projects[0].shoulderProject.repoUrl = repoUrl;
       // now complete the operation
       return Promise.resolve();
     });
