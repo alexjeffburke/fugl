@@ -52,10 +52,9 @@
   ],
   "keywords": [
     "check",
+    "coverage",
     "dependency",
-    "semver",
-    "test",
-    "update"
+    "test"
   ],
   "license": "MIT",
   "scripts": {
