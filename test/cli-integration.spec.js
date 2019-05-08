@@ -154,5 +154,32 @@ describe('cli - integration', () => {
         }
       });
     });
+
+    it('should have written an HTML report to a suffixed directory', function() {
+      if (isTravisWindows) {
+        this.skip();
+      }
+
+      const reportDir = path.join(dir, 'breakage', 'subfolder');
+
+      return spawnCli(dir, {
+        reporter: 'html',
+        projects: ['https://github.com/bahmutov/dont-break-bar'],
+        reportSuffix: 'subfolder'
+      }).then(() => {
+        let error;
+        try {
+          expect(fs.existsSync(reportDir), 'to be true');
+        } catch (e) {
+          error = e;
+        }
+
+        rimraf.sync(reportDir);
+
+        if (error) {
+          throw error;
+        }
+      });
+    });
   });
 });

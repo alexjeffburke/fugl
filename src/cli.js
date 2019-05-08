@@ -14,6 +14,7 @@ exports.check = function check(cwd, yargv, options) {
     reporter: yargv.reporter,
     pretest: yargv.pretest,
     pretestOrIgnore: yargv.pretestOrIgnore,
+    reportSuffix: yargv.reportSuffix,
     timeout: yargv.timeout,
     noClean: yargv.quick,
     ci: yargv.ci
