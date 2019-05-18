@@ -4,11 +4,9 @@ const fs = require('fs');
 const path = require('path');
 const rimraf = require('rimraf');
 
-function spawnCli(cwd, options = {}) {
+function spawnCli(cwd, binOptions = {}, options = {}) {
   const app = path.join(__dirname, '..', 'bin', 'fugl');
   const args = [];
-
-  const { stdin, ...binOptions } = options;
 
   Object.keys(binOptions).forEach(key => {
     args.push(`--${key}`);
@@ -17,7 +15,7 @@ function spawnCli(cwd, options = {}) {
 
   const spawnedCli = spawn(app, args, {
     cwd,
-    stdio: [stdin ? 'pipe' : 'ignore']
+    stdio: [options.stdin ? 'pipe' : 'ignore']
   });
 
   const p = new Promise((resolve, reject) => {
@@ -195,9 +193,7 @@ describe('cli - integration', () => {
   describe('when used with stdin', () => {
     it('should accept JSON', function() {
       const dir = path.join(path.join(__dirname, 'cli-projects'));
-      const cli = spawnCli(dir, {
-        stdin: true
-      });
+      const cli = spawnCli(dir, {}, { stdin: true });
 
       const stdinObject = { package: 'fugl', projects: [] };
       cli._spawn.stdin.write(JSON.stringify(stdinObject));
@@ -217,10 +213,7 @@ describe('cli - integration', () => {
         buildsDir,
         'https-github-com-bahmutov-dont-break-bar'
       );
-      const cli = spawnCli(dir, {
-        stdin: true,
-        folder: dir
-      });
+      const cli = spawnCli(dir, { folder: dir }, { stdin: true });
 
       cli._spawn.stdin.write('https://github.com/bahmutov/dont-break-bar');
       cli._spawn.stdin.end();
