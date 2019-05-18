@@ -192,6 +192,10 @@ describe('cli - integration', () => {
 
   describe('when used with stdin', () => {
     it('should accept JSON', function() {
+      if (isTravisWindows) {
+        this.skip();
+      }
+
       const dir = path.join(path.join(__dirname, 'cli-projects'));
       const cli = spawnCli(dir, {}, { stdin: true });
 
@@ -207,6 +211,10 @@ describe('cli - integration', () => {
     });
 
     it('should accept project name strings', function() {
+      if (isTravisWindows) {
+        this.skip();
+      }
+
       const dir = path.join(path.join(__dirname, 'cli-package'));
       const buildsDir = path.join(path.join(dir, 'builds'));
       const checkoutDir = path.join(
