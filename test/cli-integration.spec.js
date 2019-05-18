@@ -209,5 +209,41 @@ describe('cli - integration', () => {
         /Fugl: no projects specified/
       );
     });
+
+    it('should accept project name strings', function() {
+      const dir = path.join(path.join(__dirname, 'cli-package'));
+      const buildsDir = path.join(path.join(dir, 'builds'));
+      const checkoutDir = path.join(
+        buildsDir,
+        'https-github-com-bahmutov-dont-break-bar'
+      );
+      const cli = spawnCli(dir, {
+        stdin: true,
+        folder: dir
+      });
+
+      cli._spawn.stdin.write('https://github.com/bahmutov/dont-break-bar');
+      cli._spawn.stdin.end();
+
+      return expect(() => cli, 'to be fulfilled').then(() => {
+        const stat = fs.lstatSync(
+          path.join(checkoutDir, 'node_modules', 'dont-break-foo')
+        );
+
+        let error;
+        try {
+          expect(stat, 'to be an object');
+          expect(stat.isSymbolicLink(), 'to be true');
+        } catch (e) {
+          error = e;
+        }
+
+        rimraf.sync(checkoutDir);
+
+        if (error) {
+          throw error;
+        }
+      });
+    });
   });
 });

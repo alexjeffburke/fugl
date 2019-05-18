@@ -96,6 +96,12 @@ const processStdinThenArgvAndExecute = cwd =>
       try {
         config = JSON.parse(value);
       } catch (e) {}
+
+      if (!config) {
+        // if not JSON then attempt to use stdin as bare projects
+        const projects = value.split(' ');
+        config = { projects };
+      }
     }
     const argv = processArgv(config);
     const command = argv._[0] || 'check';
