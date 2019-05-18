@@ -8,14 +8,19 @@ function spawnCli(cwd, options = {}) {
   const app = path.join(__dirname, '..', 'bin', 'fugl');
   const args = [];
 
-  Object.keys(options).forEach(key => {
+  const { stdin, ...binOptions } = options;
+
+  Object.keys(binOptions).forEach(key => {
     args.push(`--${key}`);
-    args.push(options[key]);
+    args.push(binOptions[key]);
   });
 
-  const spawnedCli = spawn(app, args, { cwd, stdio: ['ignore'] });
+  const spawnedCli = spawn(app, args, {
+    cwd,
+    stdio: [stdin ? 'pipe' : 'ignore']
+  });
 
-  return new Promise((resolve, reject) => {
+  const p = new Promise((resolve, reject) => {
     let sawExit = false;
     let stderr = '';
 
@@ -47,6 +52,10 @@ function spawnCli(cwd, options = {}) {
       }
     });
   });
+
+  p._spawn = spawnedCli;
+
+  return p;
 }
 
 describe('cli - integration', () => {
@@ -180,6 +189,25 @@ describe('cli - integration', () => {
           throw error;
         }
       });
+    });
+  });
+
+  describe('when used with stdin', () => {
+    it('should accept JSON', function() {
+      const dir = path.join(path.join(__dirname, 'cli-projects'));
+      const cli = spawnCli(dir, {
+        stdin: true
+      });
+
+      const stdinObject = { package: 'fugl', projects: [] };
+      cli._spawn.stdin.write(JSON.stringify(stdinObject));
+      cli._spawn.stdin.end();
+
+      return expect(
+        () => cli,
+        'to be rejected with',
+        /Fugl: no projects specified/
+      );
     });
   });
 });
