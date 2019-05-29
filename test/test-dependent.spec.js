@@ -191,4 +191,39 @@ describe('testDependent', () => {
       );
     });
   });
+
+  describe('with aftertest hook', () => {
+    it('should execute an aftertest command', () => {
+      const packageInstaller = createFakePackageInstaller();
+      packageInstaller.installTo.resolves();
+      const testInFolderSpy = sinon.stub().resolves();
+
+      return expect(
+        testDependent(
+          {
+            _testInFolder: testInFolderSpy,
+            packageInstaller,
+            moduleName: 'https://github.com/bahmutov/dont-break-bar',
+            toFolder: toFolder
+          },
+          {
+            pretest: true,
+            projects: [{ name: 'FOO' }],
+            name: 'FOO',
+            aftertest: 'some_command'
+          }
+        ),
+        'to be fulfilled'
+      ).then(() => {
+        expect(testInFolderSpy, 'was called times', 3).and(
+          'to have calls satisfying',
+          [
+            [toFolder, 'npm test'],
+            [toFolder, 'npm test'],
+            [toFolder, 'some_command']
+          ]
+        );
+      });
+    });
+  });
 });

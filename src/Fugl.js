@@ -34,11 +34,13 @@ function checkConfig(loadedConfig) {
 
   const config = { projects };
 
-  ['install', 'afterinstall', 'postinstall', 'test'].forEach(configKey => {
-    if (typeof loadedConfig[configKey] === 'string') {
-      config[configKey] = loadedConfig[configKey];
+  ['install', 'afterinstall', 'postinstall', 'test', 'aftertest'].forEach(
+    configKey => {
+      if (typeof loadedConfig[configKey] === 'string') {
+        config[configKey] = loadedConfig[configKey];
+      }
     }
-  });
+  );
 
   return Object.assign({}, loadedConfig, config);
 }

@@ -31,6 +31,11 @@ function testDependent(options, dependent) {
       });
   }
 
+  function moduleAfterTestInFolder() {
+    const cmd = dependent.aftertest;
+    return moduleTestInFolder(cmd, 'aftertest');
+  }
+
   var result = {};
 
   function withResult(resultType, promise) {
@@ -90,6 +95,7 @@ function testDependent(options, dependent) {
           moduleTestInFolder(moduleTestCommand, 'packagetest')
         )
       )
+      .then(() => moduleAfterTestInFolder())
       .then(() => result);
   });
 }

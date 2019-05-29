@@ -1,7 +1,7 @@
 const ShoulderProject = require('shoulder/lib/Project');
 
 function processCustomisations(source, target) {
-  ['install', 'afterinstall', 'test'].forEach(configKey => {
+  ['install', 'afterinstall', 'test', 'aftertest'].forEach(configKey => {
     if (typeof source[configKey] === 'string') {
       target[configKey] = source[configKey];
     }

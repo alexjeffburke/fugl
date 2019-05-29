@@ -51,6 +51,14 @@ describe('Project', () => {
         test: 'xxx'
       });
     });
+
+    it('should allow specifying a aftertest', () => {
+      const project = new Project({ name: 'somepackage', aftertest: 'xxx' });
+
+      return expect(project.config, 'to satisfy', {
+        aftertest: 'xxx'
+      });
+    });
   });
 
   describe('#.name', () => {
