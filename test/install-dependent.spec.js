@@ -55,6 +55,47 @@ describe('installDependent', () => {
     });
   });
 
+  it('should error when install failed', () => {
+    return expect(
+      installDependent(
+        {
+          moduleName: 'https://github.com/bahmutov/dont-break-bar',
+          toFolder: toFolder,
+          timeout: 100
+        },
+        {
+          pretest: true,
+          packageName: 'somepackage',
+          packageVersion: 'latest',
+          install: 'false'
+        }
+      ),
+      'to be rejected with',
+      /Test Failure/
+    );
+  });
+
+  it('should error when afterinstall failed', () => {
+    return expect(
+      installDependent(
+        {
+          moduleName: 'https://github.com/bahmutov/dont-break-bar',
+          toFolder: toFolder,
+          timeout: 100
+        },
+        {
+          pretest: true,
+          packageName: 'somepackage',
+          packageVersion: 'latest',
+          install: 'true',
+          afterinstall: 'false'
+        }
+      ),
+      'to be rejected with',
+      /Test Failure/
+    );
+  });
+
   it('should error when the installation timeout is exceeded', () => {
     return expect(
       installDependent(

@@ -34,7 +34,7 @@ function checkConfig(loadedConfig) {
 
   const config = { projects };
 
-  ['install', 'postinstall', 'test'].forEach(configKey => {
+  ['install', 'afterinstall', 'postinstall', 'test'].forEach(configKey => {
     if (typeof loadedConfig[configKey] === 'string') {
       config[configKey] = loadedConfig[configKey];
     }

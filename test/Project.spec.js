@@ -36,11 +36,11 @@ describe('Project', () => {
       });
     });
 
-    it('should allow specifying a postinstall', () => {
-      const project = new Project({ name: 'somepackage', postinstall: 'xxx' });
+    it('should allow specifying a afterinstall', () => {
+      const project = new Project({ name: 'somepackage', afterinstall: 'xxx' });
 
       return expect(project.config, 'to satisfy', {
-        postinstall: 'xxx'
+        afterinstall: 'xxx'
       });
     });
 

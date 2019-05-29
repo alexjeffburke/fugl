@@ -48,18 +48,21 @@ function moduleProvision(options) {
   }
 }
 
-function moduleInstall({ toFolder, dependent }) {
-  const cmd = dependent.install || DEFAULT_INSTALL_COMMAND;
+function moduleCommand(cmd, cmdKey, { toFolder, dependent }) {
+  if (!cmd) {
+    debug('%s command skipped for %s', cmdKey, dependent.name);
+    return Promise.resolve(toFolder);
+  }
 
-  debug('installing modules for %s', dependent.name);
+  debug('%s command for %s', cmdKey, dependent.name);
 
   return runInFolder(toFolder, cmd)
     .then(() => {
-      debug('installing modules succeeded for %s', dependent.name);
+      debug('%s command succeeded for %s', cmdKey, dependent.name);
       return toFolder;
     })
     .catch(error => {
-      debug('installing modules failed for %s', dependent.name);
+      debug('%s command failed for %s', cmdKey, dependent.name);
       throw error;
     });
 }
@@ -72,7 +75,8 @@ function install(options, dependent) {
       : INSTALL_TIMEOUT_SECONDS;
 
   function moduleInstallWithTimeout(installOptions) {
-    const installPromise = moduleInstall(installOptions);
+    const cmd = dependent.install || DEFAULT_INSTALL_COMMAND;
+    const installPromise = moduleCommand(cmd, 'install', installOptions);
     if (timeout > 0) {
       return withTimeout(installPromise, timeout);
     } else {
@@ -80,9 +84,15 @@ function install(options, dependent) {
     }
   }
 
+  function moduleAfterInstall(installOptions) {
+    const cmd = dependent.afterinstall;
+    return moduleCommand(cmd, 'afterinstall', installOptions);
+  }
+
   return Promise.resolve()
     .then(() => moduleProvision(options))
     .then(() => moduleInstallWithTimeout({ toFolder, dependent }))
+    .then(() => moduleAfterInstall({ toFolder, dependent }))
     .catch(error => {
       if (error.name === 'TimeoutError') {
         const message = `install timed out for ${moduleName}`;
