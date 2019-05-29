@@ -1,5 +1,13 @@
 const ShoulderProject = require('shoulder/lib/Project');
 
+function processCustomisations(source, target) {
+  ['install', 'postinstall', 'test'].forEach(configKey => {
+    if (typeof source[configKey] === 'string') {
+      target[configKey] = source[configKey];
+    }
+  });
+}
+
 class Project {
   constructor(optionsOrString) {
     let options;
@@ -12,6 +20,10 @@ class Project {
     }
 
     this.shoulderProject = new ShoulderProject(options);
+
+    const config = {};
+    processCustomisations(options, config);
+    this.config = Object.keys(config).length > 0 ? config : null;
   }
 
   get name() {
@@ -37,3 +49,4 @@ class Project {
 }
 
 module.exports = Project;
+module.exports.processCustomisations = processCustomisations;

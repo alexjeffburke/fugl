@@ -19,6 +19,40 @@ describe('Project', () => {
     return expect(project.shoulderProject, 'to be a', ShoulderProject);
   });
 
+  it('should default the config null', () => {
+    const project = new Project({ name: 'somepackage' });
+
+    return expect(project, 'to satisfy', {
+      config: null
+    });
+  });
+
+  describe('with additional options', () => {
+    it('should allow specifying a install', () => {
+      const project = new Project({ name: 'somepackage', install: 'xxx' });
+
+      return expect(project.config, 'to satisfy', {
+        install: 'xxx'
+      });
+    });
+
+    it('should allow specifying a postinstall', () => {
+      const project = new Project({ name: 'somepackage', postinstall: 'xxx' });
+
+      return expect(project.config, 'to satisfy', {
+        postinstall: 'xxx'
+      });
+    });
+
+    it('should allow specifying a test', () => {
+      const project = new Project({ name: 'somepackage', test: 'xxx' });
+
+      return expect(project.config, 'to satisfy', {
+        test: 'xxx'
+      });
+    });
+  });
+
   describe('#.name', () => {
     it('should allow git', () => {
       const project = new Project('https://service.tld/foo');
