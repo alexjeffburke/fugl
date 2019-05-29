@@ -86,6 +86,17 @@ describe('Project', () => {
       ]);
     });
 
+    it('should return any config options', () => {
+      const project = new Project('https://service.tld/foo');
+      project.config = { foo: true, baz: 1 };
+
+      return expect(project.toDependent(), 'to equal', {
+        name: 'https://service.tld/foo',
+        foo: true,
+        baz: 1
+      });
+    });
+
     it('should return repoUrl as the name', () => {
       const project = new Project('somepackage');
       project.shoulderProject.repoUrl = 'https://service.tld/foo';

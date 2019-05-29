@@ -40,7 +40,7 @@ class Project {
     delete dependent.npmName;
     delete dependent.repoUrl;
     dependent.name = this.shoulderProject.repoUrl;
-    return dependent;
+    return Object.assign(dependent, this.config);
   }
 
   verify(requirement) {
