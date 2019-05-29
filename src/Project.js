@@ -1,7 +1,16 @@
 const ShoulderProject = require('shoulder/lib/Project');
 
 class Project {
-  constructor(options) {
+  constructor(optionsOrString) {
+    let options;
+    if (typeof optionsOrString === 'string') {
+      options = { name: optionsOrString.trim() };
+    } else if (optionsOrString) {
+      options = optionsOrString;
+    } else {
+      options = {};
+    }
+
     this.shoulderProject = new ShoulderProject(options);
   }
 

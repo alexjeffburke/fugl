@@ -13,6 +13,12 @@ describe('Project', () => {
     return expect(project.shoulderProject, 'to be a', ShoulderProject);
   });
 
+  it('should allow instantiation with an object', () => {
+    const project = new Project({ name: 'somepackage' });
+
+    return expect(project.shoulderProject, 'to be a', ShoulderProject);
+  });
+
   describe('#.name', () => {
     it('should allow git', () => {
       const project = new Project('https://service.tld/foo');
