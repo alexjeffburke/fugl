@@ -12,16 +12,21 @@ function testDependent(options, dependent) {
   process.env.CURRENT_MODULE_NAME = moduleName;
   process.env.CURRENT_MODULE_DIR = options.folder;
 
-  function testModuleInFolder(dependentFolder, testCommand) {
-    debug('testing for %s', dependent.name);
+  function moduleTestInFolder(cmd, cmdKey) {
+    if (!cmd) {
+      debug('%s command skipped for %s', cmdKey, dependent.name);
+      return Promise.resolve(toFolder);
+    }
 
-    return performDependentTest(dependentFolder, testCommand)
+    debug('%s command for %s', cmdKey, dependent.name);
+
+    return performDependentTest(toFolder, cmd)
       .then(() => {
-        debug('testing succeeded for %s', dependent.name);
-        return dependentFolder;
+        debug('%s command succeeded for %s', cmdKey, dependent.name);
+        return toFolder;
       })
       .catch(error => {
-        debug('testing failed for %s', dependent.name);
+        debug('%s command failed for %s', cmdKey, dependent.name);
         throw error;
       });
   }
@@ -44,7 +49,7 @@ function testDependent(options, dependent) {
       });
   }
 
-  var res = Promise.resolve(toFolder);
+  var res = Promise.resolve();
 
   var testWithPreviousVersion = dependent.pretest;
   if (testWithPreviousVersion) {
@@ -57,12 +62,12 @@ function testDependent(options, dependent) {
     res = res.then(folder =>
       withResult(
         'pretest',
-        testModuleInFolder(folder, modulePretestCommand)
+        moduleTestInFolder(modulePretestCommand, 'pretest')
       ).then(() => folder)
     );
   }
 
-  return res.then(folder => {
+  return res.then(() => {
     if (
       options.pretestOrIgnore &&
       result.pretest &&
@@ -79,12 +84,11 @@ function testDependent(options, dependent) {
 
     return Promise.resolve()
       .then(() => packageInstaller.installTo({ toFolder }, dependent))
-      .then(() => folder)
-      .then(folder =>
+      .then(() =>
         withResult(
           'packagetest',
-          testModuleInFolder(folder, moduleTestCommand)
-        ).then(() => folder)
+          moduleTestInFolder(moduleTestCommand, 'packagetest')
+        )
       )
       .then(() => result);
   });
