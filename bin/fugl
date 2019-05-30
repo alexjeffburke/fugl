@@ -9,6 +9,10 @@ const cli = require('../src/cli');
 const configureCheck = config => yargs =>
   yargs
     .config(config)
+    .option('folder', {
+      type: 'string',
+      hidden: true
+    })
     .option('package', {
       type: 'string',
       describe:
