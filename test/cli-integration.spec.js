@@ -258,4 +258,33 @@ describe('cli - integration', () => {
       });
     });
   });
+
+  describe('when used with the spec reporter', () => {
+    it('should handle failure', function() {
+      if (isTravisWindows) {
+        this.skip();
+      }
+
+      const dir = path.join(__dirname, 'cli-failure');
+      const buildsDir = path.join(dir, 'builds');
+
+      return spawnCli(dir, {
+        folder: dir,
+        projects: ['https://github.com/alexjeffburke/fugl-test-project']
+      }).catch(({ stdout }) => {
+        let error;
+        try {
+          expect(stdout, 'to contain', 'Test Failure');
+        } catch (e) {
+          error = e;
+        }
+
+        rimraf.sync(buildsDir);
+
+        if (error) {
+          throw error;
+        }
+      });
+    });
+  });
 });

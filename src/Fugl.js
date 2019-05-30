@@ -130,6 +130,7 @@ class Fugl extends EventEmitter {
       body: '',
       duration: 0,
       fullTitle: () => project.name,
+      titlePath: () => [project.name],
       isPending: () => false,
       currentRetry: () => 0,
       slow: () => 0
