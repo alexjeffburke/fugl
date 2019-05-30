@@ -20,18 +20,33 @@ function spawnCli(cwd, binOptions = {}, options = {}) {
 
   const p = new Promise((resolve, reject) => {
     let sawExit = false;
+    let stdout = '';
     let stderr = '';
+
+    spawnedCli.stdout.on('data', chunk => {
+      stdout += chunk.toString('utf8');
+    });
 
     spawnedCli.stderr.on('data', chunk => {
       stderr += chunk.toString('utf8');
     });
 
+    const makeError = code => {
+      const error = new Error('spawnCli error');
+      error.code = code;
+      error.stdout = stdout;
+      error.stderr = stderr;
+      return error;
+    };
+
     spawnedCli.on('error', err => {
       if (sawExit) {
         return;
       }
+
       sawExit = true;
-      reject(err);
+
+      reject(makeError(null));
     });
 
     spawnedCli.on('exit', code => {
@@ -42,11 +57,9 @@ function spawnCli(cwd, binOptions = {}, options = {}) {
       sawExit = true;
 
       if (code) {
-        const error = new Error(`spawnCli error\n\n${stderr}`);
-        error.code = code;
-        reject(error);
+        reject(makeError(code));
       } else {
-        resolve(stderr);
+        resolve({ stdout, stderr });
       }
     });
   });
@@ -131,7 +144,7 @@ describe('cli - integration', () => {
       return spawnCli(dir, {
         reporter: 'none',
         projects: ['https://github.com/bahmutov/dont-break-bar']
-      }).then(stderr => {
+      }).then(({ stderr }) => {
         const tmpDirMatch = stderr.match(/builds located in (.*)/);
         if (!tmpDirMatch) {
           throw new Error('unable to determine builds folder from stderr');
@@ -203,11 +216,9 @@ describe('cli - integration', () => {
       cli._spawn.stdin.write(JSON.stringify(stdinObject));
       cli._spawn.stdin.end();
 
-      return expect(
-        () => cli,
-        'to be rejected with',
-        /Fugl: no projects specified/
-      );
+      return expect(() => cli, 'to be rejected with', {
+        stderr: /Fugl: no projects specified/
+      });
     });
 
     it('should accept project name strings', function() {
