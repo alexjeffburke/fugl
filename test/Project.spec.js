@@ -27,6 +27,16 @@ describe('Project', () => {
     });
   });
 
+  it('should error on a postinstall hook', () => {
+    return expect(
+      () => {
+        new Project({ name: 'somepackage', postinstall: 'foo' });
+      },
+      'to throw',
+      'postinstall hooks are unsupported for a single project'
+    );
+  });
+
   describe('with additional options', () => {
     it('should allow specifying a install', () => {
       const project = new Project({ name: 'somepackage', install: 'xxx' });

@@ -1,11 +1,19 @@
 const ShoulderProject = require('shoulder/lib/Project');
 
-function processCustomisations(source, target) {
+function processCustomisations(source) {
+  if (source.postinstall) {
+    throw new Error('postinstall hooks are unsupported for a single project');
+  }
+
+  const target = {};
+
   ['install', 'afterinstall', 'test', 'aftertest'].forEach(configKey => {
     if (typeof source[configKey] === 'string') {
       target[configKey] = source[configKey];
     }
   });
+
+  return target;
 }
 
 class Project {
@@ -21,8 +29,7 @@ class Project {
 
     this.shoulderProject = new ShoulderProject(options);
 
-    const config = {};
-    processCustomisations(options, config);
+    const config = processCustomisations(options);
     this.config = Object.keys(config).length > 0 ? config : null;
   }
 
