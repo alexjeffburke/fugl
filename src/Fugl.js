@@ -226,17 +226,26 @@ class Fugl extends EventEmitter {
   testDependents() {
     const options = this.options;
     const config = this.config;
-    const stats = {
-      passes: 0,
-      failures: 0,
-      skipped: 0
-    };
 
     if (config.projects.length === 0) {
       throw new Error('Fugl: no projects specified');
     }
 
+    // begin setting up a "mocha-esque" runner
     const emitter = this;
+
+    const stats = {
+      tests: config.projects.length,
+      passes: 0,
+      failures: 0,
+      skipped: 0
+    };
+    // hold a reference to stats as it is taken by reporters
+    this.stats = stats;
+
+    // keep a running count of executed tests to support progress
+    this.total = 0;
+
     emitter.on('pass', () => (stats.passes += 1));
     emitter.on('fail', () => (stats.failures += 1));
     emitter.on('pending', () => (stats.skipped += 1));
@@ -276,6 +285,9 @@ class Fugl extends EventEmitter {
     return config.projects
       .reduce((prev, project) => {
         return prev.then(() => {
+          // record the execution of a test
+          this.total += 1;
+
           return this.executeDependent(emitter, project);
         });
       }, Promise.resolve(true))
