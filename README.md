@@ -58,6 +58,46 @@ fugl --package unexpected --projects https://github.com/alexjeffburke/jest-unexp
 open breakage/index.html
 ```
 
+# Configuration
+
+Fugl supports configuration being supplied to it as a JSON file. This becomes particularly
+convenient when checking a series of dependents and this list be checked into version control.
+
+Configuration files are loaded by supplying a `--config` parameter to the `fugl` binary:
+
+```
+fugl --config .fugl.json
+```
+
+An example basic JSON configuration file would look something like the following:
+
+```json
+{
+  "projects": [
+    "https://github.com/someorg/somepackage.git",
+    "https://github.com/someorg/otherpackage.git"
+  ]
+}
+```
+
+### Hooks
+
+When executing tests against a package, a number of hooks are supported to customise and/or extend
+the commands being executed against each package.
+
+```json
+{
+  "projects": [
+    {
+      "name": "shoulder",
+      "test": "npm run coverage",
+      "afterinstall": "echo 'directly after package installation'",
+      "aftertest": "echo 'directly after executing the tests'"
+    }
+  ]
+}
+```
+
 ## Automatic dependent fetching
 
 Fugl includes the ability to use various external services to deduce a set of dependents for
