@@ -173,70 +173,28 @@ describe('cli', () => {
   });
 
   describe('fetch', () => {
-    describe('when writing JSON to stdout', () => {
-      it('should include the package name when not in a module', () => {
-        const args = {
-          package: 'somepackage',
-          metric: 'downloads'
-        };
+    it('when execute shoulder with the correct options', () => {
+      const cwd = path.join(__dirname, 'module');
+      const args = {
+        package: 'somepackage',
+        metric: 'downloads',
+        librariesio: 'LIBRARIESIO'
+      };
 
-        let stdoutString;
+      const _shoulderCli = sinon.stub().named('shoulderCli');
 
-        return expect(
-          () =>
-            cli.fetch(null, args, {
-              _log: str => (stdoutString = str)
-            }),
-          'to be fulfilled'
-        ).then(() => {
-          expect(JSON.parse(stdoutString), 'to only have keys', [
-            'package',
-            'projects'
-          ]);
-        });
-      });
-
-      it('should include the package name when in a different module', () => {
-        const cwd = path.join(__dirname, 'module');
-        const args = {
-          package: 'somepackage',
-          metric: 'downloads'
-        };
-
-        let stdoutString;
-
-        return expect(
-          () =>
-            cli.fetch(cwd, args, {
-              _log: str => (stdoutString = str)
-            }),
-          'to be fulfilled'
-        ).then(() => {
-          expect(JSON.parse(stdoutString), 'to only have keys', [
-            'package',
-            'projects'
-          ]);
-        });
-      });
-
-      it('should exclude the package name when in the same module', () => {
-        const cwd = path.join(__dirname, 'module');
-        const args = {
-          package: 'dont-break-foo',
-          metric: 'downloads'
-        };
-
-        let stdoutString;
-
-        return expect(
-          () =>
-            cli.fetch(cwd, args, {
-              _log: str => (stdoutString = str)
-            }),
-          'to be fulfilled'
-        ).then(() => {
-          expect(JSON.parse(stdoutString), 'to only have keys', ['projects']);
-        });
+      return expect(
+        () => cli.fetch(cwd, args, { _shoulderCli }),
+        'not to throw'
+      ).then(() => {
+        expect(_shoulderCli, 'to have a call satisfying', [
+          cwd,
+          {
+            package: 'somepackage',
+            metric: 'downloads',
+            librariesio: 'LIBRARIESIO'
+          }
+        ]);
       });
     });
   });
