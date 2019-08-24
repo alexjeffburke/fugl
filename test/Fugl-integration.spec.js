@@ -138,4 +138,21 @@ describe('Fugl - integration', () => {
       });
     });
   });
+
+  describe('when reporting with spec', () => {
+    beforeEach(() => {
+      rimraf.sync(path.join(__dirname, 'spec'));
+    });
+
+    it('should have created the module folder', () => {
+      return createAndRunFugl({
+        package: 'dont-break-foo',
+        reporter: 'spec',
+        folder: path.join(__dirname, 'spec'),
+        projects: ['https://github.com/alexjeffburke/fugl-test-project']
+      }).then(() => {
+        expect(fs.existsSync(path.join(__dirname, 'spec')), 'to be true');
+      });
+    });
+  });
 });

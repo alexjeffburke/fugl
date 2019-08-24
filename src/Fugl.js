@@ -208,6 +208,8 @@ class Fugl extends EventEmitter {
         }
 
         emitter.emit('test end', test);
+
+        return test;
       });
   }
 
@@ -236,6 +238,7 @@ class Fugl extends EventEmitter {
 
     const stats = {
       tests: config.projects.length,
+      duration: 0, // support epilogue generation
       passes: 0,
       failures: 0,
       skipped: 0
@@ -288,7 +291,9 @@ class Fugl extends EventEmitter {
           // record the execution of a test
           this.total += 1;
 
-          return this.executeDependent(emitter, project);
+          return this.executeDependent(emitter, project).then(
+            executionResult => (stats.duration += executionResult.duration)
+          );
         });
       }, Promise.resolve(true))
       .then(() => {
