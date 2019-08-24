@@ -109,7 +109,7 @@ Configuration for `check` can also be supplied via stdin. In practice, this mean
 fetch can be directly piped into using the UNIX shell facilities:
 
 ```
-fugl fetch downloads --package unexpected | fugl check
+fugl fetch downloads --package unexpected | fugl check --package unexpected
 ```
 
 ## Architecture
