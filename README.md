@@ -101,7 +101,7 @@ commands will result in extensive explanation of supported options and their mea
 - `fugl check`
 - `fugl fetch`
 
-> the Fugl CLI defaults to the command fugl when executed directly
+> the Fugl CLI defaults to the check command when executed directly
 
 ### Chaining via stdin
 
