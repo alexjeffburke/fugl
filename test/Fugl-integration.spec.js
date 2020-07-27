@@ -16,7 +16,7 @@ function createAndRunFugl(options) {
   }
 }
 
-describe('Fugl - integration', () => {
+describe('Fugl @integration', () => {
   describe('when supplied module', () => {
     const baseDir = path.join(__dirname, 'scratch', 'builds');
     const dir = path.join(

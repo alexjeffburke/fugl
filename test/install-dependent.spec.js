@@ -7,7 +7,7 @@ const rimraf = require('rimraf');
 
 const installDependent = require('../src/install-dependent');
 
-describe('installDependent', () => {
+describe('installDependent @integration', () => {
   const toFolder = path.join(__dirname, 'scratch', 'working');
 
   beforeEach(() => {

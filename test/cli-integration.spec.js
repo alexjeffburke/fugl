@@ -69,7 +69,7 @@ function spawnCli(cwd, binOptions = {}, options = {}) {
   return p;
 }
 
-describe('cli - integration', () => {
+describe('cli @integration', () => {
   describe('when used with a file (projects)', () => {
     const dir = path.join(path.join(__dirname, 'cli-projects'));
     const buildsDir = path.join(path.join(dir, 'builds'));

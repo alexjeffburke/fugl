@@ -59,6 +59,7 @@
   "scripts": {
     "coverage": "nyc --reporter lcov --reporter text npm test",
     "lint": "eslint .",
-    "test": "mocha"
+    "test": "mocha",
+    "test-offline": "mocha -i -g @integration"
   }
 }
