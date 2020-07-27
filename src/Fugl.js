@@ -1,8 +1,8 @@
 var _ = require('lodash');
-var copyFileSync = require('fs-copy-file-sync');
 var debug = require('./debug').extend('Fugl');
 var EventEmitter = require('events');
 var fs = require('fs');
+var fsExtra = require('fs-extra');
 var path = require('path');
 var mkdirp = require('mkdirp');
 
@@ -264,6 +264,20 @@ class Fugl extends EventEmitter {
           global.window = dom.window;
           global.document = dom.window.document;
           global.fragment = html => new dom.window.DocumentFragment(html);
+
+          emitter.on('end', () => {
+            if (!fs.existsSync(options.reportDir)) {
+              fsExtra.mkdirpSync(options.reportDir);
+            }
+            fsExtra.copySync(
+              require.resolve('mocha/mocha.css'),
+              path.join(options.reportDir, 'index.css')
+            );
+            fs.writeFileSync(
+              path.join(options.reportDir, 'index.html'),
+              dom.window.document.documentElement.outerHTML
+            );
+          });
         }
         const Reporter = require(`mocha/lib/reporters/${options.reporter}`);
         reporter = new Reporter(emitter);
@@ -298,21 +312,6 @@ class Fugl extends EventEmitter {
       }, Promise.resolve(true))
       .then(() => {
         emitter.emit('end');
-      })
-      .then(() => {
-        if (options.reporter === 'html') {
-          if (!fs.existsSync(options.reportDir)) {
-            mkdirp.sync(options.reportDir);
-          }
-          copyFileSync(
-            require.resolve('mocha/mocha.css'),
-            path.join(options.reportDir, 'index.css')
-          );
-          fs.writeFileSync(
-            path.join(options.reportDir, 'index.html'),
-            document.documentElement.outerHTML
-          );
-        }
       })
       .then(() => stats);
   }
