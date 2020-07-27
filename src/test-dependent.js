@@ -3,7 +3,7 @@ var runInFolder = require('./run-in-folder');
 
 var DEFAULT_TEST_COMMAND = 'npm test';
 
-function testDependent(options, dependent) {
+async function testDependent(options, dependent) {
   const { moduleName, toFolder } = options;
   var packageInstaller = options.packageInstaller;
   var performDependentTest = options._testInFolder || runInFolder;
@@ -12,49 +12,42 @@ function testDependent(options, dependent) {
   process.env.CURRENT_MODULE_NAME = moduleName;
   process.env.CURRENT_MODULE_DIR = options.folder;
 
-  function moduleTestInFolder(cmd, cmdKey) {
+  async function moduleTestInFolder(cmd, cmdKey) {
     if (!cmd) {
       debug('%s command skipped for %s', cmdKey, dependent.name);
-      return Promise.resolve(toFolder);
+      return toFolder;
     }
 
     debug('%s command for %s', cmdKey, dependent.name);
 
-    return performDependentTest(toFolder, cmd)
-      .then(() => {
-        debug('%s command succeeded for %s', cmdKey, dependent.name);
-        return toFolder;
-      })
-      .catch(error => {
-        debug('%s command failed for %s', cmdKey, dependent.name);
-        throw error;
-      });
-  }
+    try {
+      await performDependentTest(toFolder, cmd);
 
-  function moduleAfterTestInFolder() {
-    const cmd = dependent.aftertest;
-    return moduleTestInFolder(cmd, 'aftertest');
+      debug('%s command succeeded for %s', cmdKey, dependent.name);
+      return toFolder;
+    } catch (error) {
+      debug('%s command failed for %s', cmdKey, dependent.name);
+      throw error;
+    }
   }
 
   var result = {};
 
-  function withResult(resultType, promise) {
+  async function withResult(resultType, promise) {
     result[resultType] = {
       status: null
     };
     const testResult = result[resultType];
 
-    return promise
-      .then(() => {
-        testResult.status = 'pass';
-      })
-      .catch(error => {
-        testResult.status = 'fail';
-        testResult.error = error;
-      });
-  }
+    try {
+      await promise;
 
-  var res = Promise.resolve();
+      testResult.status = 'pass';
+    } catch (error) {
+      testResult.status = 'fail';
+      testResult.error = error;
+    }
+  }
 
   var testWithPreviousVersion = dependent.pretest;
   if (testWithPreviousVersion) {
@@ -64,40 +57,35 @@ function testDependent(options, dependent) {
     } else {
       modulePretestCommand = moduleTestCommand;
     }
-    res = res.then(folder =>
-      withResult(
-        'pretest',
-        moduleTestInFolder(modulePretestCommand, 'pretest')
-      ).then(() => folder)
+
+    await withResult(
+      'pretest',
+      moduleTestInFolder(modulePretestCommand, 'pretest')
     );
   }
 
-  return res.then(() => {
-    if (
-      options.pretestOrIgnore &&
-      result.pretest &&
-      result.pretest.status === 'fail'
-    ) {
-      // A failure has occurred in the presence of the ignore flag.
-      // Immediately mark it for the parent and skip test execution.
-      return {
-        pretest: {
-          status: 'pending'
-        }
-      };
-    }
+  if (
+    options.pretestOrIgnore &&
+    result.pretest &&
+    result.pretest.status === 'fail'
+  ) {
+    // A failure has occurred in the presence of the ignore flag.
+    // Immediately mark it for the parent and skip test execution.
+    return {
+      pretest: {
+        status: 'pending'
+      }
+    };
+  }
 
-    return Promise.resolve()
-      .then(() => packageInstaller.installTo({ toFolder }, dependent))
-      .then(() =>
-        withResult(
-          'packagetest',
-          moduleTestInFolder(moduleTestCommand, 'packagetest')
-        )
-      )
-      .then(() => moduleAfterTestInFolder())
-      .then(() => result);
-  });
+  await packageInstaller.installTo({ toFolder }, dependent);
+  await withResult(
+    'packagetest',
+    moduleTestInFolder(moduleTestCommand, 'packagetest')
+  );
+  await moduleTestInFolder(dependent.aftertest, 'aftertest');
+
+  return result;
 }
 
 module.exports = testDependent;
