@@ -126,7 +126,7 @@ class Fugl extends EventEmitter {
     );
   }
 
-  executeDependent(emitter, project) {
+  async executeDependent(emitter, project) {
     const test = {
       title: project.name,
       body: '',
@@ -144,73 +144,75 @@ class Fugl extends EventEmitter {
 
     emitter.emit('test', test);
 
-    return Promise.resolve()
-      .then(() => this.checkProject(project))
-      .then(() => {
-        const { options, packageInstaller } = this;
+    let executionResults;
+    try {
+      await this.checkProject(project);
 
-        const moduleName = project.repoUrl;
-        const safeName = _.kebabCase(_.deburr(moduleName));
-        debug('original name "%s", safe "%s"', moduleName, safeName);
+      const { options, packageInstaller } = this;
 
-        const toFolder = path.join(options.tmpDir, safeName);
-        debug('testing folder %s', toFolder);
+      const moduleName = project.repoUrl;
+      const safeName = _.kebabCase(_.deburr(moduleName));
+      debug('original name "%s", safe "%s"', moduleName, safeName);
 
-        dependent = this.configForDependent(project);
-        dependentOptions = Object.assign({}, options, {
-          packageInstaller,
-          moduleName,
-          toFolder
-        });
-      })
-      .then(() => this.installDependent(dependentOptions, dependent))
-      .then(() => this.testDependent(dependentOptions, dependent))
-      .catch(error => ({ packagetest: { status: 'fail', error } }))
-      .then(executionResults => {
-        let executionResult;
-        const pretestResult = executionResults.pretest || { status: 'none' };
-        if (pretestResult.status === 'fail') {
-          test.title += ' (pretest)';
-          executionResult = pretestResult;
-        } else if (pretestResult.status === 'pending') {
-          test.title += ' (skipped)';
-          executionResult = pretestResult;
-        } else {
-          executionResult = executionResults.packagetest;
-        }
+      const toFolder = path.join(options.tmpDir, safeName);
+      debug('testing folder %s', toFolder);
 
-        // update how long the test took
-        const endTime = Date.now();
-        test.duration = endTime - startTime;
-
-        if (executionResult.status === 'pending') {
-          // identify it as such
-          test.isPending = () => true;
-        }
-
-        switch (executionResult.status) {
-          case 'pass':
-            debug('execution passed for %s', project.name);
-            emitter.emit('pass', test);
-            break;
-          case 'fail':
-            debug(
-              'execution failed for %s: %s',
-              project.name,
-              executionResult.error
-            );
-            emitter.emit('fail', test, executionResult.error);
-            break;
-          case 'pending':
-            debug('execution skipped for %s', project.name);
-            emitter.emit('pending', test);
-            break;
-        }
-
-        emitter.emit('test end', test);
-
-        return test;
+      dependent = this.configForDependent(project);
+      dependentOptions = Object.assign({}, options, {
+        packageInstaller,
+        moduleName,
+        toFolder
       });
+
+      await this.installDependent(dependentOptions, dependent);
+      executionResults = await this.testDependent(dependentOptions, dependent);
+    } catch (error) {
+      executionResults = { packagetest: { status: 'fail', error } };
+    }
+
+    let executionResult;
+    const pretestResult = executionResults.pretest || { status: 'none' };
+    if (pretestResult.status === 'fail') {
+      test.title += ' (pretest)';
+      executionResult = pretestResult;
+    } else if (pretestResult.status === 'pending') {
+      test.title += ' (skipped)';
+      executionResult = pretestResult;
+    } else {
+      executionResult = executionResults.packagetest;
+    }
+
+    // update how long the test took
+    const endTime = Date.now();
+    test.duration = endTime - startTime;
+
+    if (executionResult.status === 'pending') {
+      // identify it as such
+      test.isPending = () => true;
+    }
+
+    switch (executionResult.status) {
+      case 'pass':
+        debug('execution passed for %s', project.name);
+        emitter.emit('pass', test);
+        break;
+      case 'fail':
+        debug(
+          'execution failed for %s: %s',
+          project.name,
+          executionResult.error
+        );
+        emitter.emit('fail', test, executionResult.error);
+        break;
+      case 'pending':
+        debug('execution skipped for %s', project.name);
+        emitter.emit('pending', test);
+        break;
+    }
+
+    emitter.emit('test end', test);
+
+    return test;
   }
 
   checkProject(project) {
@@ -225,7 +227,7 @@ class Fugl extends EventEmitter {
     return testDependent(options, dependent);
   }
 
-  testDependents() {
+  async testDependents() {
     const options = this.options;
     const config = this.config;
 
@@ -303,21 +305,19 @@ class Fugl extends EventEmitter {
     emitter.emit('start');
 
     // TODO switch to parallel testing!
-    return config.projects
-      .reduce((prev, project) => {
-        return prev.then(() => {
-          // record the execution of a test
-          this.total += 1;
+    for (const project of config.projects) {
+      // record the execution of a test
+      this.total += 1;
 
-          return this.executeDependent(emitter, project).then(
-            executionResult => (stats.duration += executionResult.duration)
-          );
-        });
-      }, Promise.resolve(true))
-      .then(() => {
-        emitter.emit('end');
-      })
-      .then(() => stats);
+      const executionResult = await this.executeDependent(emitter, project);
+
+      // update overall duration with this test
+      stats.duration += executionResult.duration;
+    }
+
+    emitter.emit('end');
+
+    return stats;
   }
 
   run() {
@@ -342,9 +342,7 @@ class Fugl extends EventEmitter {
     debug('package: %s', options.package);
     debug('folder: %s', options.folder);
 
-    return Promise.resolve().then(() => {
-      return this.testDependents();
-    });
+    return this.testDependents();
   }
 }
 
