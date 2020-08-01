@@ -142,7 +142,7 @@ class Fugl extends EventEmitter {
     let dependentOptions;
     const startTime = Date.now();
 
-    emitter.emit('test begin', test);
+    emitter.emit('test', test);
 
     return Promise.resolve()
       .then(() => this.checkProject(project))

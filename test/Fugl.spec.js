@@ -299,7 +299,7 @@ describe('Fugl', () => {
     }).then(() => {
       expect(emitSpy, 'to have calls satisfying', [
         ['start'],
-        ['test begin', {}],
+        ['test', {}],
         [
           'pass',
           {
@@ -351,7 +351,7 @@ describe('Fugl', () => {
       ]);
       expect(emitSpy, 'to have calls satisfying', [
         ['start'],
-        ['test begin', {}],
+        ['test', {}],
         [
           'pass',
           {
@@ -509,7 +509,7 @@ describe('Fugl', () => {
       ]);
       expect(emitSpy, 'to have calls satisfying', [
         ['start'],
-        ['test begin', {}],
+        ['test', {}],
         ['fail', { title: 'somepackage' }, error],
         ['test end', {}],
         ['end']
@@ -541,7 +541,7 @@ describe('Fugl', () => {
     }).then(() => {
       expect(emitSpy, 'to have calls satisfying', [
         ['start'],
-        ['test begin', {}],
+        ['test', {}],
         ['fail', { title: 'https://service.tld/foo.git' }, packageTestError],
         ['test end', {}],
         ['end']
@@ -613,7 +613,7 @@ describe('Fugl', () => {
       }).then(() => {
         expect(emitSpy, 'to have calls satisfying', [
           ['start'],
-          ['test begin', {}],
+          ['test', {}],
           [
             'pending',
             {
@@ -889,7 +889,7 @@ describe('Fugl', () => {
       }).then(() => {
         expect(emitSpy, 'to have calls satisfying', [
           ['start'],
-          ['test begin', {}],
+          ['test', {}],
           [
             'fail',
             { title: 'https://service.tld/foo.git (pretest)' },
