@@ -26,48 +26,48 @@ function removeFolder(folder) {
   }
 }
 
-function moduleProvision(options) {
+async function moduleProvision(options) {
   const { moduleName, toFolder } = options;
 
   if (options.noClean && fs.existsSync(toFolder)) {
     debug('updating repo %s', moduleName);
 
-    return simpleGit
-      .cwd(toFolder)
-      .then(() => simpleGit.pull())
-      .then(() => debug('updated %s', moduleName));
+    await simpleGit.cwd(toFolder);
+    await simpleGit.pull();
+
+    debug('updated %s', moduleName);
   } else {
     removeFolder(toFolder);
     createFolder(toFolder);
 
     debug('cloning repo %s', moduleName);
 
-    return simpleGit.clone(moduleName, toFolder).then(() => {
-      debug('cloned %s', moduleName);
-    });
+    await simpleGit.clone(moduleName, toFolder);
+
+    debug('cloned %s', moduleName);
   }
 }
 
-function moduleCommand(cmd, cmdKey, { toFolder, dependent }) {
+async function moduleCommand(cmd, cmdKey, { toFolder, dependent }) {
   if (!cmd) {
     debug('%s command skipped for %s', cmdKey, dependent.name);
-    return Promise.resolve(toFolder);
+    return toFolder;
   }
 
   debug('%s command for %s', cmdKey, dependent.name);
 
-  return runInFolder(toFolder, cmd)
-    .then(() => {
-      debug('%s command succeeded for %s', cmdKey, dependent.name);
-      return toFolder;
-    })
-    .catch(error => {
-      debug('%s command failed for %s', cmdKey, dependent.name);
-      throw error;
-    });
+  try {
+    await runInFolder(toFolder, cmd);
+
+    debug('%s command succeeded for %s', cmdKey, dependent.name);
+    return toFolder;
+  } catch (error) {
+    debug('%s command failed for %s', cmdKey, dependent.name);
+    throw error;
+  }
 }
 
-function install(options, dependent) {
+async function installDependent(options, dependent) {
   const { moduleName, toFolder } = options;
   const timeout =
     typeof options.timeout === 'number'
@@ -84,24 +84,21 @@ function install(options, dependent) {
     }
   }
 
-  function moduleAfterInstall(installOptions) {
-    const cmd = dependent.afterinstall;
-    return moduleCommand(cmd, 'afterinstall', installOptions);
+  try {
+    await moduleProvision(options);
+
+    const installOptions = { toFolder, dependent };
+    await moduleInstallWithTimeout(installOptions);
+    await moduleCommand(dependent.afterinstall, 'afterinstall', installOptions);
+  } catch (error) {
+    if (error.name === 'TimeoutError') {
+      const message = `install timed out for ${moduleName}`;
+      debug(message);
+      throw new Error(message);
+    }
+
+    throw error;
   }
-
-  return Promise.resolve()
-    .then(() => moduleProvision(options))
-    .then(() => moduleInstallWithTimeout({ toFolder, dependent }))
-    .then(() => moduleAfterInstall({ toFolder, dependent }))
-    .catch(error => {
-      if (error.name === 'TimeoutError') {
-        const message = `install timed out for ${moduleName}`;
-        debug(message);
-        error = new Error(message);
-      }
-
-      throw error;
-    });
 }
 
-module.exports = install;
+module.exports = installDependent;
