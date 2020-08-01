@@ -238,6 +238,7 @@ class Fugl extends EventEmitter {
 
     const stats = {
       tests: config.projects.length,
+      start: 0,
       duration: 0, // support epilogue generation
       passes: 0,
       failures: 0,
@@ -295,6 +296,9 @@ class Fugl extends EventEmitter {
       emitter.on('fail', (_, error) => print(`${error}\n`));
       emitter.on('pending', test => print(`  ${test.title} SKIPPED`));
     }
+
+    // update the start time
+    stats.start = Date.now();
 
     emitter.emit('start');
 

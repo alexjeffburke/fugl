@@ -259,7 +259,7 @@ describe('Fugl', () => {
     );
   });
 
-  it('should return stats on a pass', () => {
+  it('should return stats on a pass', async () => {
     const fugl = new Fugl({
       package: 'somepackage',
       folder: __dirname,
@@ -271,10 +271,16 @@ describe('Fugl', () => {
       pretest: { status: 'pass' },
       packagetest: { status: 'pass' }
     });
+    const timeBeforeRun = Date.now();
 
-    return expect(() => fugl.run(), 'to be fulfilled with', {
+    const stats = await fugl.run();
+    expect(stats, 'to exhaustively satisfy', {
+      tests: 1,
+      start: expect.it('to be greater than or equal to', timeBeforeRun),
+      duration: expect.it('to be greater than or equal to', 0),
       passes: 1,
-      failures: 0
+      failures: 0,
+      skipped: 0
     });
   });
 
