@@ -26,7 +26,7 @@ function removeFolder(folder) {
   }
 }
 
-async function moduleProvision(options) {
+async function provisionModule(options) {
   const { moduleName, toFolder } = options;
 
   if (options.noClean && fs.existsSync(toFolder)) {
@@ -48,19 +48,28 @@ async function moduleProvision(options) {
   }
 }
 
-async function moduleCommand(cmd, cmdKey, { toFolder, dependent }) {
+async function moduleCommand(
+  cmd,
+  cmdKey,
+  { toFolder, dependent, timeout = 0 }
+) {
   if (!cmd) {
     debug('%s command skipped for %s', cmdKey, dependent.name);
-    return toFolder;
+    return;
   }
 
   debug('%s command for %s', cmdKey, dependent.name);
 
   try {
-    await runInFolder(toFolder, cmd);
+    const installPromise = installDependent.runInFolder(toFolder, cmd);
+
+    if (timeout > 0) {
+      await withTimeout(installPromise, timeout);
+    } else {
+      await installPromise;
+    }
 
     debug('%s command succeeded for %s', cmdKey, dependent.name);
-    return toFolder;
   } catch (error) {
     debug('%s command failed for %s', cmdKey, dependent.name);
     throw error;
@@ -74,21 +83,12 @@ async function installDependent(options, dependent) {
       ? options.timeout
       : INSTALL_TIMEOUT_SECONDS;
 
-  function moduleInstallWithTimeout(installOptions) {
-    const cmd = dependent.install || DEFAULT_INSTALL_COMMAND;
-    const installPromise = moduleCommand(cmd, 'install', installOptions);
-    if (timeout > 0) {
-      return withTimeout(installPromise, timeout);
-    } else {
-      return installPromise;
-    }
-  }
-
   try {
-    await moduleProvision(options);
+    await installDependent.provisionModule(options);
 
     const installOptions = { toFolder, dependent };
-    await moduleInstallWithTimeout(installOptions);
+    const installCmd = dependent.install || DEFAULT_INSTALL_COMMAND;
+    await moduleCommand(installCmd, 'install', { ...installOptions, timeout });
     await moduleCommand(dependent.afterinstall, 'afterinstall', installOptions);
   } catch (error) {
     if (error.name === 'TimeoutError') {
@@ -100,5 +100,8 @@ async function installDependent(options, dependent) {
     throw error;
   }
 }
+
+installDependent.provisionModule = provisionModule;
+installDependent.runInFolder = runInFolder;
 
 module.exports = installDependent;

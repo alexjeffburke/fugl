@@ -3,20 +3,42 @@ const expect = require('unexpected')
   .use(require('unexpected-sinon'));
 const fs = require('fs');
 const path = require('path');
+const sinon = require('sinon');
 const rimraf = require('rimraf');
 
 const installDependent = require('../src/install-dependent');
 
-describe('installDependent @integration', () => {
+function isDirectory(maybeDirPath) {
+  const stat = fs.statSync(maybeDirPath);
+  try {
+    expect(stat.isDirectory(), 'to be true');
+  } catch (e) {
+    expect.fail({ message: `The path "${maybeDirPath}" is not a directory` });
+  }
+}
+
+describe('installDependent', () => {
   const toFolder = path.join(__dirname, 'scratch', 'working');
 
+  let isMocked;
+  let provisionModule;
+  let runInFolderSpy;
+
   beforeEach(() => {
-    if (fs.existsSync(toFolder)) {
-      rimraf.sync(toFolder);
-    }
+    isMocked = true;
+    provisionModule = sinon.stub(installDependent, 'provisionModule');
+    runInFolderSpy = sinon.stub(installDependent, 'runInFolder');
+  });
+
+  afterEach(() => {
+    if (!isMocked) return;
+    sinon.restore();
   });
 
   it('should trigger installing the package in the dependent', () => {
+    provisionModule.resolves();
+    runInFolderSpy.resolves();
+
     return expect(
       installDependent(
         {
@@ -24,18 +46,22 @@ describe('installDependent @integration', () => {
           toFolder: toFolder
         },
         {
-          pretest: true,
           packageName: 'somepackage',
           packageVersion: 'latest'
         }
       ),
       'to be fulfilled'
     ).then(() => {
-      expect(fs.existsSync(path.join(toFolder, '.git')), 'to be true');
+      expect(runInFolderSpy, 'to have calls satisfying', [
+        [toFolder, 'npm install']
+      ]);
     });
   });
 
   it('should trigger installing the package in the dependent without timeout', () => {
+    provisionModule.resolves();
+    runInFolderSpy.resolves();
+
     return expect(
       installDependent(
         {
@@ -44,18 +70,23 @@ describe('installDependent @integration', () => {
           timeout: 0
         },
         {
-          pretest: true,
           packageName: 'somepackage',
           packageVersion: 'latest'
         }
       ),
       'to be fulfilled'
     ).then(() => {
-      expect(fs.existsSync(path.join(toFolder, '.git')), 'to be true');
+      expect(runInFolderSpy, 'to have calls satisfying', [
+        [toFolder, 'npm install']
+      ]);
     });
   });
 
   it('should error when install failed', () => {
+    provisionModule.resolves();
+    const installError = new Error('failure');
+    runInFolderSpy.rejects(installError);
+
     return expect(
       installDependent(
         {
@@ -64,18 +95,27 @@ describe('installDependent @integration', () => {
           timeout: 100
         },
         {
-          pretest: true,
           packageName: 'somepackage',
           packageVersion: 'latest',
           install: 'false'
         }
       ),
       'to be rejected with',
-      /Test Failure/
-    );
+      installError
+    ).then(() => {
+      expect(runInFolderSpy, 'to have calls satisfying', [[toFolder, 'false']]);
+    });
   });
 
   it('should error when afterinstall failed', () => {
+    provisionModule.resolves();
+    const afterInstallError = new Error('failure');
+    runInFolderSpy
+      .onFirstCall()
+      .resolves()
+      .onSecondCall()
+      .rejects(afterInstallError);
+
     return expect(
       installDependent(
         {
@@ -84,7 +124,6 @@ describe('installDependent @integration', () => {
           timeout: 100
         },
         {
-          pretest: true,
           packageName: 'somepackage',
           packageVersion: 'latest',
           install: 'true',
@@ -92,11 +131,24 @@ describe('installDependent @integration', () => {
         }
       ),
       'to be rejected with',
-      /Test Failure/
-    );
+      afterInstallError
+    ).then(() => {
+      expect(runInFolderSpy, 'to have calls satisfying', [
+        [toFolder, 'true'],
+        [toFolder, 'false']
+      ]);
+    });
   });
 
   it('should error when the installation timeout is exceeded', () => {
+    provisionModule.resolves();
+    runInFolderSpy.callsFake(
+      () =>
+        new Promise(resolve => {
+          setTimeout(() => resolve(), 200);
+        })
+    );
+
     return expect(
       installDependent(
         {
@@ -105,7 +157,6 @@ describe('installDependent @integration', () => {
           timeout: 100
         },
         {
-          pretest: true,
           packageName: 'somepackage',
           packageVersion: 'latest'
         }
@@ -113,5 +164,35 @@ describe('installDependent @integration', () => {
       'to be rejected with',
       'install timed out for https://github.com/bahmutov/dont-break-bar'
     );
+  });
+
+  describe('when executed @integration', () => {
+    beforeEach(() => {
+      sinon.restore();
+      isMocked = false;
+
+      if (fs.existsSync(toFolder)) {
+        rimraf.sync(toFolder);
+      }
+    });
+
+    it('should trigger installing the package in the dependent', () => {
+      return expect(
+        installDependent(
+          {
+            moduleName: 'https://github.com/alexjeffburke/fugl-test-project',
+            toFolder: toFolder
+          },
+          {
+            packageName: 'somepackage',
+            packageVersion: 'latest'
+          }
+        ),
+        'to be fulfilled'
+      ).then(() => {
+        isDirectory(path.join(toFolder, '.git'));
+        isDirectory(path.join(toFolder, 'node_modules'));
+      });
+    });
   });
 });
