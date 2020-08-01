@@ -2,10 +2,9 @@ language: node_js
 env:
   - TARGET=test
 node_js:
-  - '6'
-  - '8'
   - '10'
   - '12'
+  - '14'
 os:
   - linux
   - windows
@@ -13,11 +12,11 @@ script: npm run $TARGET
 matrix:
   include:
     - name: Lint
-      node_js: '8'
+      node_js: '10'
       env:
         - TARGET=lint
     - name: Coverage
-      node_js: '8'
+      node_js: '10'
       env:
         - TARGET=coverage
 after_success: '<coverage/lcov.info ./node_modules/coveralls/bin/coveralls.js'
