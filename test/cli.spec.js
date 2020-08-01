@@ -1,7 +1,6 @@
 const expect = require('unexpected')
   .clone()
   .use(require('unexpected-sinon'));
-const path = require('path');
 const sinon = require('sinon');
 
 const cli = require('../src/cli');
@@ -168,33 +167,6 @@ describe('cli', () => {
         ).then(() => {
           expect(MockFugl, 'to have a call satisfying', [{ ci: true }]);
         });
-      });
-    });
-  });
-
-  describe('fetch', () => {
-    it('when execute shoulder with the correct options', () => {
-      const cwd = path.join(__dirname, 'module');
-      const args = {
-        package: 'somepackage',
-        metric: 'downloads',
-        librariesio: 'LIBRARIESIO'
-      };
-
-      const _shoulderCli = sinon.stub().named('shoulderCli');
-
-      return expect(
-        () => cli.fetch(cwd, args, { _shoulderCli }),
-        'not to throw'
-      ).then(() => {
-        expect(_shoulderCli, 'to have a call satisfying', [
-          cwd,
-          {
-            package: 'somepackage',
-            metric: 'downloads',
-            librariesio: 'LIBRARIESIO'
-          }
-        ]);
       });
     });
   });

@@ -1,8 +1,6 @@
 const os = require('os');
 const path = require('path');
 
-const shoulderCli = require('shoulder/lib/cli');
-
 const Fugl = require('../src/Fugl');
 
 exports.check = function check(cwd, yargv, options) {
@@ -50,17 +48,4 @@ exports.check = function check(cwd, yargv, options) {
       exit(0);
     }
   });
-};
-
-exports.fetch = function fetch(cwd, yargv, options) {
-  const shoulderOptions = {
-    package: yargv.package,
-    metric: yargv.metric,
-    librariesio: yargv.librariesio
-  };
-
-  options = options || {};
-  const cli = options._shoulderCli || shoulderCli;
-
-  return cli(cwd, shoulderOptions);
 };

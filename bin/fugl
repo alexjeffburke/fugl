@@ -60,36 +60,13 @@ const configureCheck = config => yargs =>
         'Switch to force output to the console to support running in CI.'
     });
 
-const configureFetch = () => yargs =>
-  yargs
-    .option('package', {
-      type: 'string',
-      demandOption: true,
-      describe: 'The package for which to fetch dependents.'
-    })
-    .positional('metric', {
-      type: 'string',
-      choices: ['downloads', 'stars'],
-      demandOption: true,
-      describe: 'The metric to use when ordering retrieved dependents.'
-    })
-    .option('librariesio', {
-      type: 'string',
-      describe: 'An API key for accessing dependents data via Libraries.IO.'
-    });
-
 const processArgv = config =>
   yargs
     .usage('$0 <cmd> [args]')
     .command(
-      ['*', 'check'],
+      '*',
       'Run tests of the dependent projects checking for breakage.',
       configureCheck(config)
-    )
-    .command(
-      'fetch <metric>',
-      'Automatically find dependent projects to be checked.',
-      configureFetch()
     )
     .help().argv;
 
@@ -108,9 +85,8 @@ const processStdinThenArgvAndExecute = cwd =>
       }
     }
     const argv = processArgv(config);
-    const command = argv._[0] || 'check';
 
-    return cli[command](cwd, argv);
+    return cli.check(cwd, argv);
   });
 
 wrap(processStdinThenArgvAndExecute)(process.cwd());
