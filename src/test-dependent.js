@@ -3,33 +3,33 @@ var runInFolder = require('./run-in-folder');
 
 var DEFAULT_TEST_COMMAND = 'npm test';
 
+async function moduleTestInFolder(cmd, cmdKey, { toFolder, dependent }) {
+  if (!cmd) {
+    debug('%s command skipped for %s', cmdKey, dependent.name);
+    return toFolder;
+  }
+
+  debug('%s command for %s', cmdKey, dependent.name);
+
+  try {
+    await testDependent.runInFolder(toFolder, cmd);
+
+    debug('%s command succeeded for %s', cmdKey, dependent.name);
+    return toFolder;
+  } catch (error) {
+    debug('%s command failed for %s', cmdKey, dependent.name);
+    throw error;
+  }
+}
+
 async function testDependent(options, dependent) {
   const { moduleName, toFolder } = options;
+  const testOptions = { toFolder, dependent };
   var packageInstaller = options.packageInstaller;
-  var performDependentTest = options._testInFolder || runInFolder;
   var moduleTestCommand = dependent.test || DEFAULT_TEST_COMMAND;
 
   process.env.CURRENT_MODULE_NAME = moduleName;
   process.env.CURRENT_MODULE_DIR = options.folder;
-
-  async function moduleTestInFolder(cmd, cmdKey) {
-    if (!cmd) {
-      debug('%s command skipped for %s', cmdKey, dependent.name);
-      return toFolder;
-    }
-
-    debug('%s command for %s', cmdKey, dependent.name);
-
-    try {
-      await performDependentTest(toFolder, cmd);
-
-      debug('%s command succeeded for %s', cmdKey, dependent.name);
-      return toFolder;
-    } catch (error) {
-      debug('%s command failed for %s', cmdKey, dependent.name);
-      throw error;
-    }
-  }
 
   var result = {};
 
@@ -60,7 +60,7 @@ async function testDependent(options, dependent) {
 
     await withResult(
       'pretest',
-      moduleTestInFolder(modulePretestCommand, 'pretest')
+      moduleTestInFolder(modulePretestCommand, 'pretest', testOptions)
     );
   }
 
@@ -81,11 +81,13 @@ async function testDependent(options, dependent) {
   await packageInstaller.installTo({ toFolder }, dependent);
   await withResult(
     'packagetest',
-    moduleTestInFolder(moduleTestCommand, 'packagetest')
+    moduleTestInFolder(moduleTestCommand, 'packagetest', testOptions)
   );
-  await moduleTestInFolder(dependent.aftertest, 'aftertest');
+  await moduleTestInFolder(dependent.aftertest, 'aftertest', testOptions);
 
   return result;
 }
+
+testDependent.runInFolder = runInFolder;
 
 module.exports = testDependent;

@@ -15,15 +15,25 @@ function createFakePackageInstaller() {
 describe('testDependent', () => {
   const toFolder = path.join(__dirname, 'scratch', 'foo');
 
+  let packageInstaller;
+  let runInFolderSpy;
+
+  beforeEach(() => {
+    packageInstaller = createFakePackageInstaller();
+    runInFolderSpy = sinon.stub(testDependent, 'runInFolder');
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
   it('should resolve with a test result structure', () => {
-    const packageInstaller = createFakePackageInstaller();
     packageInstaller.installTo.resolves();
-    const testInFolderSpy = sinon.stub().resolves();
+    runInFolderSpy.resolves();
 
     return expect(
       testDependent(
         {
-          _testInFolder: testInFolderSpy,
           packageInstaller,
           moduleName: 'https://github.com/bahmutov/dont-break-bar',
           toFolder: toFolder
@@ -43,11 +53,9 @@ describe('testDependent', () => {
   });
 
   it('should resolve with a package test failure', () => {
-    const packageInstaller = createFakePackageInstaller();
     packageInstaller.installTo.resolves();
     const packageTestError = new Error('failure');
-    const testInFolderSpy = sinon
-      .stub()
+    runInFolderSpy
       .onFirstCall()
       .resolves()
       .onSecondCall()
@@ -56,7 +64,6 @@ describe('testDependent', () => {
     return expect(
       testDependent(
         {
-          _testInFolder: testInFolderSpy,
           packageInstaller,
           moduleName: 'https://github.com/bahmutov/dont-break-bar',
           toFolder: toFolder
@@ -76,14 +83,12 @@ describe('testDependent', () => {
   });
 
   it('should trigger tests of the dependent', () => {
-    const packageInstaller = createFakePackageInstaller();
     packageInstaller.installTo.resolves();
-    const testInFolderSpy = sinon.stub().resolves();
+    runInFolderSpy.resolves();
 
     return expect(
       testDependent(
         {
-          _testInFolder: testInFolderSpy,
           packageInstaller,
           moduleName: 'https://github.com/bahmutov/dont-break-bar',
           toFolder: toFolder
@@ -96,7 +101,7 @@ describe('testDependent', () => {
       ),
       'to be fulfilled'
     ).then(() => {
-      expect(testInFolderSpy, 'was called times', 2).and(
+      expect(runInFolderSpy, 'was called times', 2).and(
         'to have all calls satisfying',
         [toFolder, 'npm test']
       );
@@ -104,14 +109,12 @@ describe('testDependent', () => {
   });
 
   it('should trigger installing the package in the dependent', () => {
-    const packageInstaller = createFakePackageInstaller();
     packageInstaller.installTo.resolves();
-    const testInFolderSpy = sinon.stub().resolves();
+    runInFolderSpy.resolves();
 
     return expect(
       testDependent(
         {
-          _testInFolder: testInFolderSpy,
           packageInstaller,
           moduleName: 'https://github.com/bahmutov/dont-break-bar',
           toFolder: toFolder
@@ -136,15 +139,13 @@ describe('testDependent', () => {
 
   describe('when operating with pretest', () => {
     it('should return pending if pretestOrIgnore', () => {
-      const packageInstaller = createFakePackageInstaller();
       packageInstaller.installTo.resolves();
       const preTestError = new Error('failure');
-      const testInFolderSpy = sinon.stub().rejects(preTestError);
+      runInFolderSpy.rejects(preTestError);
 
       return expect(
         testDependent(
           {
-            _testInFolder: testInFolderSpy,
             packageInstaller,
             moduleName: 'https://github.com/bahmutov/dont-break-bar',
             toFolder: toFolder,
@@ -166,14 +167,12 @@ describe('testDependent', () => {
 
   describe('when operating without pretest', () => {
     it('should return test result structure', () => {
-      const packageInstaller = createFakePackageInstaller();
       packageInstaller.installTo.resolves();
-      const testInFolderSpy = sinon.stub().resolves();
+      runInFolderSpy.resolves();
 
       return expect(
         testDependent(
           {
-            _testInFolder: testInFolderSpy,
             packageInstaller,
             moduleName: 'https://github.com/bahmutov/dont-break-bar',
             toFolder: toFolder
@@ -194,14 +193,12 @@ describe('testDependent', () => {
 
   describe('with aftertest hook', () => {
     it('should execute an aftertest command', () => {
-      const packageInstaller = createFakePackageInstaller();
       packageInstaller.installTo.resolves();
-      const testInFolderSpy = sinon.stub().resolves();
+      runInFolderSpy.resolves();
 
       return expect(
         testDependent(
           {
-            _testInFolder: testInFolderSpy,
             packageInstaller,
             moduleName: 'https://github.com/bahmutov/dont-break-bar',
             toFolder: toFolder
@@ -215,7 +212,7 @@ describe('testDependent', () => {
         ),
         'to be fulfilled'
       ).then(() => {
-        expect(testInFolderSpy, 'was called times', 3).and(
+        expect(runInFolderSpy, 'was called times', 3).and(
           'to have calls satisfying',
           [
             [toFolder, 'npm test'],
