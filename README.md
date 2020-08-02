@@ -58,7 +58,7 @@ fugl --package unexpected --projects https://github.com/alexjeffburke/jest-unexp
 open breakage/index.html
 ```
 
-# Configuration
+## Configuration
 
 Fugl supports configuration being supplied to it as a JSON file. This becomes particularly
 convenient when checking a series of dependents and this list be checked into version control.
@@ -69,13 +69,30 @@ Configuration files are loaded by supplying a `--config` parameter to the `fugl`
 fugl --config .fugl.json
 ```
 
-An example basic JSON configuration file would look something like the following:
+An example basic JSON configuration file for testing certain module repositories
+would look something like the following:
 
 ```json
 {
   "projects": [
     "https://github.com/someorg/somepackage.git",
     "https://github.com/someorg/otherpackage.git"
+  ]
+}
+```
+
+Each project can also be specified by an object, and this can contain properties
+that enable the same options available on the [command line](#command-line-interface).
+An example configuration to test a particular npm package would look as below:
+
+```json
+{
+  "projects": [
+    {
+      "name": "shoulder",
+      "test": "npm run coverage",
+      "pretest": true
+    }
   ]
 }
 ```
@@ -98,58 +115,59 @@ the commands being executed against each package.
 }
 ```
 
+## Command line interface
+
+The Fugl CLI is desgined to be helpful and, in the absence of a package to use when
+testing, the current working directory is checked for a package.json file and if found
+is used as the code to test.
+
+### Chaining via stdin
+
+Projects to be tested also be supplied via stdin. In practice, this means that other
+tools producing space separated package name/repository arguments can be directly
+piped in using UNIX shell facilities:
+
+```
+echo 'unexpected-sinon' | xargs | fugl check --package unexpected
+```
+
 ## Automatic dependent fetching
 
-Fugl includes the ability to use various external services to deduce a set of dependents for
-a package. There are two supported metrics: "downloads" and "stars". These two metrics
-can be selected by the `fetch` command.
+The support for chaining allows Fugl to be used in conjunction with sister tool
+[`shoulder`](https://hello) to deduce a set of dependents for a package automatically
+and have these tested for compatibitility.
 
 ### Downloads
 
-Fugl will query the npm API for information about package dependents:
+Testing the most downloaded packages that depend on your module can be achieved with:
 
 ```
-fugl fetch downloads --package assert-the-unexpected
+shoulder --metric downloads unexpected | fugl --package unexpected
 ```
 
 ### Stars
 
-Fugl will try to derive the repositories for any supplied projects and then issue queries to
+Testing the most starred packages that depend on your module - by using the repository
+information in their package.json files and issuing queries to GitHub to retrieve the
+number of stars each has - can be achieved with:
+
+for any supplied projects and then issue queries to
 GitHub to retrieve the number of stars each project has. Using this is as simple as:
 
 ```
-fugl fetch stars --package unexpected
+shoulder --metric stars unexpected | fugl --package unexpected
 ```
 
 ### Dependency information via Liraries.IO
 
 One limitation of the npm dependents data is that it only includes information about those packages
-listed as direct depedents. In order to fetch `devDependencies`, the tool is also integrated with
-[Libraries.IO](https://libraries.io).
+listed as direct depedents. In order to fetch `devDependencies`, package dependency information can
+be requested from [Libraries.IO](https://libraries.io).
 
 Signing up for this tool will provide you with an API key which can be used with Fugl as follows:
 
 ```
-fugl fetch downloads --package assert-the-unexpected --librariesio <api_key>
-```
-
-## Command line interface and chaining
-
-The Fugl CLI is desgined to be helpful and, in the absence of arguments, invocation of the supported
-commands will result in extensive explanation of supported options and their meaning. These include:
-
-- `fugl check`
-- `fugl fetch`
-
-> the Fugl CLI defaults to the check command when executed directly
-
-### Chaining via stdin
-
-Configuration for `check` can also be supplied via stdin. In practice, this means that the output of
-fetch can be directly piped into using the UNIX shell facilities:
-
-```
-fugl fetch downloads --package unexpected | fugl check --package unexpected
+shoulder --librariesio <api_key> unexpected | fugl --package unexpected
 ```
 
 ## Architecture
@@ -162,8 +180,8 @@ In the case of the HTML reporter, we use JSDOM as the output document and serial
 
 ## Credits
 
-This tool started began as a fork of [dont-break](https://github.com/bahmutov/dont-break.git) but the
-drift of use-cases required a substantial rework and thus Fugl was born. Since then almost the entire
+This tool started began as a fork of [dont-break](https://github.com/bahmutov/dont-break.git) but
+the drift of use-cases required a substantial rework and thus Fugl was born. Since then the entire
 codebase has been rewritten.
 
 ### Compatibility with dont-break
@@ -193,8 +211,8 @@ As development has continued, previous configurations my require changes as func
 
 ```
 // for topDownloads
-fugl fetch downloads
+shoulder --metric downloads .
 
 // for topStarred
-fugl fetch stars
+shoulder --metric stars .
 ```
