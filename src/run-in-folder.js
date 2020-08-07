@@ -17,8 +17,7 @@ function createError(prefix, output, defaultMessageFn) {
   return new Error(message);
 }
 
-function npmTest(cwd, cmd) {
-  const args = cmd.split(' ');
+function npmTest(cwd, args) {
   let app = args.shift();
 
   if (isWindows && app === 'npm') {
@@ -70,17 +69,25 @@ function npmTest(cwd, cmd) {
   });
 }
 
-async function runInFolder(folder, command, options) {
+async function runInFolder(folder, args, options) {
   options = options || {};
 
   try {
     assertUnemptyString(folder, 'expected folder');
-    assertUnemptyString(command, 'expected command');
-    command = command.trim();
-    assertUnemptyString(command, 'expected command');
+
+    let command;
+    if (Array.isArray(args)) {
+      command = args.join(' ');
+    } else {
+      command = args;
+      assertUnemptyString(command, 'expected command');
+      command = command.trim();
+      assertUnemptyString(command, 'expected command');
+      args = command.split(' ');
+    }
 
     debug(`running "${command}" from ${folder}`);
-    await npmTest(folder, command);
+    await npmTest(folder, args);
 
     debug(`running succeeded from ${folder}`);
     return folder;

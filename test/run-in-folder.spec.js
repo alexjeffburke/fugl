@@ -1,8 +1,9 @@
 const AssertionError = require('assert').AssertionError;
 const expect = require('unexpected');
+const fsExtra = require('fs-extra');
 const path = require('path');
 const rimraf = require('rimraf');
-const simpleGit = require('simple-git/promise')();
+const spawn = require('cross-spawn');
 
 const runInFolder = require('../src/run-in-folder');
 
@@ -38,15 +39,20 @@ describe('runInFolder', () => {
   });
 
   describe('when executed @integration', () => {
-    const baseDir = path.join(__dirname, 'scratch', 'builds');
-    const toFolder = path.join(__dirname, 'scratch', 'builds', 'run-in-folder');
+    const baseDir = path.join(__dirname, 'scratch');
+    const toFolder = path.join(baseDir, 'builds', 'run-in-folder');
 
     beforeEach(() => {
       rimraf.sync(baseDir);
 
-      return simpleGit.clone(
-        'https://github.com/bahmutov/dont-break-bar.git',
-        toFolder
+      fsExtra.ensureDirSync(toFolder);
+
+      spawn.sync(
+        'git',
+        ['clone', 'https://github.com/bahmutov/dont-break-bar.git', '.'],
+        {
+          cwd: toFolder
+        }
       );
     });
 
@@ -61,7 +67,7 @@ describe('runInFolder', () => {
       );
     });
 
-    it('should error on execution failure and include output', () => {
+    it('should error on execution failure', () => {
       return expect(
         () => {
           return runInFolder(toFolder, 'npm test');

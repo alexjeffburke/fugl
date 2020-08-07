@@ -2,9 +2,10 @@ const expect = require('unexpected')
   .clone()
   .use(require('unexpected-sinon'));
 const fs = require('fs');
+const fsExtra = require('fs-extra');
 const path = require('path');
 const rimraf = require('rimraf');
-const simpleGit = require('simple-git/promise')();
+const spawn = require('cross-spawn');
 
 const Fugl = require('../src/Fugl');
 
@@ -34,8 +35,10 @@ describe('Fugl @integration', () => {
         reporter: 'none',
         folder: path.join(__dirname, 'scratch'),
         projects: ['https://github.com/bahmutov/dont-break-bar.git']
-      }).then(() => {
+      }).then(stats => {
+        expect(stats, 'to satisfy', { passes: 1 });
         expect(fs.existsSync(dir), 'to be true');
+        expect(fs.existsSync(path.join(dir, 'package.json')), 'to be true');
       });
     });
   });
@@ -51,12 +54,18 @@ describe('Fugl @integration', () => {
     beforeEach(() => {
       rimraf.sync(baseDir);
 
-      return simpleGit
-        .clone('https://github.com/bahmutov/dont-break-bar.git', dir)
-        .then(() => {
-          // write a file that should persist across execution
-          fs.writeFileSync(file, '');
-        });
+      fsExtra.ensureDirSync(dir);
+
+      spawn.sync(
+        'git',
+        ['clone', 'https://github.com/bahmutov/dont-break-bar.git', '.'],
+        {
+          cwd: dir
+        }
+      );
+
+      // write a file that should persist across execution
+      fs.writeFileSync(file, '');
     });
 
     it('should have created the module folder', () => {

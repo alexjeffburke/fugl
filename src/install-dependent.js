@@ -4,7 +4,6 @@ var debug = require('./debug').extend('installDependent');
 var fs = require('fs');
 var mkdirp = require('mkdirp');
 var rimraf = require('rimraf');
-var simpleGit = require('simple-git/promise')();
 
 var runInFolder = require('./run-in-folder');
 var withTimeout = require('./withTimeout');
@@ -32,8 +31,7 @@ async function provisionModule(options) {
   if (options.noClean && fs.existsSync(toFolder)) {
     debug('updating repo %s', moduleName);
 
-    await simpleGit.cwd(toFolder);
-    await simpleGit.pull();
+    await installDependent.runInFolder(toFolder, ['git', 'pull']);
 
     debug('updated %s', moduleName);
   } else {
@@ -42,7 +40,12 @@ async function provisionModule(options) {
 
     debug('cloning repo %s', moduleName);
 
-    await simpleGit.clone(moduleName, toFolder);
+    await installDependent.runInFolder(toFolder, [
+      'git',
+      'clone',
+      moduleName,
+      '.'
+    ]);
 
     debug('cloned %s', moduleName);
   }
