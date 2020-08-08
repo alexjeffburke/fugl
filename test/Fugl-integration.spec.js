@@ -4,7 +4,6 @@ const expect = require('unexpected')
 const fs = require('fs');
 const fsExtra = require('fs-extra');
 const path = require('path');
-const rimraf = require('rimraf');
 const spawn = require('cross-spawn');
 
 const Fugl = require('../src/Fugl');
@@ -18,22 +17,24 @@ function createAndRunFugl(options) {
 }
 
 describe('Fugl @integration', () => {
+  const cwd = path.join(__dirname, 'scratch');
+
+  beforeEach(() => {
+    return fsExtra.remove(cwd);
+  });
+
   describe('when supplied module', () => {
-    const baseDir = path.join(__dirname, 'scratch', 'builds');
     const dir = path.join(
-      baseDir,
+      cwd,
+      'builds',
       'https-github-com-bahmutov-dont-break-bar-git'
     );
-
-    beforeEach(() => {
-      rimraf.sync(baseDir);
-    });
 
     it('should have created the module folder', () => {
       return createAndRunFugl({
         package: 'dont-break-foo',
         reporter: 'none',
-        folder: path.join(__dirname, 'scratch'),
+        folder: cwd,
         projects: ['https://github.com/bahmutov/dont-break-bar.git']
       }).then(stats => {
         expect(stats, 'to satisfy', { passes: 1 });
@@ -44,16 +45,14 @@ describe('Fugl @integration', () => {
   });
 
   describe('when supplied module and noClean', () => {
-    const baseDir = path.join(__dirname, 'noclean', 'builds');
     const dir = path.join(
-      baseDir,
+      cwd,
+      'builds',
       'https-github-com-bahmutov-dont-break-bar-git'
     );
     const file = path.join(dir, 'test-file-in-checkout');
 
     beforeEach(() => {
-      rimraf.sync(baseDir);
-
       fsExtra.ensureDirSync(dir);
 
       spawn.sync(
@@ -73,7 +72,7 @@ describe('Fugl @integration', () => {
         package: 'dont-break-foo',
         reporter: 'none',
         noClean: true,
-        folder: path.join(__dirname, 'noclean'),
+        folder: cwd,
         projects: ['https://github.com/bahmutov/dont-break-bar.git']
       }).then(() => {
         expect(fs.existsSync(dir), 'to be true');
@@ -84,22 +83,17 @@ describe('Fugl @integration', () => {
   });
 
   describe('when used within a package', () => {
-    const baseDir = path.join(path.join(__dirname, 'module', 'builds'));
+    const pkg = path.join(__dirname, 'module');
     const dir = path.join(
-      baseDir,
+      cwd,
+      'builds',
       'https-github-com-bahmutov-dont-break-bar-git'
     );
 
-    beforeEach(() => {
-      rimraf.sync(baseDir);
-    });
-
     it('should have created the project folder', () => {
-      const cwd = path.join(__dirname, 'module');
-
       return createAndRunFugl({
         reporter: 'none',
-        package: cwd,
+        package: pkg,
         packageInstaller: 'link',
         folder: cwd,
         projects: ['https://github.com/bahmutov/dont-break-bar.git']
@@ -109,11 +103,9 @@ describe('Fugl @integration', () => {
     });
 
     it('should have linked the package folder', () => {
-      const cwd = path.join(__dirname, 'module');
-
       return createAndRunFugl({
         reporter: 'none',
-        package: cwd,
+        package: pkg,
         packageInstaller: 'link',
         folder: cwd,
         projects: ['https://github.com/bahmutov/dont-break-bar.git']
@@ -128,39 +120,28 @@ describe('Fugl @integration', () => {
   });
 
   describe('when reporting with html', () => {
-    beforeEach(() => {
-      rimraf.sync(path.join(__dirname, 'html', 'breakage'));
-      rimraf.sync(path.join(__dirname, 'html', 'builds'));
-    });
-
     it('should have created the module folder', () => {
       return createAndRunFugl({
         package: 'dont-break-foo',
         reporter: 'html',
-        folder: path.join(__dirname, 'html'),
+        folder: cwd,
         projects: ['https://github.com/bahmutov/dont-break-bar.git']
       }).then(() => {
-        expect(
-          fs.existsSync(path.join(__dirname, 'html', 'breakage', 'index.html')),
-          'to be true'
-        );
+        const file = path.join(cwd, 'breakage', 'index.html');
+        expect(fs.existsSync(file), 'to be true');
       });
     });
   });
 
   describe('when reporting with spec', () => {
-    beforeEach(() => {
-      rimraf.sync(path.join(__dirname, 'spec'));
-    });
-
     it('should have created the module folder', () => {
       return createAndRunFugl({
         package: 'dont-break-foo',
         reporter: 'spec',
-        folder: path.join(__dirname, 'spec'),
+        folder: cwd,
         projects: ['https://github.com/alexjeffburke/fugl-test-project']
       }).then(() => {
-        expect(fs.existsSync(path.join(__dirname, 'spec')), 'to be true');
+        expect(fs.existsSync(cwd), 'to be true');
       });
     });
   });

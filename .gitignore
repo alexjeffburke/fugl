@@ -1,6 +1,7 @@
 node_modules/
 /coverage/
 /.nyc_output/
+test/scratch/
 test/**/builds/
 test/**/breakage/
 test/**/working/
