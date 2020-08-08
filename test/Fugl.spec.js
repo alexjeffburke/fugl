@@ -611,16 +611,20 @@ describe('Fugl', () => {
         failures: 0,
         skipped: 1
       }).then(() => {
-        expect(emitSpy, 'to have a call satisfying', {
-          args: [
+        expect(emitSpy, 'to have calls satisfying', [
+          ['start'],
+          ['test begin', {}],
+          [
             'pending',
             {
               title: 'https://service.tld/foo.git (skipped)',
               duration: expect.it('to be within', 95, 110),
               isPending: expect.it('when called', 'to equal', true)
             }
-          ]
-        });
+          ],
+          ['test end', {}],
+          ['end']
+        ]);
       });
     });
   });
@@ -883,10 +887,16 @@ describe('Fugl', () => {
         passes: 0,
         failures: 1
       }).then(() => {
-        expect(emitSpy, 'to have a call satisfying', [
-          'fail',
-          { title: 'https://service.tld/foo.git (pretest)' },
-          pretestError
+        expect(emitSpy, 'to have calls satisfying', [
+          ['start'],
+          ['test begin', {}],
+          [
+            'fail',
+            { title: 'https://service.tld/foo.git (pretest)' },
+            pretestError
+          ],
+          ['test end', {}],
+          ['end']
         ]);
       });
     });
