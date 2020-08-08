@@ -70,28 +70,24 @@ function npmTest(cwd, cmd) {
   });
 }
 
-function runInFolder(folder, command, options) {
+async function runInFolder(folder, command, options) {
   options = options || {};
 
-  return Promise.resolve()
-    .then(() => {
-      assertUnemptyString(folder, 'expected folder');
-      assertUnemptyString(command, 'expected command');
-      command = command.trim();
-      assertUnemptyString(command, 'expected command');
-    })
-    .then(function() {
-      debug(`running "${command}" from ${folder}`);
-      return npmTest(folder, command);
-    })
-    .then(function() {
-      debug(`running succeeded from ${folder}`);
-      return folder;
-    })
-    .catch(error => {
-      debug(`running failed from ${folder}`);
-      throw error;
-    });
+  try {
+    assertUnemptyString(folder, 'expected folder');
+    assertUnemptyString(command, 'expected command');
+    command = command.trim();
+    assertUnemptyString(command, 'expected command');
+
+    debug(`running "${command}" from ${folder}`);
+    await npmTest(folder, command);
+
+    debug(`running succeeded from ${folder}`);
+    return folder;
+  } catch (error) {
+    debug(`running failed from ${folder}`);
+    throw error;
+  }
 }
 
 module.exports = runInFolder;
