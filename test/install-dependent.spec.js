@@ -2,9 +2,9 @@ const expect = require('unexpected')
   .clone()
   .use(require('unexpected-sinon'));
 const fs = require('fs');
+const fsExtra = require('fs-extra');
 const path = require('path');
 const sinon = require('sinon');
-const rimraf = require('rimraf');
 
 const installDependent = require('../src/install-dependent');
 
@@ -172,7 +172,7 @@ describe('installDependent', () => {
       isMocked = false;
 
       if (fs.existsSync(toFolder)) {
-        rimraf.sync(toFolder);
+        fsExtra.removeSync(toFolder);
       }
     });
 

@@ -1,8 +1,8 @@
 const spawn = require('cross-spawn');
 const expect = require('unexpected');
 const fs = require('fs');
+const fsExtra = require('fs-extra');
 const path = require('path');
-const rimraf = require('rimraf');
 
 function spawnCli(cwd, binOptions = {}, options = {}) {
   const app = path.join(__dirname, '..', 'bin', 'fugl');
@@ -79,7 +79,7 @@ describe('cli @integration', () => {
     );
 
     beforeEach(() => {
-      rimraf.sync(buildsDir);
+      fsExtra.removeSync(buildsDir);
     });
 
     it('should have created the module folder', () => {
@@ -128,7 +128,7 @@ describe('cli @integration', () => {
           error = e;
         }
 
-        rimraf.sync(checkoutDir);
+        fsExtra.removeSync(checkoutDir);
 
         if (error) {
           throw error;
@@ -167,7 +167,7 @@ describe('cli @integration', () => {
           error = e;
         }
 
-        rimraf.sync(checkoutDir);
+        fsExtra.removeSync(checkoutDir);
 
         if (error) {
           throw error;
@@ -194,7 +194,7 @@ describe('cli @integration', () => {
           error = e;
         }
 
-        rimraf.sync(reportDir);
+        fsExtra.removeSync(reportDir);
 
         if (error) {
           throw error;
@@ -250,7 +250,7 @@ describe('cli @integration', () => {
           error = e;
         }
 
-        rimraf.sync(checkoutDir);
+        fsExtra.removeSync(checkoutDir);
 
         if (error) {
           throw error;
@@ -279,7 +279,7 @@ describe('cli @integration', () => {
           error = e;
         }
 
-        rimraf.sync(buildsDir);
+        fsExtra.removeSync(buildsDir);
 
         if (error) {
           throw error;

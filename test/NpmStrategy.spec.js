@@ -1,9 +1,8 @@
 const expect = require('unexpected')
   .clone()
   .use(require('unexpected-sinon'));
-const mkdirp = require('mkdirp');
+const fsExtra = require('fs-extra');
 const path = require('path');
-const rimraf = require('rimraf');
 const sinon = require('sinon');
 
 const NpmStrategy = require('../src/NpmStrategy');
@@ -14,7 +13,7 @@ describe('NpmStrategy', () => {
   const toFolder = path.join(buildsFolder, 'example');
 
   beforeEach(() => {
-    rimraf.sync(buildsFolder);
+    fsExtra.removeSync(buildsFolder);
   });
 
   it('should default the "latest" version', () => {
@@ -52,7 +51,8 @@ describe('NpmStrategy', () => {
     const packageInstaller = new NpmStrategy('somepackage');
     const runInFolderSpy = sinon.stub().resolves();
 
-    mkdirp.sync(toFolder);
+    // create folder
+    fsExtra.mkdirpSync(toFolder);
 
     return expect(
       packageInstaller.installTo({
@@ -72,7 +72,8 @@ describe('NpmStrategy', () => {
     const packageInstaller = new NpmStrategy('somepackage');
     const runInFolderSpy = sinon.stub().resolves();
 
-    mkdirp.sync(toFolder);
+    // create folder
+    fsExtra.mkdirpSync(toFolder);
 
     return expect(
       packageInstaller.installTo(
@@ -102,7 +103,8 @@ describe('NpmStrategy', () => {
   it('should reject if execution fails', () => {
     const runInFolderSpy = sinon.stub().rejects(new Error('fail'));
 
-    mkdirp.sync(toFolder);
+    // create folder
+    fsExtra.mkdirpSync(toFolder);
 
     return expect(
       () =>

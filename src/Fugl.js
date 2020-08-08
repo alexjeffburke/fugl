@@ -4,7 +4,6 @@ var EventEmitter = require('events');
 var fs = require('fs');
 var fsExtra = require('fs-extra');
 var path = require('path');
-var mkdirp = require('mkdirp');
 
 var installDependent = require('./install-dependent');
 var LinkStrategy = require('./LinkStrategy');
@@ -324,12 +323,12 @@ class Fugl extends EventEmitter {
     const options = this.options;
 
     if (!fs.existsSync(options.folder)) {
-      mkdirp.sync(options.folder);
+      fsExtra.mkdirpSync(options.folder);
     }
 
     if (options.osTmpDir) {
       if (!fs.existsSync(options.tmpDir)) {
-        mkdirp.sync(options.tmpDir);
+        fsExtra.mkdirpSync(options.tmpDir);
       }
 
       if (IS_PLATFORM_WHIMSY) {

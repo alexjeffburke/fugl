@@ -1,7 +1,7 @@
 const debug = require('./debug').extend('LinkStrategy');
 const fs = require('fs');
+const fsExtra = require('fs-extra');
 const path = require('path');
-const rimraf = require('rimraf');
 
 const packageCheck = require('./package-check');
 
@@ -27,7 +27,7 @@ class LinkStrategy {
     const modulePackagePath = path.join(nodeModulesPath, this.packageName);
 
     try {
-      rimraf.sync(modulePackagePath);
+      fsExtra.removeSync(modulePackagePath);
     } catch (err) {
       return Promise.reject(err);
     }

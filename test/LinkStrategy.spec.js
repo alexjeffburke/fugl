@@ -1,8 +1,7 @@
 const expect = require('unexpected');
 const fs = require('fs');
-const mkdirp = require('mkdirp');
+const fsExtra = require('fs-extra');
 const path = require('path');
-const rimraf = require('rimraf');
 
 const LinkStrategy = require('../src/LinkStrategy');
 
@@ -13,11 +12,12 @@ describe('LinkStrategy', () => {
   const nodeModulesDir = path.join(toFolder, 'node_modules');
 
   beforeEach(() => {
-    rimraf.sync(buildsFolder);
+    fsExtra.removeSync(buildsFolder);
   });
 
   it('should succeed linking into present node_modules', () => {
-    mkdirp.sync(nodeModulesDir);
+    // create folder
+    fsExtra.mkdirpSync(nodeModulesDir);
 
     return expect(
       () => new LinkStrategy(moduleDir).installTo({ toFolder }),
@@ -31,7 +31,8 @@ describe('LinkStrategy', () => {
 
   it('should succeed linking over existing link', () => {
     // create folder
-    mkdirp.sync(nodeModulesDir);
+    fsExtra.mkdirpSync(nodeModulesDir);
+
     // create a symlink
     fs.symlinkSync(
       path.join(__dirname, 'module'),
@@ -66,7 +67,8 @@ describe('LinkStrategy', () => {
       const toFolder = path.join(buildsFolder, 'example');
       const nodeModulesDir = path.join(toFolder, 'node_modules');
 
-      mkdirp.sync(nodeModulesDir);
+      // create folder
+      fsExtra.mkdirpSync(nodeModulesDir);
 
       return expect(
         () => new LinkStrategy(moduleWithBinariesDir).installTo({ toFolder }),
@@ -85,7 +87,7 @@ describe('LinkStrategy', () => {
           expect(realPath, 'to equal', originalBinPath);
         })
         .finally(() => {
-          rimraf.sync(buildsFolder);
+          fsExtra.removeSync(buildsFolder);
         });
     });
   });

@@ -2,8 +2,7 @@
 
 var debug = require('./debug').extend('installDependent');
 var fs = require('fs');
-var mkdirp = require('mkdirp');
-var rimraf = require('rimraf');
+var fsExtra = require('fs-extra');
 
 var runInFolder = require('./run-in-folder');
 var withTimeout = require('./withTimeout');
@@ -11,17 +10,17 @@ var withTimeout = require('./withTimeout');
 var DEFAULT_INSTALL_COMMAND = 'npm install';
 var INSTALL_TIMEOUT_SECONDS = 2 * 60 * 1000; // 2 minutes
 
-function createFolder(folder) {
+async function createFolder(folder) {
   if (!fs.existsSync(folder)) {
     debug('creating folder %s', folder);
-    mkdirp.sync(folder);
+    await fsExtra.mkdirp(folder);
   }
 }
 
-function removeFolder(folder) {
+async function removeFolder(folder) {
   if (fs.existsSync(folder)) {
     debug('removing folder %s', folder);
-    rimraf.sync(folder);
+    await fsExtra.remove(folder);
   }
 }
 
@@ -35,8 +34,8 @@ async function provisionModule(options) {
 
     debug('updated %s', moduleName);
   } else {
-    removeFolder(toFolder);
-    createFolder(toFolder);
+    await removeFolder(toFolder);
+    await createFolder(toFolder);
 
     debug('cloning repo %s', moduleName);
 

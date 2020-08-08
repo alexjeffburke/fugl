@@ -2,7 +2,6 @@ const expect = require('unexpected')
   .clone()
   .use(require('unexpected-sinon'));
 const path = require('path');
-const rimraf = require('rimraf');
 const sinon = require('sinon');
 
 const Fugl = require('../src/Fugl');
@@ -13,10 +12,6 @@ const Project = require('../src/Project');
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 describe('Fugl', () => {
-  beforeEach(() => {
-    rimraf.sync(path.join(__dirname, 'scratch', 'builds'));
-  });
-
   it('should error with missing options', () => {
     return expect(
       () => {
