@@ -25,7 +25,7 @@ function toLines(spy) {
     const msg = args.length > 0 ? args[0] : '';
     lines.push(`${msg}\n`);
   }
-  return lines.join('');
+  return lines;
 }
 
 describe('Fugl @integration', () => {
@@ -149,11 +149,10 @@ describe('Fugl @integration', () => {
         projects: ['https://github.com/alexjeffburke/fugl-test-project']
       });
 
-      expect(
-        toLines(fakeConsole.log),
-        'to equal snapshot',
-        '\n  https://github.com/alexjeffburke/fugl-test-project PASSED\n'
-      );
+      expect(toLines(fakeConsole.log), 'to equal snapshot', [
+        '\n',
+        '  https://github.com/alexjeffburke/fugl-test-project PASSED\n'
+      ]);
     });
   });
 
@@ -190,11 +189,10 @@ describe('Fugl @integration', () => {
         projects: ['https://github.com/alexjeffburke/fugl-test-project']
       });
 
-      expect(
-        toLines(fakeConsole.warn),
-        'to equal snapshot',
-        '\n  https://github.com/alexjeffburke/fugl-test-project PASSED\n'
-      );
+      expect(toLines(fakeConsole.warn), 'to equal snapshot', [
+        '\n',
+        '  https://github.com/alexjeffburke/fugl-test-project PASSED\n'
+      ]);
     });
   });
 
