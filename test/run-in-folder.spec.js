@@ -2,7 +2,6 @@ const AssertionError = require('assert').AssertionError;
 const expect = require('unexpected');
 const fsExtra = require('fs-extra');
 const path = require('path');
-const rimraf = require('rimraf');
 const spawn = require('cross-spawn');
 
 const runInFolder = require('../src/run-in-folder');
@@ -43,9 +42,7 @@ describe('runInFolder', () => {
     const toFolder = path.join(baseDir, 'builds', 'run-in-folder');
 
     beforeEach(() => {
-      rimraf.sync(baseDir);
-
-      fsExtra.ensureDirSync(toFolder);
+      fsExtra.emptyDirSync(toFolder);
 
       spawn.sync(
         'git',
