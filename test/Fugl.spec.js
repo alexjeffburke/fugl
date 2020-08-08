@@ -943,10 +943,10 @@ describe('Fugl', () => {
         package: 'somepackage',
         folder: baseDir,
         projects: [],
-        reporter: 'spec'
+        reporter: 'none'
       });
 
-      expect(fugl.options, 'to satisfy', { reporter: 'spec' });
+      expect(fugl.options, 'to satisfy', { reporter: 'none' });
     });
 
     it('should allow pretest', () => {
