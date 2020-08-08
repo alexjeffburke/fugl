@@ -226,8 +226,7 @@ class Fugl extends EventEmitter {
     return testDependent(options, dependent);
   }
 
-  async testDependents() {
-    const options = this.options;
+  async testDependents(options) {
     const config = this.config;
 
     if (config.projects.length === 0) {
@@ -341,7 +340,7 @@ class Fugl extends EventEmitter {
     debug('package: %s', options.package);
     debug('folder: %s', options.folder);
 
-    return this.testDependents();
+    return this.testDependents(options);
   }
 }
 
