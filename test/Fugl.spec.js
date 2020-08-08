@@ -304,7 +304,7 @@ describe('Fugl', () => {
           'pass',
           {
             title: 'https://service.tld/foo.git',
-            duration: expect.it('to be within', 95, 110),
+            duration: expect.it('to be greater than or equal to', 95),
             isPending: expect.it('when called', 'to equal', false)
           }
         ],
@@ -356,7 +356,7 @@ describe('Fugl', () => {
           'pass',
           {
             title: 'somepackage-plugin-foo',
-            duration: expect.it('to be within', 0, 5),
+            duration: expect.it('to be greater than or equal to', 0),
             isPending: expect.it('when called', 'to equal', false)
           }
         ],
@@ -618,7 +618,7 @@ describe('Fugl', () => {
             'pending',
             {
               title: 'https://service.tld/foo.git (skipped)',
-              duration: expect.it('to be within', 95, 110),
+              duration: expect.it('to be greater than or equal to', 95),
               isPending: expect.it('when called', 'to equal', true)
             }
           ],
