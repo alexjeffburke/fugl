@@ -288,7 +288,8 @@ class Fugl extends EventEmitter {
     }
 
     if ((!reporter && options.reporter === 'console') || options.ci) {
-      const print = options.ci ? console.warn : console.log;
+      const cons = options._cons || console;
+      const print = options.ci ? cons.warn : cons.log;
 
       emitter.once('start', () => print());
       emitter.on('pass', test => print(`  ${test.title} PASSED`));
@@ -318,8 +319,8 @@ class Fugl extends EventEmitter {
     return stats;
   }
 
-  run() {
-    const options = this.options;
+  run(options) {
+    options = { ...this.options, ...options };
 
     if (!fs.existsSync(options.folder)) {
       fsExtra.mkdirpSync(options.folder);

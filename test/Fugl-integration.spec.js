@@ -1,9 +1,11 @@
 const expect = require('unexpected')
   .clone()
-  .use(require('unexpected-sinon'));
+  .use(require('unexpected-sinon'))
+  .use(require('unexpected-snapshot'));
 const fs = require('fs');
 const fsExtra = require('fs-extra');
 const path = require('path');
+const sinon = require('sinon');
 const spawn = require('cross-spawn');
 
 const Fugl = require('../src/Fugl');
@@ -16,11 +18,25 @@ function createAndRunFugl(options) {
   }
 }
 
+function toLines(spy) {
+  const lines = [];
+  for (const call of spy.getCalls()) {
+    const { args } = call;
+    const msg = args.length > 0 ? args[0] : '';
+    lines.push(`${msg}\n`);
+  }
+  return lines.join('');
+}
+
 describe('Fugl @integration', () => {
   const cwd = path.join(__dirname, 'scratch');
 
   beforeEach(() => {
     return fsExtra.remove(cwd);
+  });
+
+  afterEach(() => {
+    sinon.restore();
   });
 
   describe('when supplied module', () => {
@@ -119,30 +135,100 @@ describe('Fugl @integration', () => {
     });
   });
 
+  describe('when reporting with console', () => {
+    it('should output to stdout', async () => {
+      const fakeConsole = {
+        log: sinon.stub().named('console.log')
+      };
+
+      await createAndRunFugl({
+        _cons: fakeConsole,
+        package: 'dont-break-foo',
+        reporter: 'console',
+        folder: cwd,
+        projects: ['https://github.com/alexjeffburke/fugl-test-project']
+      });
+
+      expect(
+        toLines(fakeConsole.log),
+        'to equal snapshot',
+        '\n  https://github.com/alexjeffburke/fugl-test-project PASSED\n'
+      );
+    });
+  });
+
+  describe('when reporting with none', () => {
+    it('should not output', async () => {
+      const fakeConsole = {
+        log: sinon.stub().named('console.log'),
+        warn: sinon.stub().named('console.warn')
+      };
+
+      await createAndRunFugl({
+        _cons: fakeConsole,
+        package: 'dont-break-foo',
+        reporter: 'none',
+        folder: cwd,
+        projects: ['https://github.com/alexjeffburke/fugl-test-project']
+      });
+
+      expect(fakeConsole.log, 'was not called');
+      expect(fakeConsole.warn, 'was not called');
+    });
+
+    it('should output to stderr when ci=true', async () => {
+      const fakeConsole = {
+        warn: sinon.stub().named('console.warn')
+      };
+
+      await createAndRunFugl({
+        _cons: fakeConsole,
+        package: 'dont-break-foo',
+        reporter: 'none',
+        ci: true,
+        folder: cwd,
+        projects: ['https://github.com/alexjeffburke/fugl-test-project']
+      });
+
+      expect(
+        toLines(fakeConsole.warn),
+        'to equal snapshot',
+        '\n  https://github.com/alexjeffburke/fugl-test-project PASSED\n'
+      );
+    });
+  });
+
   describe('when reporting with html', () => {
-    it('should have created the module folder', () => {
-      return createAndRunFugl({
+    it('should have created the module folder', async () => {
+      await createAndRunFugl({
         package: 'dont-break-foo',
         reporter: 'html',
         folder: cwd,
         projects: ['https://github.com/bahmutov/dont-break-bar.git']
-      }).then(() => {
-        const file = path.join(cwd, 'breakage', 'index.html');
-        expect(fs.existsSync(file), 'to be true');
       });
+
+      const file = path.join(cwd, 'breakage', 'index.html');
+      expect(fs.existsSync(file), 'to be true');
     });
   });
 
   describe('when reporting with spec', () => {
-    it('should have created the module folder', () => {
-      return createAndRunFugl({
+    it('should output to stdout', async () => {
+      const reporterBaseClass = require('mocha/lib/reporters/base');
+      const logStub = sinon.stub(reporterBaseClass, 'consoleLog');
+      const fakeConsole = {
+        log: logStub
+      };
+
+      await createAndRunFugl({
+        _cons: fakeConsole,
         package: 'dont-break-foo',
         reporter: 'spec',
         folder: cwd,
         projects: ['https://github.com/alexjeffburke/fugl-test-project']
-      }).then(() => {
-        expect(fs.existsSync(cwd), 'to be true');
       });
+
+      expect(fakeConsole.log, 'was called');
     });
   });
 });
