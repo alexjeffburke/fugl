@@ -136,14 +136,16 @@ describe('Fugl @integration', () => {
   });
 
   describe('when reporting with console', () => {
-    it('should output to stdout', async () => {
+    it('should output to stdout on a pass', async () => {
+      const pkg = path.join(__dirname, 'integration-test-pass');
       const fakeConsole = {
         log: sinon.stub().named('console.log')
       };
 
       await createAndRunFugl({
         _cons: fakeConsole,
-        package: 'dont-break-foo',
+        package: pkg,
+        packageInstaller: 'link',
         reporter: 'console',
         folder: cwd,
         projects: ['https://github.com/alexjeffburke/fugl-test-project']
@@ -152,6 +154,74 @@ describe('Fugl @integration', () => {
       expect(toLines(fakeConsole.log), 'to equal snapshot', [
         '\n',
         '  https://github.com/alexjeffburke/fugl-test-project PASSED\n'
+      ]);
+    });
+
+    it('should output to stdout on a fail', async () => {
+      const pkg = path.join(__dirname, 'integration-test-fail');
+      const fakeConsole = {
+        log: sinon.stub().named('console.log')
+      };
+
+      await createAndRunFugl({
+        _cons: fakeConsole,
+        package: pkg,
+        packageInstaller: 'link',
+        reporter: 'console',
+        folder: cwd,
+        projects: ['https://github.com/alexjeffburke/fugl-test-project']
+      });
+
+      expect(toLines(fakeConsole.log), 'to satisfy', [
+        '\n',
+        '  https://github.com/alexjeffburke/fugl-test-project FAILED\n',
+        /^Error: Test Failure/
+      ]);
+    });
+
+    it('should output to stdout on a fail (pretest)', async () => {
+      const pkg = path.join(__dirname, 'integration-test-fail');
+      const fakeConsole = {
+        log: sinon.stub().named('console.log')
+      };
+
+      await createAndRunFugl({
+        _cons: fakeConsole,
+        package: pkg,
+        packageInstaller: 'link',
+        pretest: true,
+        reporter: 'console',
+        folder: cwd,
+        projects: ['https://github.com/alexjeffburke/fugl-test-project-bar']
+      });
+
+      expect(toLines(fakeConsole.log), 'to satisfy', [
+        '\n',
+        '  https://github.com/alexjeffburke/fugl-test-project-bar (pretest) FAILED\n',
+        /^Error: Test Failure/
+      ]);
+    });
+
+    it('should output to stdout on a skip', async () => {
+      const pkg = path.join(__dirname, 'integration-test-fail');
+      const fakeConsole = {
+        log: sinon.stub().named('console.log')
+      };
+
+      await createAndRunFugl({
+        _cons: fakeConsole,
+        package: pkg,
+        packageInstaller: 'link',
+        pretest: true,
+        pretestOrIgnore: true,
+        reporter: 'console',
+        folder: cwd,
+        projects: ['https://github.com/alexjeffburke/fugl-test-project-bar']
+      });
+
+      expect(toLines(fakeConsole.log), 'to equal snapshot', [
+        '\n',
+        '  https://github.com/alexjeffburke/fugl-test-project-bar (skipped) SKIPPED\n'
       ]);
     });
   });
