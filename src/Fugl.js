@@ -8,6 +8,7 @@ var path = require('path');
 var installDependent = require('./install-dependent');
 var LinkStrategy = require('./LinkStrategy');
 var NpmStrategy = require('./NpmStrategy');
+var TarballStrategy = require('./TarballStrategy');
 var Project = require('./Project');
 var testDependent = require('./test-dependent');
 
@@ -107,6 +108,9 @@ class Fugl extends EventEmitter {
         break;
       case 'npm':
         this.packageInstaller = new NpmStrategy(options.package);
+        break;
+      case 'tarball':
+        this.packageInstaller = new TarballStrategy(options.package);
         break;
       default:
         throw new Error(

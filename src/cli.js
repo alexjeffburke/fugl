@@ -11,6 +11,7 @@ exports.check = function check(cwd, yargv, options) {
     folder: yargv.folder || cwd,
     projects: yargv.projects,
     reporter: yargv.reporter,
+    packageInstaller: yargv.packageInstaller,
     pretest: yargv.pretest,
     pretestOrIgnore: yargv.pretestOrIgnore,
     reportSuffix: yargv.reportSuffix,

@@ -18,6 +18,12 @@ const configureCheck = config => yargs =>
       describe:
         'The package to install for testing: <packageName>@<packageVersion>'
     })
+    .option('package-installer', {
+      hidden: true,
+      type: 'string',
+      choices: ['npm', 'link', 'tarball'],
+      describe: 'The strategy by which the supplied package should be installed'
+    })
     .option('projects', {
       type: 'array',
       demandOption: true,

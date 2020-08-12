@@ -287,4 +287,36 @@ describe('cli @integration', () => {
       });
     });
   });
+
+  describe('when used with a package tarball', () => {
+    const dir = path.join(__dirname, 'cli-tarball');
+    const buildsDir = path.join(dir, 'builds');
+
+    beforeEach(() => {
+      fsExtra.removeSync(buildsDir);
+    });
+
+    it('should succeed', async () => {
+      const checkoutDir = path.join(
+        buildsDir,
+        'https-github-com-alexjeffburke-fugl-test-project'
+      );
+      const tarballPath = path.join(dir, 'dont-break-foo-0.0.1.tgz');
+
+      await spawnCli(dir, {
+        folder: dir, // sidestep tmpDir use
+        package: tarballPath,
+        packageInstaller: 'tarball',
+        projects: ['https://github.com/alexjeffburke/fugl-test-project']
+      });
+
+      const outputPath = path.join(
+        checkoutDir,
+        'node_modules',
+        'dont-break-foo'
+      );
+      const stat = fs.statSync(outputPath);
+      expect(stat.isDirectory(), 'to be true');
+    });
+  });
 });
