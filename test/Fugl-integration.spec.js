@@ -135,8 +135,16 @@ describe('Fugl @integration', () => {
     });
   });
 
+  const isNode10 = /^v10\./.test(process.version);
+  const isTravisWindows =
+    process.env.TRAVIS === 'true' && process.platform === 'win32';
+
   describe('when reporting with console', () => {
-    it('should output to stdout on a pass', async () => {
+    it('should output to stdout on a pass', async function() {
+      if (isTravisWindows && isNode10) {
+        this.skip();
+      }
+
       const pkg = path.join(__dirname, 'integration-test-pass');
       const fakeConsole = {
         log: sinon.stub().named('console.log')
