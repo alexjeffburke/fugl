@@ -39,7 +39,7 @@ function spawnCli(cwd, binOptions = {}, options = {}) {
       return error;
     };
 
-    spawnedCli.on('error', err => {
+    spawnedCli.on('error', () => {
       if (sawExit) {
         return;
       }

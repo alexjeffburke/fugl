@@ -26,7 +26,7 @@ function npmTest(cwd, args) {
 
   return new Promise((resolve, reject) => {
     const npm = spawn(app, args, { cwd });
-    let output = [];
+    const output = [];
 
     npm.stdout.on('data', data => {
       output.push(data);
