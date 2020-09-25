@@ -1,5 +1,5 @@
 const config = {
-  extends: ['pretty-standard'],
+  extends: ['standard', 'prettier', 'prettier/standard'],
   plugins: ['import'],
   rules: {
     'import/no-extraneous-dependencies': ['error'],
@@ -13,6 +13,9 @@ const config = {
   overrides: [
     {
       files: ['*.spec.js'],
+      env: {
+        mocha: true
+      },
       rules: {
         'no-new': 'off'
       }
