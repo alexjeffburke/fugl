@@ -101,10 +101,11 @@ describe('testDependent', () => {
       ),
       'to be fulfilled'
     ).then(() => {
-      expect(runInFolderSpy, 'was called times', 2).and(
-        'to have all calls satisfying',
-        [toFolder, 'npm test']
-      );
+      expect(
+        runInFolderSpy,
+        'was called times',
+        2
+      ).and('to have all calls satisfying', [toFolder, 'npm test']);
     });
   });
 
@@ -127,13 +128,14 @@ describe('testDependent', () => {
       ),
       'to be fulfilled'
     ).then(() => {
-      expect(packageInstaller.installTo, 'was called times', 1).and(
-        'to have a call exhaustively satisfying',
-        [
-          { toFolder },
-          { pretest: true, name: 'FOO', projects: [{ name: 'FOO' }] }
-        ]
-      );
+      expect(
+        packageInstaller.installTo,
+        'was called times',
+        1
+      ).and('to have a call exhaustively satisfying', [
+        { toFolder },
+        { pretest: true, name: 'FOO', projects: [{ name: 'FOO' }] }
+      ]);
     });
   });
 
