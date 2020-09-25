@@ -175,26 +175,28 @@ describe('cli @integration', () => {
       });
     });
 
-    it('should have written an HTML report to a suffixed directory', function() {
+    it('should have written an HTML report to a custom directory', function() {
       if (isTravisWindows) {
         this.skip();
       }
 
-      const reportDir = path.join(dir, 'breakage', 'subfolder');
+      const breakagePath = path.join(dir, 'nested');
+      const reportPath = path.join(breakagePath, 'report');
+      const file = path.join(reportPath, 'index.html');
 
       return spawnCli(dir, {
         reporter: 'html',
         projects: ['https://github.com/bahmutov/dont-break-bar'],
-        reportSuffix: 'subfolder'
+        reportPath
       }).then(() => {
         let error;
         try {
-          expect(fs.existsSync(reportDir), 'to be true');
+          expect(fs.existsSync(file), 'to be true');
         } catch (e) {
           error = e;
         }
 
-        fsExtra.removeSync(reportDir);
+        fsExtra.removeSync(breakagePath);
 
         if (error) {
           throw error;

@@ -38,11 +38,10 @@ const configureCheck = config => yargs =>
       describe:
         'Toggle whether to ignore a module package test on a pretest failure.'
     })
-    .option('report-suffix', {
-      alias: 'reportSuffix',
+    .option('report-path', {
+      alias: 'reportPath',
       type: 'string',
-      describe:
-        'An additional suffix to add to the default report output directory.'
+      describe: 'The directory into which to write the breakage report.'
     })
     .option('timeout', {
       type: 'number',

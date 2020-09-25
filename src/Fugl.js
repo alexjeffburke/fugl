@@ -76,11 +76,9 @@ class Fugl extends EventEmitter {
       typeof options.pretest === 'undefined' ? true : !!options.pretest;
     options.pretestOrIgnore = options.pretestOrIgnore || false;
     options.reporter = options.reporter || 'console';
-    const reportSuffix =
-      typeof options.reportSuffix === 'string' ? options.reportSuffix : '';
     options.reportDir = options.reportDir
       ? path.resolve(options.reportDir)
-      : path.resolve(options.folder, 'breakage', reportSuffix);
+      : path.resolve(options.folder, 'breakage');
     options.tmpDir = options.tmpDir
       ? path.resolve(options.tmpDir, 'builds')
       : path.resolve(options.folder, 'builds');

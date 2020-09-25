@@ -974,20 +974,6 @@ describe('Fugl', () => {
       expect(fugl.options, 'to satisfy', { reportDir });
     });
 
-    it('should allow reportSuffix', () => {
-      const baseDir = path.resolve(__dirname);
-      const fugl = new Fugl({
-        package: 'somepackage',
-        folder: baseDir,
-        projects: [],
-        reportSuffix: 'report'
-      });
-
-      expect(fugl.options, 'to satisfy', {
-        reportDir: path.join(baseDir, 'breakage', 'report')
-      });
-    });
-
     it('should allow tmpDir', () => {
       const baseDir = path.resolve(__dirname);
       const tmpDir = path.join(baseDir, 'tmp');

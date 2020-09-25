@@ -275,7 +275,7 @@ describe('Fugl @integration', () => {
   });
 
   describe('when reporting with html', () => {
-    it('should have created the module folder', async () => {
+    it('should have written an HTML report', async () => {
       await createAndRunFugl({
         package: 'dont-break-foo',
         reporter: 'html',
