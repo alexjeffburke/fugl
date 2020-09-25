@@ -36,7 +36,6 @@
     "eslint-plugin-prettier": "^3.0.1",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
-    "if-node-version": "^1.1.1",
     "nyc": "^15.1.0",
     "prettier": "~1.19.1",
     "sinon": "^7.2.3",
