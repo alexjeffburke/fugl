@@ -57,6 +57,22 @@ describe('LinkStrategy', () => {
     );
   });
 
+  it('should error linking into missing node_modules', () => {
+    // create folder
+    fsExtra.mkdirpSync(nodeModulesDir);
+
+    const strategy = new LinkStrategy(moduleDir);
+
+    // set an invalid path so creating the symlink fails
+    strategy.packagePath = path.join(__dirname, 'module-missing');
+
+    return expect(
+      () => strategy.installTo({ toFolder }),
+      'to be rejected with',
+      'Link Failure: unable to link package'
+    );
+  });
+
   describe('when the package has binaries', () => {
     it('should link the binaries into node_modules', () => {
       const moduleWithBinariesDir = path.join(

@@ -27,6 +27,7 @@ class LinkStrategy {
     await fsExtra.remove(modulePackagePath);
 
     try {
+      fs.statSync(this.packagePath);
       fs.symlinkSync(this.packagePath, modulePackagePath);
 
       debug('package linking succeeded');
