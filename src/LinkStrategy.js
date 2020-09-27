@@ -15,22 +15,16 @@ class LinkStrategy {
     this.packageBinaries = checkedPackages.bin || {};
   }
 
-  installTo(options) {
+  async installTo(options) {
     const nodeModulesPath = path.join(options.toFolder, 'node_modules');
 
     if (!fs.existsSync(nodeModulesPath)) {
-      return Promise.reject(
-        new Error('Link Failure: cannot link into missing node_modules')
-      );
+      throw new Error('Link Failure: cannot link into missing node_modules');
     }
 
     const modulePackagePath = path.join(nodeModulesPath, this.packageName);
 
-    try {
-      fsExtra.removeSync(modulePackagePath);
-    } catch (err) {
-      return Promise.reject(err);
-    }
+    await fsExtra.remove(modulePackagePath);
 
     try {
       fs.symlinkSync(this.packagePath, modulePackagePath);
@@ -46,7 +40,7 @@ class LinkStrategy {
 
       debug('package linking failed', err);
 
-      return Promise.reject(error);
+      throw error;
     }
 
     const binaryNames = Object.keys(this.packageBinaries);
@@ -71,8 +65,6 @@ class LinkStrategy {
         debug(`package linking failed for binary ${binaryName}`, err);
       }
     });
-
-    return Promise.resolve();
   }
 }
 

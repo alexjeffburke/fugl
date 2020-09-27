@@ -45,13 +45,13 @@ class NpmStrategy {
     }
   }
 
-  installTo(options, overrides) {
+  async installTo(options, overrides) {
     const performInstall = options._runInFolder || runInFolder;
     const installDir = options.toFolder;
 
     if (!fs.existsSync(installDir)) {
-      return Promise.reject(
-        new Error('Install Failure: cannot npm install into missing folder')
+      throw new Error(
+        'Install Failure: cannot npm install into missing folder'
       );
     }
 
@@ -60,14 +60,13 @@ class NpmStrategy {
       overrides.postinstall ||
       `npm install ${this.packageName}@${this.packageVersion}`;
 
-    return performInstall(installDir, installCommand)
-      .then(() => {
-        debug('postinstall succeeded');
-      })
-      .catch(err => {
-        debug('postinstall failed', err);
-        throw new Error('Install Failure: unable to npm install package');
-      });
+    try {
+      await performInstall(installDir, installCommand);
+      debug('postinstall succeeded');
+    } catch (err) {
+      debug('postinstall failed', err);
+      throw new Error('Install Failure: unable to npm install package');
+    }
   }
 }
 
