@@ -136,12 +136,12 @@ describe('Fugl @integration', () => {
   });
 
   const isNode10 = /^v10\./.test(process.version);
-  const isTravisWindows =
-    process.env.TRAVIS === 'true' && process.platform === 'win32';
+  const isCiWindows =
+    process.env.GITHUB_ACTIONS === 'true' && process.platform === 'win32';
 
   describe('when reporting with console', () => {
     it('should output to stdout on a pass', async function() {
-      if (isTravisWindows && isNode10) {
+      if (isCiWindows && isNode10) {
         this.skip();
       }
 

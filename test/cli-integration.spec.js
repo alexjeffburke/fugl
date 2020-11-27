@@ -94,14 +94,15 @@ describe('cli @integration', () => {
     });
   });
 
-  const isTravisWindows =
-    process.env.TRAVIS === 'true' && process.platform === 'win32';
+  const isNode10 = /^v10\./.test(process.version);
+  const isCiWindows =
+    process.env.GITHUB_ACTIONS === 'true' && process.platform === 'win32';
 
   describe('when used with a package', () => {
     const dir = path.join(path.join(__dirname, 'cli-package'));
 
     it('should have created the module folder in the specified folder', function() {
-      if (isTravisWindows) {
+      if (isCiWindows && isNode10) {
         this.skip();
       }
 
@@ -137,7 +138,7 @@ describe('cli @integration', () => {
     });
 
     it('should have created the module folder in os.tmpdir()', function() {
-      if (isTravisWindows) {
+      if (isCiWindows && isNode10) {
         this.skip();
       }
 
@@ -176,7 +177,7 @@ describe('cli @integration', () => {
     });
 
     it('should have written an HTML report to a custom directory', function() {
-      if (isTravisWindows) {
+      if (isCiWindows && isNode10) {
         this.skip();
       }
 
@@ -207,10 +208,6 @@ describe('cli @integration', () => {
 
   describe('when used with stdin', () => {
     it('should accept JSON', function() {
-      if (isTravisWindows) {
-        this.skip();
-      }
-
       const dir = path.join(path.join(__dirname, 'cli-projects'));
       const cli = spawnCli(dir, {}, { stdin: true });
 
@@ -224,7 +221,7 @@ describe('cli @integration', () => {
     });
 
     it('should accept project name strings', function() {
-      if (isTravisWindows) {
+      if (isCiWindows && isNode10) {
         this.skip();
       }
 
@@ -263,10 +260,6 @@ describe('cli @integration', () => {
 
   describe('when used with the spec reporter', () => {
     it('should handle failure', function() {
-      if (isTravisWindows) {
-        this.skip();
-      }
-
       const dir = path.join(__dirname, 'cli-failure');
       const buildsDir = path.join(dir, 'builds');
 
