@@ -1,10 +1,19 @@
 #!/usr/bin/env node
 
 const getStdin = require('get-stdin');
-const wrap = require('@gustavnikolaj/async-main-wrap');
 const yargs = require('yargs');
 
 const cli = require('../src/cli');
+
+function exitWithError(err) {
+  console.error(process.env.DEBUG ? err.stack : String(err));
+
+  if (typeof err.exitCode === 'number') {
+    process.exit(err.exitCode);
+  }
+
+  process.exit(1);
+}
 
 const configureCheck = config => yargs =>
   yargs
@@ -88,4 +97,10 @@ const processStdinThenArgvAndExecute = cwd =>
     return cli.check(cwd, argv);
   });
 
-wrap(processStdinThenArgvAndExecute)(process.cwd());
+(async () => {
+  try {
+    await processStdinThenArgvAndExecute(process.cwd());
+  } catch (e) {
+    exitWithError(e);
+  }
+})();
